@@ -12,7 +12,7 @@ import { PLAN_CONFIG, marketingCeilingsFor } from "../lib/plans";
 import QualifyDemo from "../components/landing/QualifyDemo";
 import VoiceTestDemo from "../components/landing/VoiceTestDemo";
 
-const CALENDLY_URL = process.env.NEXT_PUBLIC_CALENDLY_URL || "https://calendly.com";
+const CALENDLY_URL = "https://calendly.com/gnxsales-support/30min";
 
 export default function LandingPage() {
   const router = useRouter();
