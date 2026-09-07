@@ -52,7 +52,7 @@ const sections = [
   },
   {
     title: "8. Contact",
-    body: "Privacy questions can be sent to support@globonexo.com.",
+    body: "Privacy questions can be sent to support@gnxsales.com.",
   },
 ];
 

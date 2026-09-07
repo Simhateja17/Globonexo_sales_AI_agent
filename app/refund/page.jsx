@@ -32,7 +32,7 @@ const sections = [
   },
   {
     title: "7. How to Request a Refund",
-    body: "Email support@globonexo.com from the address on your account with the organization name, invoice or charge date, and the reason for the request. We respond to refund requests within 3 business days.",
+    body: "Email support@gnxsales.com from the address on your account with the organization name, invoice or charge date, and the reason for the request. We respond to refund requests within 3 business days.",
   },
   {
     title: "8. Approved Refunds",
@@ -44,7 +44,7 @@ const sections = [
   },
   {
     title: "10. Contact",
-    body: "Billing and refund questions can be sent to support@globonexo.com.",
+    body: "Billing and refund questions can be sent to support@gnxsales.com.",
   },
 ];
 

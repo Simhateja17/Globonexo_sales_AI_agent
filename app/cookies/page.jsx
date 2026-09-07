@@ -44,7 +44,7 @@ const sections = [
   },
   {
     title: "10. Contact",
-    body: "Questions about cookies can be sent to support@globonexo.com.",
+    body: "Questions about cookies can be sent to support@gnxsales.com.",
   },
 ];
 

@@ -64,7 +64,7 @@ export default function PublicFooter() {
       </div>
       <div className="public-footer-base">
         <span>© 2026 Globonexo, Inc.</span>
-        <a href="mailto:support@globonexo.com">support@globonexo.com</a>
+        <a href="mailto:support@gnxsales.com">support@gnxsales.com</a>
       </div>
     </footer>
   );

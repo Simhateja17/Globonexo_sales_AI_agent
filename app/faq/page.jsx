@@ -119,7 +119,7 @@ const groups = [
       },
       {
         q: "Can I delete my data?",
-        a: "Yes. You can disconnect integrations at any time and request account deletion by writing to support@globonexo.com. See the Privacy Policy for retention detail.",
+        a: "Yes. You can disconnect integrations at any time and request account deletion by writing to support@gnxsales.com. See the Privacy Policy for retention detail.",
       },
     ],
   },

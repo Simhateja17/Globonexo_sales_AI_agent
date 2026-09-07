@@ -145,7 +145,7 @@ export default function HelpPage() {
           </div>
           <div className="content-cta-actions">
             <Link className="btn btn-dark" href="/contact">Contact support</Link>
-            <a className="btn btn-ghost" href="mailto:support@globonexo.com">Email us</a>
+            <a className="btn btn-ghost" href="mailto:support@gnxsales.com">Email us</a>
           </div>
         </section>
       </main>

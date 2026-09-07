@@ -64,7 +64,7 @@ const sections = [
   },
   {
     title: "15. Contact and Legal Review",
-    body: "Questions about these Terms can be sent to support@globonexo.com. These online Terms describe the operational allocation of responsibility for GNX Sales; organization-specific order forms or signed agreements control if they expressly conflict with these Terms.",
+    body: "Questions about these Terms can be sent to support@gnxsales.com. These online Terms describe the operational allocation of responsibility for GNX Sales; organization-specific order forms or signed agreements control if they expressly conflict with these Terms.",
   },
 ];
 
