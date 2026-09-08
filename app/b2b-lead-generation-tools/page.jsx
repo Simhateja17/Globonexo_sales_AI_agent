@@ -101,6 +101,7 @@ const faqs = [
 export default function B2bLeadGenerationToolsPage() {
   return (
     <GuideLayout
+      breadcrumb={[{ name: "B2B lead generation tools", path: "/b2b-lead-generation-tools" }]}
       eyebrow="Practical guide"
       title="B2B lead generation tools, layer by layer."
       intro="A working B2B lead generation stack has eight layers. Most teams buy six tools to cover them, pay six bills, and lose the prospect's context somewhere between the third and the fourth. Here is what each layer does, where the money leaks, and how to run the whole thing as one motion."

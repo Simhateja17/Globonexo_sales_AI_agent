@@ -15,6 +15,7 @@ import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
 import PublicFooter from "../../components/layout/PublicFooter";
+import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
 import FaqSection from "../../components/marketing/FaqSection";
 import { PLAN_CONFIG } from "../../lib/plans";
 
@@ -176,6 +177,7 @@ export default function VoicePage() {
       </main>
 
       <PublicFooter />
+      <BreadcrumbSchema trail={[{ name: "AI voice agent", path: "/voice" }]} />
     </div>
   );
 }

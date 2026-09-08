@@ -1,6 +1,8 @@
 export const metadata = {
   title: "Refund policy for GNX Sales",
   description: "Review the GNX Sales Refund Policy for subscription billing, cancellations, usage charges, eligibility, and refund requests.",
+  alternates: { canonical: "/refund" },
+  openGraph: { url: "/refund" },
 };
 
 import LegalPage from "../../components/layout/LegalPage";

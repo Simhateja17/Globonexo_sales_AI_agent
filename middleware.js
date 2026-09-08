@@ -17,6 +17,11 @@ const PUBLIC_PATHS = [
   '/platform',
   '/voice',
   '/accuracy',
+  '/ai-sdr-tools',
+  '/b2b-lead-generation-tools',
+  '/ai-sales-agent-guide',
+  '/sales-automation-software',
+  '/cold-email-software',
   '/callback',
 ];
 

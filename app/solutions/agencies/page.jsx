@@ -97,6 +97,7 @@ const faqs = [
 export default function AgenciesPage() {
   return (
     <GuideLayout
+      breadcrumb={[{ name: "Solutions", path: "/solutions" }, { name: "For agencies", path: "/solutions/agencies" }]}
       eyebrow="For agencies"
       title="Run outbound for every client from one system."
       intro="Lead discovery, enrichment, personalized email, follow-ups, replies, and voice calls — running separately for each client, out of one subscription, without accounts or positioning bleeding into one another."

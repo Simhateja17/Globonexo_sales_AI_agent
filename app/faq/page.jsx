@@ -1,12 +1,15 @@
 export const metadata = {
   title: "GNX Sales frequently asked questions",
   description: "Answers to common questions about GNX sales pricing, subscriptions, AI replies, deliverability, integrations, and data handling.",
+  alternates: { canonical: "/faq" },
+  openGraph: { url: "/faq" },
 };
 
 import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
 import PublicFooter from "../../components/layout/PublicFooter";
+import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
 
 const groups = [
   {
@@ -191,6 +194,7 @@ export default function FaqPage() {
       </main>
 
       <PublicFooter />
+      <BreadcrumbSchema trail={[{ name: "FAQ", path: "/faq" }]} />
 
       <script
         type="application/ld+json"

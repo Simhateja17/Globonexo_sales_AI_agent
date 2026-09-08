@@ -1,6 +1,8 @@
 export const metadata = {
   title: "Cookie policy for GNX Sales",
   description: "Learn how GNX Sales uses essential, preference, analytics, and third-party cookies to operate and improve the service.",
+  alternates: { canonical: "/cookies" },
+  openGraph: { url: "/cookies" },
 };
 
 import LegalPage from "../../components/layout/LegalPage";

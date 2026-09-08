@@ -2,6 +2,7 @@ import Link from "next/link";
 import Icon from "../ui/Icon";
 import PublicNav from "../layout/PublicNav";
 import PublicFooter from "../layout/PublicFooter";
+import { BreadcrumbSchema } from "./SiteSchema";
 
 // Shared shell for the long-form guide and comparison pages. Keeps the hero,
 // breadcrumb, and closing call to action identical across them so every entry
@@ -15,6 +16,7 @@ export default function GuideLayout({
     heading: "Put an AI sales agent on it.",
     body: "Choose a plan, connect your inbox, and launch your first campaign in five minutes.",
   },
+  breadcrumb,
   children,
 }) {
   return (
@@ -52,6 +54,7 @@ export default function GuideLayout({
       </main>
 
       <PublicFooter />
+      {breadcrumb && <BreadcrumbSchema trail={breadcrumb} />}
     </div>
   );
 }

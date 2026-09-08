@@ -97,6 +97,7 @@ const faqs = [
 export default function B2bStartupsPage() {
   return (
     <GuideLayout
+      breadcrumb={[{ name: "Solutions", path: "/solutions" }, { name: "For B2B startups", path: "/solutions/b2b-startups" }]}
       eyebrow="For B2B startups"
       title="Build an outbound motion before you hire for it."
       intro="Lead discovery, enrichment, personalized email, follow-ups, replies, and AI voice calls — running across several segments at once, from one subscription, so a small team can find out who actually buys without spending a quarter on it."

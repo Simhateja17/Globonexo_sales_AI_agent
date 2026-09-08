@@ -2,12 +2,15 @@ export const metadata = {
   title: "No guessing — GNX Sales",
   description:
     "How GNX Sales keeps AI outreach truthful: context readiness gates, facts separated from hypotheses, and every draft validated before a human ever sees it.",
+  alternates: { canonical: "/accuracy" },
+  openGraph: { url: "/accuracy" },
 };
 
 import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
 import PublicFooter from "../../components/layout/PublicFooter";
+import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
 
 const principles = [
   {
@@ -156,6 +159,7 @@ export default function AccuracyPage() {
       </main>
 
       <PublicFooter />
+      <BreadcrumbSchema trail={[{ name: "No guessing", path: "/accuracy" }]} />
     </div>
   );
 }

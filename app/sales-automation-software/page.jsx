@@ -109,6 +109,7 @@ const faqs = [
 export default function SalesAutomationSoftwarePage() {
   return (
     <GuideLayout
+      breadcrumb={[{ name: "Sales automation software", path: "/sales-automation-software" }]}
       eyebrow="Sales automation software"
       title="Sales automation that does more than press send."
       intro="Most sales automation software automates the sending and leaves you the thinking. GNX Sales sources and qualifies the accounts, researches each person, writes the sequence, sends it, follows up, drafts the replies, places the calls, and books the meeting — from one subscription."

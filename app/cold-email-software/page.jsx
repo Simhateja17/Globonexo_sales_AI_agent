@@ -105,6 +105,7 @@ const faqs = [
 export default function ColdEmailSoftwarePage() {
   return (
     <GuideLayout
+      breadcrumb={[{ name: "Cold email software", path: "/cold-email-software" }]}
       eyebrow="Comparison"
       title="Cold email software, and where it stops."
       intro="Cold email software is genuinely good at one thing: getting a sequence delivered to a list at volume. The trouble is that everything before and after the sending — deciding who belongs on the list, knowing enough to write something true, answering the replies, reaching the people who never open email — is still yours."

@@ -15,6 +15,7 @@ import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
 import PublicFooter from "../../components/layout/PublicFooter";
+import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
 import PlanCards from "../../components/marketing/PlanCards";
 import FaqSection from "../../components/marketing/FaqSection";
 
@@ -114,6 +115,7 @@ export default function PricingPage() {
       </main>
 
       <PublicFooter />
+      <BreadcrumbSchema trail={[{ name: "Pricing", path: "/pricing" }]} />
     </div>
   );
 }

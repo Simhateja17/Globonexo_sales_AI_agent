@@ -118,6 +118,7 @@ const faqs = [
 export default function AiSalesAgentGuidePage() {
   return (
     <GuideLayout
+      breadcrumb={[{ name: "What is an AI sales agent?", path: "/ai-sales-agent-guide" }]}
       eyebrow="Category guide"
       title="What is an AI sales agent?"
       intro="An AI sales agent runs the outbound motion end to end — finding buyers, researching them, writing, sending, following up, calling, and booking — instead of assisting with one step of it. This guide covers how the loop works, what it can and cannot do, and how to evaluate one honestly."

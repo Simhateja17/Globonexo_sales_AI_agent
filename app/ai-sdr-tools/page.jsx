@@ -113,6 +113,7 @@ const faqs = [
 export default function AiSdrToolsPage() {
   return (
     <GuideLayout
+      breadcrumb={[{ name: "AI SDR tools", path: "/ai-sdr-tools" }]}
       eyebrow="Buyer's guide"
       title="AI SDR tools: what they do and how to choose one."
       intro="The term covers five quite different kinds of product. This guide separates them, explains what each one actually automates, and gives you the seven questions that tell a real AI SDR from a sequencer with an AI label on it."

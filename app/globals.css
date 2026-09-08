@@ -3,7 +3,9 @@
    Theme: White + Aurora Green
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+/* Fonts are loaded and self-hosted by next/font in app/layout.jsx, which
+   removes the render-blocking Google Fonts request and the font swap that
+   came with it. The families below resolve through those CSS variables. */
 
 :root {
   /* ---- Aurora green scale ---- */
@@ -46,8 +48,8 @@
   --aurora-opacity: 1;
 
   /* ---- Type ---- */
-  --font-display: 'Space Grotesk', system-ui, sans-serif;
-  --font-body: 'Manrope', system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), 'Space Grotesk', system-ui, sans-serif;
+  --font-body: var(--font-manrope), 'Manrope', system-ui, sans-serif;
 
   /* ---- Radius ---- */
   --r-sm: 10px;

@@ -1,7 +1,25 @@
+import { Manrope, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../providers/AuthProvider";
 import PostHogProvider from "../providers/PostHogProvider";
 import { Analytics } from "@vercel/analytics/next";
+import SiteSchema from "../components/marketing/SiteSchema";
+
+// Self-hosted through next/font so the page does not block on a Google Fonts
+// stylesheet before it can paint.
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
 
 export const metadata = {
   metadataBase: new URL("https://gnxsales.com"),
@@ -39,12 +57,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${manrope.variable} ${spaceGrotesk.variable}`}>
       <body>
         <PostHogProvider>
           <AuthProvider>{children}</AuthProvider>
         </PostHogProvider>
         <Analytics />
+        <SiteSchema />
       </body>
     </html>
   );
