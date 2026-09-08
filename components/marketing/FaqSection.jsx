@@ -16,10 +16,12 @@ export default function FaqSection({ heading, intro, items, className = "content
 
   return (
     <section className={className}>
-      <div className="content-section-head">
-        <h2>{heading}</h2>
-        {intro && <p>{intro}</p>}
-      </div>
+      {(heading || intro) && (
+        <div className="content-section-head">
+          {heading && <h2>{heading}</h2>}
+          {intro && <p>{intro}</p>}
+        </div>
+      )}
       <div className="faq-list">
         {items.map((item) => (
           <details key={item.q} className="faq-item">

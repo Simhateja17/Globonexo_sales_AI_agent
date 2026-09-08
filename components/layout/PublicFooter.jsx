@@ -21,6 +21,16 @@ const groups = [
     ],
   },
   {
+    title: "Guides",
+    links: [
+      { label: "What is an AI sales agent?", href: "/ai-sales-agent-guide" },
+      { label: "AI SDR tools", href: "/ai-sdr-tools" },
+      { label: "B2B lead generation tools", href: "/b2b-lead-generation-tools" },
+      { label: "Sales automation software", href: "/sales-automation-software" },
+      { label: "Cold email software", href: "/cold-email-software" },
+    ],
+  },
+  {
     title: "Company",
     links: [
       { label: "About Us", href: "/about" },
