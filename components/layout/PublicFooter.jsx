@@ -16,8 +16,8 @@ const groups = [
     links: [
       { label: "Overview", href: "/solutions" },
       { label: "For an individual", href: "/solutions#individual" },
-      { label: "For an agency", href: "/solutions#agency" },
-      { label: "For a startup", href: "/solutions#startup" },
+      { label: "For agencies", href: "/solutions/agencies" },
+      { label: "For B2B startups", href: "/solutions/b2b-startups" },
     ],
   },
   {

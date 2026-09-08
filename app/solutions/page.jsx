@@ -38,6 +38,7 @@ const segments = [
   {
     id: "agency",
     icon: "building",
+    link: { href: "/solutions/agencies", label: "How agencies run client outbound" },
     eyebrow: "For an agency",
     title: "Agency lead generation for every client from one system.",
     intro:
@@ -52,6 +53,7 @@ const segments = [
   {
     id: "startup",
     icon: "trend",
+    link: { href: "/solutions/b2b-startups", label: "How B2B startups build outbound" },
     eyebrow: "For a startup",
     title: "Startup B2B lead generation, built in-house at volume.",
     intro:
@@ -121,6 +123,11 @@ export default function SolutionsPage() {
                 <span className="eyebrow">{segment.eyebrow}</span>
                 <h2>{segment.title}</h2>
                 <p>{segment.intro}</p>
+                {segment.link && (
+                  <Link className="landing-text-link" href={segment.link.href}>
+                    {segment.link.label} <Icon name="arrow" size={15} color="var(--g-700)" />
+                  </Link>
+                )}
               </div>
               <div className="card-grid solutions-values-grid">
                 {segment.steps.map((step) => (
