@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Privacy policy for GNX Sales",
-  description: "Privacy Policy for GNX sales.",
+  description: "Learn how GNX Sales collects, uses, protects, and deletes account, lead, campaign, integration, and analytics data.",
 };
 
 import LegalPage from "../../components/layout/LegalPage";

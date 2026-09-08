@@ -122,6 +122,10 @@ export default function HelpPage() {
         </section>
 
         <section className="content-section public-section">
+          <div className="content-section-head">
+            <h2>Find an answer</h2>
+            <p>Start with the topic that matches what you are trying to do in GNX Sales.</p>
+          </div>
           <div className="card-grid help-card-grid">
             {categories.map((category) => (
               <article key={category.title} className="content-card">

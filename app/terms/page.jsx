@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Terms of service for GNX Sales",
-  description: "Terms of Service for GNX sales.",
+  description: "Read the GNX Sales Terms of Service covering AI sales automation, campaigns, lead data, billing, compliance, and account use.",
 };
 
 import LegalPage from "../../components/layout/LegalPage";

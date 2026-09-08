@@ -206,7 +206,7 @@ export default function LandingPage() {
                 <div className="landing-usecase-icon landing-usecase-icon--accent">
                   <Icon name={item.icon} size={20} color="#fff" />
                 </div>
-                <h4>{item.title}</h4>
+                <h3>{item.title}</h3>
                 <p>{item.text}</p>
               </article>
             ))}

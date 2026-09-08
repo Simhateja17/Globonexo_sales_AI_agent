@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Refund policy for GNX Sales",
-  description: "Refund Policy for GNX sales subscriptions.",
+  description: "Review the GNX Sales Refund Policy for subscription billing, cancellations, usage charges, eligibility, and refund requests.",
 };
 
 import LegalPage from "../../components/layout/LegalPage";

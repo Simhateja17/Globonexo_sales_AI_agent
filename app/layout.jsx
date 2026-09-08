@@ -4,7 +4,7 @@ import PostHogProvider from "../providers/PostHogProvider";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata = {
-  title: "GNX Sales",
+  title: "AI Sales Automation Platform | GNX Sales",
   description: "GNX Sales is an AI sales rep that writes outreach and follows up with prospects automatically.",
 };
 

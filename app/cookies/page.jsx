@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Cookie policy for GNX Sales",
-  description: "How GNX sales uses cookies and similar technologies.",
+  description: "Learn how GNX Sales uses essential, preference, analytics, and third-party cookies to operate and improve the service.",
 };
 
 import LegalPage from "../../components/layout/LegalPage";

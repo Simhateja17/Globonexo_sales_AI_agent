@@ -3007,7 +3007,7 @@ a { color: inherit; text-decoration: none; }
 .landing-accuracy { padding-top: 100px; padding-bottom: 96px; background: var(--bg); border-top: 1px solid var(--line); }
 .landing-accuracy-grid { margin-top: 44px; display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
 .landing-accuracy-grid article { padding: 26px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-xl); }
-.landing-accuracy-grid h4 { margin-top: 15px; font-size: 15.5px; }
+.landing-accuracy-grid h3 { margin-top: 15px; font-size: 15.5px; }
 .landing-accuracy-grid p { margin-top: 9px; color: var(--muted); font-size: 13px; line-height: 1.65; }
 .landing-accuracy-note { margin-top: 24px; padding: 20px 24px; display: flex; align-items: flex-start; gap: 12px; background: var(--g-50); border: 1px solid var(--g-100); border-radius: var(--r-xl); color: var(--ink-2); font-size: 14.5px; line-height: 1.65; }
 .landing-accuracy-note svg { flex: none; margin-top: 3px; }

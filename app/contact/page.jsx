@@ -80,6 +80,10 @@ export default function ContactPage() {
         </section>
 
         <section className="content-section public-section">
+          <div className="content-section-head">
+            <h2>Choose the right way to reach us</h2>
+            <p>Find the support, sales, billing, or security channel that fits your question.</p>
+          </div>
           <div className="card-grid contact-card-grid">
             {channels.map((channel) => (
               <article key={channel.title} className="content-card">
