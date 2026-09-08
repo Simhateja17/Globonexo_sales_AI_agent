@@ -25,6 +25,7 @@ const segments = [
   {
     id: "individual",
     icon: "user",
+    link: { href: "/solutions/individuals", label: "How individuals run outbound" },
     eyebrow: "For an individual",
     title: "Run B2B outbound alone without it becoming your whole day.",
     intro:

@@ -14,6 +14,7 @@ const PUBLIC_ROUTES = [
   { path: "/b2b-lead-generation-tools", priority: 0.8, changeFrequency: "monthly" },
   { path: "/ai-sales-agent-guide", priority: 0.8, changeFrequency: "monthly" },
   { path: "/cold-email-software", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/solutions/individuals", priority: 0.8, changeFrequency: "monthly" },
   { path: "/solutions/agencies", priority: 0.8, changeFrequency: "monthly" },
   { path: "/solutions/b2b-startups", priority: 0.8, changeFrequency: "monthly" },
   { path: "/accuracy", priority: 0.7, changeFrequency: "monthly" },
