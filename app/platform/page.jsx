@@ -1,13 +1,21 @@
 export const metadata = {
-  title: "The agent — GNX Sales",
+  title: "AI Sales Tool: The Whole Outbound Motion in One Platform",
   description:
-    "Everything in GNX Sales: campaigns, lead sourcing and enrichment, email sequences, AI voice calling, inbox and replies, meetings, and analytics.",
+    "GNX Sales is an AI sales tool that runs the full outbound motion: lead generation, enrichment, AI email sequences, voice calling, replies, meetings, and analytics in one sales automation platform.",
+  alternates: { canonical: "/platform" },
+  openGraph: {
+    url: "/platform",
+    title: "AI Sales Tool: The Whole Outbound Motion in One Platform",
+    description:
+      "Lead generation software, AI email sequences, voice calling, replies, and meetings running as one sales automation platform.",
+  },
 };
 
 import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
 import PublicFooter from "../../components/layout/PublicFooter";
+import FaqSection from "../../components/marketing/FaqSection";
 
 const areas = [
   {
@@ -113,17 +121,43 @@ const areas = [
   },
 ];
 
+
+const faqs = [
+  {
+    q: "What does this AI sales tool actually replace?",
+    a: "The stack most teams stitch together: a lead database, an enrichment tool, a sequencer, a cold email platform, a dialer or voice agent, and the spreadsheet tracking who replied. GNX Sales runs all of it as one sales automation platform on a single credit pool.",
+  },
+  {
+    q: "Is this lead generation software or an outreach tool?",
+    a: "Both. Lead sourcing, enrichment, and qualification happen inside the same product that writes and sends the outreach, so the agent writing a message already knows everything that was learned about that person while finding them.",
+  },
+  {
+    q: "Do I have to bring my own lead list?",
+    a: "No. You can search for companies and people through the built-in lead sourcing and enrichment provider, upload a CSV, or add leads by hand. Whichever route you use, every account is checked against your ideal customer profile before enrichment is paid for.",
+  },
+  {
+    q: "Can I edit what the AI writes before it goes out?",
+    a: "Yes. Approve steps individually, edit inline, regenerate, or approve in batch. Steps already sent, approved, or queued are locked and never overwritten.",
+  },
+  {
+    q: "Does it work with my existing mailbox?",
+    a: "Yes. Connect Gmail through OAuth, or any other provider through SMTP for sending and IMAP for reading replies. No domain migration and no separate sending infrastructure.",
+  },
+];
+
 export default function PlatformPage() {
   return (
     <div className="public-page story-page">
       <div className="story-hero-band">
         <PublicNav variant="dark" />
         <section className="story-hero public-section">
-          <span className="eyebrow">The agent</span>
-          <h1 className="display">One agent, the whole outbound motion.</h1>
+          <span className="eyebrow">The platform</span>
+          <h1 className="display">The AI sales tool that runs the whole outbound motion.</h1>
           <p>
-            Not a sending tool with an AI label bolted on. Targeting, research, writing, sending, calling, replies,
-            and meetings run as one system with one shared understanding of every prospect.
+            Not a sending tool with an AI label bolted on. This is lead generation software, an email sequencer, an
+            AI voice agent, and a reply inbox in one sales automation platform — targeting, research, writing,
+            sending, calling, replies, and meetings running as one system with one shared understanding of every
+            prospect.
           </p>
           <div className="content-hero-actions">
             <Link className="btn btn-primary btn-lg" href="/signup">
@@ -166,6 +200,8 @@ export default function PlatformPage() {
           </ol>
         </section>
 
+        <FaqSection heading="Questions about the platform" items={faqs} />
+
         <section className="solutions-cta">
           <div>
             <h2>See the whole thing running.</h2>
@@ -175,7 +211,7 @@ export default function PlatformPage() {
             <Link className="btn btn-primary btn-lg" href="/signup">
               Choose a plan <Icon name="arrow" size={16} color="#06231a" />
             </Link>
-            <Link className="landing-outline-btn" href="/solutions">See it by use case</Link>
+            <Link className="landing-outline-btn" href="/solutions">B2B lead generation by use case</Link>
           </div>
         </section>
       </main>

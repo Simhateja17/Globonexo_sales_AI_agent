@@ -1,12 +1,21 @@
 export const metadata = {
-  title: "GNX Sales solutions",
-  description: "See how GNX Sales fits an individual seller, an agency running outbound for clients, or a startup building outbound in-house.",
+  title: "B2B Lead Generation with an AI SDR Tool",
+  description:
+    "B2B lead generation run by an AI SDR tool — sourcing, qualification, email sequences, and voice calls. See how it fits an individual seller, an agency running outbound for clients, or a startup building outbound in-house.",
+  alternates: { canonical: "/solutions" },
+  openGraph: {
+    url: "/solutions",
+    title: "B2B Lead Generation with an AI SDR Tool",
+    description:
+      "Sales engagement software that sources, qualifies, writes, sends, and calls — framed for individuals, agencies, and startups.",
+  },
 };
 
 import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
 import PublicFooter from "../../components/layout/PublicFooter";
+import FaqSection from "../../components/marketing/FaqSection";
 
 // Segments mirror the real plan catalogue rather than inventing audience
 // categories the product cannot actually serve (there is no seat/team system,
@@ -16,7 +25,7 @@ const segments = [
     id: "individual",
     icon: "user",
     eyebrow: "For an individual",
-    title: "Run outbound alone without it becoming your whole day.",
+    title: "Run B2B outbound alone without it becoming your whole day.",
     intro:
       "One person can only research, write, and follow up so many times a week. GNX takes the repetitive half of that and leaves you the conversations.",
     steps: [
@@ -30,7 +39,7 @@ const segments = [
     id: "agency",
     icon: "building",
     eyebrow: "For an agency",
-    title: "Run outbound for every client from one system.",
+    title: "Agency lead generation for every client from one system.",
     intro:
       "Each client gets its own campaigns, its own ideal-customer profile, and its own conversation flow, without accounts bleeding into one another.",
     steps: [
@@ -44,7 +53,7 @@ const segments = [
     id: "startup",
     icon: "trend",
     eyebrow: "For a startup",
-    title: "Build an in-house outbound motion at volume.",
+    title: "Startup B2B lead generation, built in-house at volume.",
     intro:
       "More campaigns running at once, a higher daily sending ceiling, and the same guardrails applied to every message that goes out.",
     steps: [
@@ -56,6 +65,30 @@ const segments = [
   },
 ];
 
+
+const faqs = [
+  {
+    q: "What is an AI SDR tool?",
+    a: "An AI SDR tool does the work a sales development rep does before a deal reaches a closer: building a target list, researching each account, writing the first touch and the follow-ups, handling early replies, and booking the meeting. GNX Sales does that across both email and phone.",
+  },
+  {
+    q: "Does an AI SDR replace a human rep?",
+    a: "It replaces the repetitive half of the job, not the conversation. The agent handles sourcing, qualification, writing, sending, following up, and scheduling. A person still runs the call and closes the deal.",
+  },
+  {
+    q: "Can an agency keep clients separated?",
+    a: "Yes. Each campaign carries its own ideal customer profile, qualification rules, product description, value proposition, tone, objection handling, and voice agent. One client's accounts never end up in another's pipeline, and a campaign keeps the brief it launched with.",
+  },
+  {
+    q: "How does it decide who is worth contacting?",
+    a: "You define an ideal customer profile once — industries, titles, seniority, geography, company size. Every candidate is checked against that explicit, editable rubric before any enrichment is paid for, and rejections are shown with reasons rather than disappearing silently.",
+  },
+  {
+    q: "Is voice calling available on every plan?",
+    a: "Voice and email draw from the same credit pool on every plan. What scales with the tier is how many voice campaigns you can run at once, never whether you get the channel at all.",
+  },
+];
+
 export default function SolutionsPage() {
   return (
     <div className="public-page story-page">
@@ -63,16 +96,17 @@ export default function SolutionsPage() {
         <PublicNav variant="dark" />
         <section className="story-hero public-section">
           <span className="eyebrow">Solutions</span>
-          <h1 className="display">Built for how you actually sell.</h1>
+          <h1 className="display">B2B lead generation, built for how you actually sell.</h1>
           <p>
-            The same AI sales agent, framed three ways. Every plan includes the full capability set — email
-            sequences, lead enrichment, and AI voice calling. What changes is volume, not access.
+            The same AI SDR tool, framed three ways. Every plan includes the full sales engagement software
+            capability set — email sequences, lead sourcing and enrichment, and AI voice calling. What changes is
+            volume, not access.
           </p>
           <div className="content-hero-actions">
             <Link className="btn btn-primary btn-lg" href="/signup">
               Choose a plan <Icon name="arrow" size={18} color="#06231a" />
             </Link>
-            <Link className="landing-outline-btn" href="/contact">Talk to us</Link>
+            <Link className="landing-outline-btn" href="/platform">See the AI sales tool</Link>
           </div>
         </section>
       </div>
@@ -100,6 +134,8 @@ export default function SolutionsPage() {
             </section>
           );
         })}
+
+        <FaqSection heading="B2B lead generation questions" items={faqs} />
 
         <section className="solutions-cta">
           <div>
