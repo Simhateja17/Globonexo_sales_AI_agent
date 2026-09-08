@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "GNX Sales authentication",
+  title: { absolute: "GNX Sales authentication" },
   robots: {
     index: false,
     follow: false,

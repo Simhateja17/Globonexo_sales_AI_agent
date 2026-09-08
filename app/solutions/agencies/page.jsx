@@ -45,7 +45,7 @@ const workflow = [
   {
     icon: "phone",
     title: "Voice calls per client, per offer",
-    body: "Each voice campaign gets its own agent and conversation flow built from that client's positioning, and is simulation-tested against ten adversarial scenarios before it is allowed to dial. Do-not-call is checked before every call.",
+    body: "Each voice campaign gets its own agent and conversation flow built from that client's positioning. You can run it through ten adversarial scenarios before launch, and do-not-call is checked before every call.",
   },
   {
     icon: "calendar",
@@ -82,7 +82,7 @@ const faqs = [
   },
   {
     q: "Can each client have their own voice agent?",
-    a: "Yes. Every voice campaign gets an agent built from that campaign's own product description, value proposition, pain points, objections, and tone, tested against adversarial scenarios before it dials.",
+    a: "Yes. Every voice campaign gets an agent built from that campaign's own product description, value proposition, pain points, objections, and tone. You can also run pre-launch simulations against adversarial scenarios.",
   },
   {
     q: "How is this priced for an agency?",

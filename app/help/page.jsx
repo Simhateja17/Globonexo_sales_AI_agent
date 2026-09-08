@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "GNX Sales help center",
+  title: { absolute: "GNX Sales help center" },
   description: "Guides for setting up agents, sourcing leads, running campaigns, handling replies, and managing billing in GNX sales.",
   alternates: { canonical: "/help" },
   openGraph: { url: "/help" },

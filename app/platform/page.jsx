@@ -67,7 +67,7 @@ const areas = [
     icon: "phone",
     eyebrow: "Outreach",
     title: "AI voice calling",
-    body: "Voice campaigns get their own agent and conversation flow, built from that campaign's positioning. The agent is simulation-tested against adversarial scenarios before it is allowed to dial.",
+    body: "Voice campaigns get their own agent and conversation flow, built from that campaign's positioning. You can run adversarial simulations before launch and review the results before dialing.",
     points: [
       "Do-not-call is checked before dialing, separately from email suppression",
       "Calendar availability and meeting booking are live tools the agent can call mid-conversation",

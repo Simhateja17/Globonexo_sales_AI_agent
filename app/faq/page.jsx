@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "GNX Sales frequently asked questions",
+  title: { absolute: "GNX Sales frequently asked questions" },
   description: "Answers to common questions about GNX sales pricing, subscriptions, AI replies, deliverability, integrations, and data handling.",
   alternates: { canonical: "/faq" },
   openGraph: { url: "/faq" },
@@ -21,7 +21,7 @@ const groups = [
       },
       {
         q: "How long does setup take?",
-        a: "Most teams are live in under an hour. You complete onboarding so the agent learns your offer and ideal customer, connect Gmail or a custom SMTP + IMAP mailbox for sending and replies, build a lead list, and launch a campaign. First meetings typically land within two to four weeks.",
+        a: "Complete onboarding so the agent learns your offer and ideal customer, connect Gmail or a custom SMTP + IMAP mailbox for sending and replies, build a lead list, and launch a campaign. Meeting timing depends on your market, offer, list quality, and prospect response rather than a fixed promise.",
       },
       {
         q: "Do I need a technical person to set it up?",

@@ -35,7 +35,7 @@ const workflow = [
   {
     icon: "send",
     title: "Follow-ups that do not depend on discipline",
-    body: "Most first meetings come from the second and third touch, and a small team drops those first. First touch, follow-up, and breakup are generated together and sent on schedule inside your windows.",
+    body: "First touch, follow-up, and breakup are generated together and sent on schedule inside your windows, so the sequence does not depend on somebody remembering the next step.",
   },
   {
     icon: "inbox",
@@ -45,7 +45,7 @@ const workflow = [
   {
     icon: "phone",
     title: "Voice calls without hiring a caller",
-    body: "An AI voice agent reaches the buyers who never open a cold email, runs discovery, handles objections with your approved responses, and books from real calendar availability. It is simulation-tested against ten adversarial scenarios before it dials.",
+    body: "An AI voice agent reaches buyers by phone, runs discovery, handles objections with your approved responses, and books from real calendar availability. You can test it against ten adversarial scenarios before launch.",
   },
   {
     icon: "calendar",
@@ -70,11 +70,11 @@ const beforeHiring = [
 const faqs = [
   {
     q: "Should a startup use an AI sales agent before hiring an SDR?",
-    a: "It is a reasonable order for most B2B startups. An SDR takes a month to hire, a month to ramp, and needs a defined ideal customer profile to be effective. An agent starts the same day and forces you to write that profile down, so the first rep you hire joins a motion that already works.",
+    a: "It can be a practical way to define and test an outbound motion before expanding the team. The setup makes you write down the ideal customer profile, qualification rules, and messaging that a future sales hire can build on.",
   },
   {
     q: "Does this work before product-market fit?",
-    a: "It helps you find it faster, but it will not create it. Running three segment campaigns in parallel tells you within weeks which guess gets replies. What it cannot do is make a weak offer land — faster outreach to the wrong market just fails faster.",
+    a: "It can help you compare how different segments respond, but it will not create product-market fit. Running separate campaigns gives each segment its own targeting and messaging, while the results show which assumptions deserve further testing.",
   },
   {
     q: "How many campaigns can I run at once?",
@@ -86,7 +86,7 @@ const faqs = [
   },
   {
     q: "How long until the first meeting?",
-    a: "Setup takes about five minutes and campaigns launch the same day. First meetings typically land within two to four weeks, which is mostly a function of follow-up cycles rather than the tooling.",
+    a: "The setup flow is designed to be completed quickly, but meeting timing depends on your market, offer, list quality, sending schedule, follow-up cadence, and how prospects respond. GNX does not promise a fixed time to the first meeting.",
   },
   {
     q: "Can I stay in control of what gets sent?",

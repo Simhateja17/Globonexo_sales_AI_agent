@@ -55,11 +55,6 @@ const application = {
     "Meeting booking against real calendar availability",
     "Campaign and voice-call analytics",
   ],
-  offers: {
-    "@type": "AggregateOffer",
-    priceCurrency: "USD",
-    url: `${SITE_URL}/pricing`,
-  },
 };
 
 export default function SiteSchema() {

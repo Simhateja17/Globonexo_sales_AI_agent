@@ -82,7 +82,7 @@ const comparison = [
   { them: "Enrichment is billed on every record you pull", us: "Fit is settled against your profile before a credit is spent" },
   { them: "Email is one product, calling is another", us: "Email and AI voice run from one credit pool and one prospect record" },
   { them: "The model writes whatever sounds convincing", us: "The model is handed an explicit list of what it does not know" },
-  { them: "A voice agent goes live untested", us: "Ten adversarial scenarios, scored, before it can dial" },
+  { them: "No way to rehearse a voice agent", us: "Choose ten scored adversarial scenarios before launch" },
   { them: "You remember to stop the sequence after a reply", us: "A reply stops the follow-ups automatically" },
   { them: "Priced per seat, so a second person doubles the bill", us: "Priced by volume, not by headcount" },
 ];

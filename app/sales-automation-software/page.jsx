@@ -45,7 +45,7 @@ const automates = [
   {
     icon: "phone",
     title: "Calling by AI voice",
-    body: "An AI voice agent, tested against ten adversarial scenarios before it can dial, with do-not-call checked before every call and a number provisioned for you.",
+    body: "An AI voice agent with a selectable ten-scenario pre-launch test, do-not-call checks before every call, and a number provisioned for you.",
   },
   {
     icon: "calendar",

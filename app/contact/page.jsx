@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Contact GNX Sales support",
+  title: { absolute: "Contact GNX Sales support" },
   description: "Reach the GNX sales team for product support, billing questions, sales, and security reports.",
   alternates: { canonical: "/contact" },
   openGraph: { url: "/contact" },

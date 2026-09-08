@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "No guessing — GNX Sales",
+  title: { absolute: "No guessing — GNX Sales" },
   description:
     "How GNX Sales keeps AI outreach truthful: context readiness gates, facts separated from hypotheses, and every draft validated before a human ever sees it.",
   alternates: { canonical: "/accuracy" },
@@ -82,7 +82,7 @@ export default function AccuracyPage() {
             <blockquote>“I know your team is struggling with hiring velocity.”</blockquote>
             <p>
               Written by a system that never knew that. It is the line that makes a prospect distrust every other
-              sentence in the message. GNX is built so it cannot write it.
+              sentence in the message. GNX is designed to block unsupported claims like it.
             </p>
           </div>
         </section>

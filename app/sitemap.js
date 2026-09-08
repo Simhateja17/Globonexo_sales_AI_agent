@@ -28,10 +28,8 @@ const PUBLIC_ROUTES = [
 ];
 
 export default function sitemap() {
-  const lastModified = new Date();
   return PUBLIC_ROUTES.map(({ path, priority, changeFrequency }) => ({
     url: `${SITE_URL}${path}`,
-    lastModified,
     changeFrequency,
     priority,
   }));

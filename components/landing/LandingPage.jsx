@@ -89,7 +89,7 @@ export default function LandingPage() {
     },
     {
       q: 'Will the AI make things up about my prospects?',
-      a: 'It is built so it cannot. The model is handed an explicit list of the facts it is missing, facts and hypotheses are kept separate, and if the required context about a person and their company is not there, no message is drafted at all.',
+      a: 'It is designed to stop unsupported claims. The model is handed an explicit list of the facts it is missing, facts and hypotheses are kept separate, and if the required context about a person and their company is not there, no message is drafted at all.',
     },
     {
       q: 'How long does it take to get started?',
@@ -241,17 +241,17 @@ export default function LandingPage() {
           </div>
           <p className="landing-accuracy-note">
             <Icon name="alertCircle" size={16} color="var(--g-800)" />
-            <span>The line every prospect has learned to distrust — &ldquo;I know your team is struggling with X&rdquo; — written by a system that never knew that. GNX is built so it cannot write it.</span>
+            <span>The line every prospect has learned to distrust — &ldquo;I know your team is struggling with X&rdquo; — written by a system that never knew that. GNX is designed to block unsupported claims like this.</span>
           </p>
         </section>
 
         <section id="voice" className="landing-voice landing-section">
           <div className="landing-voice-copy">
             <span className="landing-fit-label">AI voice agent</span>
-            <h2 className="display">An AI voice agent, <em className="hl">tested</em> before it phones anyone</h2>
+            <h2 className="display"><em className="hl">Test</em> your AI voice agent before it phones anyone</h2>
             <p>
-              Before a voice campaign can go live, the agent is put through adversarial calls and scored on every
-              transcript — the busy prospect, the skeptic, the wrong person, the one who asks where you got their number.
+              Select pre-launch simulation testing to put the agent through adversarial calls and score every transcript —
+              the busy prospect, the skeptic, the wrong person, the one who asks where you got their number.
             </p>
             <ul className="landing-copilot-points">
               {voicePoints.map((point) => (

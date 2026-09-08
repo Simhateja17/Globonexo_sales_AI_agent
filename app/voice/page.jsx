@@ -1,13 +1,13 @@
 export const metadata = {
   title: "AI Voice Agent Platform for Outbound Sales Calls",
   description:
-    "An AI voice agent for sales that is simulation-tested before it dials. Outbound AI calling with do-not-call enforcement, real calendar booking, and a number provisioned for you.",
+    "Test an AI voice agent for sales before launch with selectable simulations. Outbound AI calling with do-not-call enforcement, real calendar booking, and a number provisioned for you.",
   alternates: { canonical: "/voice" },
   openGraph: {
     url: "/voice",
     title: "AI Voice Agent Platform for Outbound Sales Calls",
     description:
-      "Outbound AI calling that is stress-tested against adversarial scenarios before a single real prospect hears from it.",
+      "Outbound AI calling with selectable adversarial simulation testing before launch.",
   },
 };
 
@@ -20,6 +20,7 @@ import FaqSection from "../../components/marketing/FaqSection";
 import { PLAN_CONFIG } from "../../lib/plans";
 
 // Every claim on this page maps to shipped behaviour in the voice services.
+// Simulation testing is presented as a customer-selected pre-launch check.
 // Inbound calling is deliberately absent: it is still working-tree work and
 // has not been deployed or tested against live calls.
 const scenarios = [
@@ -49,8 +50,8 @@ const faqs = [
     a: "It is software that places outbound calls and holds the conversation itself — introducing the offer, running discovery, handling objections, and booking a meeting. In GNX Sales, each voice campaign gets its own agent built from that campaign's product description, value proposition, pain points, objections, and tone.",
   },
   {
-    q: "How do I know the agent will not embarrass me on a call?",
-    a: "Before a campaign can dial, the agent is run through ten adversarial scenarios with explicit pass and fail conditions — the busy prospect, the skeptic, the wrong person, a do-not-call request, a failing calendar tool, and a caller pushing it to invent customers or pricing. Every transcript is scored, and a campaign that fails can be fixed and re-run.",
+    q: "Can I test the agent before it calls prospects?",
+    a: "Yes. You can select a pre-launch test that runs the agent through ten adversarial scenarios with explicit pass and fail conditions — the busy prospect, the skeptic, the wrong person, a do-not-call request, a failing calendar tool, and a caller pushing it to invent customers or pricing. Every transcript is scored, and you can fix the campaign and run the test again.",
   },
   {
     q: "Do I need to buy a phone number?",
@@ -77,11 +78,10 @@ export default function VoicePage() {
         <PublicNav variant="dark" />
         <section className="story-hero public-section">
           <span className="eyebrow">AI voice agent platform</span>
-          <h1 className="display">An AI voice agent that gets tested before it calls anyone.</h1>
+          <h1 className="display">An AI voice agent you can test before it calls anyone.</h1>
           <p>
-            Handing an AI voice agent a phone number and your prospect list is a real risk. So before an outbound
-            AI calling campaign can go live, the agent is run through a set of adversarial calls and scored on
-            every transcript.
+            Handing an AI voice agent a phone number and your prospect list is a real risk. Select pre-launch
+            simulation testing to run adversarial calls and review the scored transcripts before reaching prospects.
           </p>
           <div className="content-hero-actions">
             <Link className="btn btn-primary btn-lg" href="/signup">
@@ -164,8 +164,8 @@ export default function VoicePage() {
 
         <section className="solutions-cta">
           <div>
-            <h2>Put a tested agent on the phone.</h2>
-            <p>Choose a plan, build a voice campaign, and review its simulated calls before it dials out.</p>
+            <h2>Test before you call.</h2>
+            <p>Choose a plan, build a voice campaign, and select pre-launch simulations to review how the agent responds.</p>
           </div>
           <div className="content-cta-actions">
             <Link className="btn btn-primary btn-lg" href="/signup">

@@ -26,7 +26,7 @@ const comparison = [
   { them: 'Pay to enrich, then find out they were a bad fit', us: 'Fit is settled before a credit is spent' },
   { them: 'Email only — calling is a different tool and a second bill', us: 'Email and AI voice from one shared pool' },
   { them: 'The model writes whatever sounds convincing', us: 'It is handed an explicit list of what it does not know' },
-  { them: 'A voice agent goes live untested', us: 'Stress-test it against adversarial calls before it dials, if you want the check' },
+  { them: 'No way to rehearse calls before launch', us: 'Choose a scored adversarial stress test before launch' },
   { them: 'You remember to stop the sequence after a reply', us: 'A reply stops the follow-ups on its own' },
   { them: 'Buy and configure your own calling number separately', us: 'A phone number is provisioned for you automatically' },
 ];

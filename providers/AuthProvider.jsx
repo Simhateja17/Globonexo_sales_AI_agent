@@ -2,6 +2,7 @@
 
 import { createContext, useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { captureEvent } from './PostHogProvider';
 
 export const AuthContext = createContext(null);
 
@@ -43,6 +44,10 @@ export function AuthProvider({ children }) {
     const res = await api.post('/auth/signup/verify', { email, otp });
     setUser(res.data.user);
     setOrganization(res.data.organization);
+    captureEvent('signup_completed', {
+      user_id: res.data.user?.id,
+      organization_id: res.data.organization?.id,
+    });
     return res.data;
   };
 
