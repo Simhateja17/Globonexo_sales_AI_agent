@@ -5025,7 +5025,7 @@ canvas {
 .public-footer-grid {
   max-width: 1160px; margin: 0 auto;
   padding-top: 52px; padding-bottom: 40px;
-  display: grid; grid-template-columns: 1.4fr repeat(5, 1fr); gap: 28px;
+  display: grid; grid-template-columns: 1.35fr repeat(6, 1fr); gap: 24px;
 }
 .public-footer-brand p { margin-top: 16px; max-width: 260px; color: var(--muted); font-size: 13.5px; line-height: 1.7; }
 .public-footer-col { display: flex; flex-direction: column; gap: 11px; }
@@ -5041,6 +5041,11 @@ canvas {
 }
 .public-footer-base a { color: var(--muted); }
 .public-footer-base a:hover { color: var(--g-700); }
+
+@media (max-width: 1180px) {
+  .public-footer-grid { grid-template-columns: repeat(4, 1fr); row-gap: 36px; }
+  .public-footer-brand { grid-column: 1 / -1; }
+}
 
 @media (max-width: 900px) {
   .contact-split { grid-template-columns: 1fr; }
