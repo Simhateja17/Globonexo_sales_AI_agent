@@ -1,2 +1,29 @@
 User-agent: *
-Disallow: /
+Allow: /
+
+# Keep authenticated workspace and transient account flows out of search.
+Disallow: /admin
+Disallow: /agent
+Disallow: /ai-test
+Disallow: /analytics
+Disallow: /billing
+Disallow: /calendar
+Disallow: /calls
+Disallow: /campaigns
+Disallow: /dashboard
+Disallow: /inbox
+Disallow: /leads
+Disallow: /pipeline
+Disallow: /prospects
+Disallow: /settings
+Disallow: /setup
+Disallow: /support
+Disallow: /onboarding
+Disallow: /celebrate
+Disallow: /subscribe
+Disallow: /login
+Disallow: /signup
+Disallow: /callback
+Disallow: /api/
+
+Sitemap: https://gnxsales.com/sitemap.xml
