@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1200px;height:630px;overflow:hidden}
+.card{position:relative;width:1200px;height:630px;background:linear-gradient(135deg,#04281a 0%,#06311f 45%,#075a3e 100%);overflow:hidden;font-family:Manrope,system-ui,sans-serif}
+.blob{position:absolute;border-radius:50%;filter:blur(90px)}
+.b1{width:620px;height:620px;left:-160px;top:-260px;background:rgba(0,194,122,.42)}
+.b2{width:560px;height:560px;right:-140px;bottom:-240px;background:rgba(21,196,192,.34)}
+.b3{width:420px;height:420px;left:540px;top:-200px;background:rgba(141,242,122,.16)}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:52px 52px;-webkit-mask-image:radial-gradient(120% 90% at 20% 10%,#000,transparent 70%)}
+.inner{position:relative;height:100%;padding:64px 72px;display:flex;flex-direction:column;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:14px}
+.brand svg{display:block}
+.brand .wm{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:29px;letter-spacing:-.02em;color:#fff}
+.brand .by{margin-left:14px;padding-left:16px;border-left:1px solid rgba(255,255,255,.2);font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(198,244,222,.72)}
+h1{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:76px;line-height:1.04;letter-spacing:-.045em;color:#fff;max-width:900px}
+h1 em{font-style:normal;background:linear-gradient(100deg,#8df27a,#15c4c0);-webkit-background-clip:text;background-clip:text;color:transparent}
+p{margin-top:26px;font-size:25px;line-height:1.55;font-weight:500;color:rgba(214,246,231,.86);max-width:860px}
+.chips{display:flex;gap:12px;align-items:center}
+.chip{display:flex;align-items:center;gap:9px;padding:11px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:#eafaf2;font-size:17px;font-weight:700}
+.chip svg{flex:none}
+.url{margin-left:auto;font-size:19px;font-weight:800;letter-spacing:.02em;color:#8df27a}
+</style></head><body>
+<div class="card">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="grid"></div>
+  <div class="inner">
+    <div class="brand">
+      <svg width="46" height="46" viewBox="0 0 74 74"><g fill="#00e089"><path d="M36 36 8 12c-2-2 0-5 3-4l31 12c2 1 2 4 0 5z"/><path d="M36 36 22 66c-1 2-4 2-5-1l-6-30c0-2 2-4 4-3z"/><path d="M36 36 66 26c2-1 4 2 3 4L48 60c-1 2-4 2-5 0z"/></g></svg>
+      <span class="wm">GNX Sales</span>
+      <span class="by">AI Sales Agent</span>
+    </div>
+    <div>
+      <h1>Your AI sales agent.<br>Always prospecting.<br>Always <em>calling</em>.</h1>
+      <p>It finds buyers, researches why they would care, writes the outreach, and calls by AI voice. You only handle the conversations.</p>
+    </div>
+    <div class="chips">
+      <span class="chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8df27a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Approve every send</span>
+      <span class="chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8df27a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Live in 5 minutes</span>
+      <span class="url">gnxsales.com</span>
+    </div>
+  </div>
+</div></body></html>

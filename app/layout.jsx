@@ -44,14 +44,21 @@ export const metadata = {
     title: "AI Sales Agent for Automated Prospecting and Outreach | GNX Sales",
     description:
       "An AI sales agent that finds buyers, writes personalized outreach, follows up, and calls by AI voice — so you only handle the conversations.",
-    images: ["/gnx-sales-logo.png"],
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "GNX Sales — your AI sales agent. Always prospecting. Always calling.",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "AI Sales Agent for Automated Prospecting and Outreach | GNX Sales",
     description:
       "An AI sales agent that finds buyers, writes personalized outreach, follows up, and calls by AI voice.",
-    images: ["/gnx-sales-logo.png"],
+    images: ["/og-image.png"],
   },
 };
 
