@@ -1,16 +1,26 @@
 export const metadata = {
-  title: "AI voice calling — GNX Sales",
+  title: "AI Voice Agent Platform for Outbound Sales Calls",
   description:
-    "How GNX Sales runs AI voice calls: adversarial simulation testing before launch, do-not-call enforcement, and meetings booked from real calendar availability.",
+    "Test an AI voice agent for sales before launch with selectable simulations. Outbound AI calling with do-not-call enforcement, real calendar booking, and a number provisioned for you.",
+  alternates: { canonical: "/voice" },
+  openGraph: {
+    url: "/voice",
+    title: "AI Voice Agent Platform for Outbound Sales Calls",
+    description:
+      "Outbound AI calling with selectable adversarial simulation testing before launch.",
+  },
 };
 
 import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
 import PublicFooter from "../../components/layout/PublicFooter";
+import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
+import FaqSection from "../../components/marketing/FaqSection";
 import { PLAN_CONFIG } from "../../lib/plans";
 
 // Every claim on this page maps to shipped behaviour in the voice services.
+// Simulation testing is presented as a customer-selected pre-launch check.
 // Inbound calling is deliberately absent: it is still working-tree work and
 // has not been deployed or tested against live calls.
 const scenarios = [
@@ -33,44 +43,78 @@ const guarantees = [
   { icon: "phone", title: "Do-not-call is checked before dialing", body: "Voice has its own do-not-call gate, separate from email suppression. A number that should not be called does not get called." },
 ];
 
+
+const faqs = [
+  {
+    q: "What is an AI voice agent for sales?",
+    a: "It is software that places outbound calls and holds the conversation itself — introducing the offer, running discovery, handling objections, and booking a meeting. In GNX Sales, each voice campaign gets its own agent built from that campaign's product description, value proposition, pain points, objections, and tone.",
+  },
+  {
+    q: "Can I test the agent before it calls prospects?",
+    a: "Yes. You can select a pre-launch test that runs the agent through ten adversarial scenarios with explicit pass and fail conditions — the busy prospect, the skeptic, the wrong person, a do-not-call request, a failing calendar tool, and a caller pushing it to invent customers or pricing. Every transcript is scored, and you can fix the campaign and run the test again.",
+  },
+  {
+    q: "Do I need to buy a phone number?",
+    a: "No. A calling number is provisioned for you automatically. There is no telephony account to set up and no separate carrier bill.",
+  },
+  {
+    q: "Can it book meetings during the call?",
+    a: "Yes. Calendar availability and booking are live tools the agent can call mid-conversation. The backend computes open slots and the agent offers only those, so it can never invent a time, and a database constraint makes double booking impossible.",
+  },
+  {
+    q: "What happens on a do-not-call request?",
+    a: "The call ends immediately — acknowledgement, no persuasion, no one more question, no retry. Do-not-call is also checked before dialing, on its own gate separate from email suppression.",
+  },
+  {
+    q: "Does outbound AI calling cost extra?",
+    a: "No. Voice and email draw from the same credit pool on every plan. What scales with the tier is how many voice campaigns you can run at once.",
+  },
+];
+
 export default function VoicePage() {
   return (
-    <div className="public-page">
-      <PublicNav />
-
-      <main>
-        <section className="content-hero public-section">
-          <span className="eyebrow">AI voice calling</span>
-          <h1 className="display">It gets tested before it calls anyone.</h1>
+    <div className="public-page story-page">
+      <div className="story-hero-band">
+        <PublicNav variant="dark" />
+        <section className="story-hero public-section">
+          <span className="eyebrow">AI voice agent platform</span>
+          <h1 className="display">An AI voice agent you can test before it calls anyone.</h1>
           <p>
-            Handing an AI agent a phone number and your prospect list is a real risk. So before a voice campaign
-            can go live, the agent is run through a set of adversarial calls and scored on every transcript.
+            Handing an AI voice agent a phone number and your prospect list is a real risk. Select pre-launch
+            simulation testing to run adversarial calls and review the scored transcripts before reaching prospects.
           </p>
           <div className="content-hero-actions">
             <Link className="btn btn-primary btn-lg" href="/signup">
               Choose a plan <Icon name="arrow" size={18} color="#06231a" />
             </Link>
-            <Link className="btn btn-ghost btn-lg" href="/accuracy">How it avoids guessing</Link>
+            <Link className="landing-outline-btn" href="/accuracy">How it avoids guessing</Link>
           </div>
         </section>
+      </div>
 
-        <section className="content-section public-section">
+      <main>
+        <section className="story-body public-section">
           <div className="content-section-head">
-            <h2>The scenarios it has to pass</h2>
+            <h2>The scenarios an AI voice agent for sales has to pass</h2>
             <p>
               Each one is a scripted call with explicit pass and fail conditions, judged against the transcript.
               A campaign that fails can be fixed and re-run before a single real prospect hears from it.
             </p>
           </div>
-          <div className="card-grid">
+          <ol className="story-scenarios">
             {scenarios.map((item) => (
-              <article key={item.title} className="content-card">
-                <span className="content-card-icon"><Icon name={item.icon} size={20} color="var(--g-700)" /></span>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-              </article>
+              <li key={item.title} className="story-scenario">
+                <span className="story-scenario-mark" aria-hidden="true">
+                  <Icon name="check" size={14} color="#06231a" stroke={2.6} />
+                </span>
+                <span className="content-card-icon"><Icon name={item.icon} size={18} color="var(--g-700)" /></span>
+                <div>
+                  <h3>{item.title}</h3>
+                  <p>{item.body}</p>
+                </div>
+              </li>
             ))}
-          </div>
+          </ol>
           <p className="voice-baseline">
             <Icon name="checkCircle" size={18} color="var(--g-700)" />
             <span>
@@ -80,14 +124,14 @@ export default function VoicePage() {
           </p>
         </section>
 
-        <section className="content-section public-section voice-guarantees">
+        <section className="story-band">
           <div className="content-section-head">
-            <h2>What holds on a live call</h2>
+            <h2>What holds on a live outbound AI call</h2>
             <p>Testing catches a bad agent before launch. These constraints hold while it is actually talking to someone.</p>
           </div>
-          <div className="card-grid">
+          <div className="story-guarantees">
             {guarantees.map((item) => (
-              <article key={item.title} className="content-card">
+              <article key={item.title} className="story-guarantee">
                 <span className="content-card-icon"><Icon name={item.icon} size={20} color="var(--g-700)" /></span>
                 <h3>{item.title}</h3>
                 <p>{item.body}</p>
@@ -96,9 +140,9 @@ export default function VoicePage() {
           </div>
         </section>
 
-        <section className="content-section public-section">
+        <section className="story-body public-section">
           <div className="content-section-head">
-            <h2>Voice is included, not upsold</h2>
+            <h2>The voice agent is included, not upsold</h2>
             <p>
               Voice and email draw from the same credit pool on every plan. What scales with the tier is how many
               voice campaigns you can run at once — never whether you get the channel at all.
@@ -106,7 +150,7 @@ export default function VoicePage() {
           </div>
           <div className="voice-plan-grid">
             {PLAN_CONFIG.map((plan) => (
-              <div key={plan.id}>
+              <div key={plan.id} data-plan={plan.voiceCampaigns}>
                 <strong>{plan.name}</strong>
                 <b>{plan.voiceCampaigns}</b>
                 <span>concurrent voice campaign{plan.voiceCampaigns === 1 ? "" : "s"}</span>
@@ -116,10 +160,12 @@ export default function VoicePage() {
           </div>
         </section>
 
+        <FaqSection heading="AI voice agent questions" items={faqs} />
+
         <section className="solutions-cta">
           <div>
-            <h2>Put a tested agent on the phone.</h2>
-            <p>Choose a plan, build a voice campaign, and review its simulated calls before it dials out.</p>
+            <h2>Test before you call.</h2>
+            <p>Choose a plan, build a voice campaign, and select pre-launch simulations to review how the agent responds.</p>
           </div>
           <div className="content-cta-actions">
             <Link className="btn btn-primary btn-lg" href="/signup">
@@ -131,6 +177,7 @@ export default function VoicePage() {
       </main>
 
       <PublicFooter />
+      <BreadcrumbSchema trail={[{ name: "AI voice agent", path: "/voice" }]} />
     </div>
   );
 }

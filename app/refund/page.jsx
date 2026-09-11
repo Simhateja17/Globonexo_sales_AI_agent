@@ -1,6 +1,8 @@
 export const metadata = {
-  title: "Refund policy for GNX Sales",
-  description: "Refund Policy for GNX sales subscriptions.",
+  title: { absolute: "Refund policy for GNX Sales" },
+  description: "Review the GNX Sales Refund Policy for subscription billing, cancellations, usage charges, eligibility, and refund requests.",
+  alternates: { canonical: "/refund" },
+  openGraph: { url: "/refund" },
 };
 
 import LegalPage from "../../components/layout/LegalPage";
@@ -32,7 +34,7 @@ const sections = [
   },
   {
     title: "7. How to Request a Refund",
-    body: "Email support@globonexo.com from the address on your account with the organization name, invoice or charge date, and the reason for the request. We respond to refund requests within 3 business days.",
+    body: "Email support@gnxsales.com from the address on your account with the organization name, invoice or charge date, and the reason for the request. We respond to refund requests within 3 business days.",
   },
   {
     title: "8. Approved Refunds",
@@ -44,7 +46,7 @@ const sections = [
   },
   {
     title: "10. Contact",
-    body: "Billing and refund questions can be sent to support@globonexo.com.",
+    body: "Billing and refund questions can be sent to support@gnxsales.com.",
   },
 ];
 

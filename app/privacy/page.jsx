@@ -1,6 +1,8 @@
 export const metadata = {
-  title: "Privacy policy for GNX Sales",
-  description: "Privacy Policy for GNX sales.",
+  title: { absolute: "Privacy policy for GNX Sales" },
+  description: "Learn how GNX Sales collects, uses, protects, and deletes account, lead, campaign, integration, and analytics data.",
+  alternates: { canonical: "/privacy" },
+  openGraph: { url: "/privacy" },
 };
 
 import LegalPage from "../../components/layout/LegalPage";
@@ -52,7 +54,7 @@ const sections = [
   },
   {
     title: "8. Contact",
-    body: "Privacy questions can be sent to support@globonexo.com.",
+    body: "Privacy questions can be sent to support@gnxsales.com.",
   },
 ];
 

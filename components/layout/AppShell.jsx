@@ -43,6 +43,7 @@ const NAV_GROUPS = [
     items: [
       { id: 'billing', label: 'Billing', ico: 'star' },
       { id: 'settings', label: 'Settings', ico: 'sliders' },
+      { id: 'settings/team', label: 'Team', ico: 'users' },
       { id: 'support', label: 'Support', ico: 'chat' },
     ]
   },
@@ -56,13 +57,11 @@ const BILLING_ALLOWED_PATHS = ['/support'];
 export default function AppShell({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const activeTab = pathname.split('/')[1] || 'dashboard';
+  const activeTab = pathname.startsWith('/settings/team') ? 'settings/team' : pathname.split('/')[1] || 'dashboard';
   const [user, setUser] = useState(null);
   const [org, setOrg] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const profileMenuRef = useRef(null);
   const [notifications, setNotifications] = useState({ items: [], unreadCount: 0 });
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const notificationsRef = useRef(null);
@@ -73,8 +72,10 @@ export default function AppShell({ children }) {
     const next = encodeURIComponent(pathname || '/dashboard');
     const redirectToLogin = () => {
       if (!active) return;
-      active = false;
-      window.location.assign(`/login?next=${next}`);
+      setUser(null);
+      setOrg(null);
+      setAuthChecked(true);
+      router.replace(`/login?next=${next}`);
     };
     const timeoutId = window.setTimeout(redirectToLogin, 8000);
 
@@ -94,11 +95,10 @@ export default function AppShell({ children }) {
       active = false;
       window.clearTimeout(timeoutId);
     };
-  }, [pathname]);
+  }, [pathname, router]);
 
   useEffect(() => {
     setMobileNavOpen(false);
-    setProfileMenuOpen(false);
     setNotificationsOpen(false);
   }, [pathname]);
 
@@ -147,21 +147,11 @@ export default function AppShell({ children }) {
     return () => window.removeEventListener('gnx:tour:nav', handleTourNav);
   }, []);
 
-  useEffect(() => {
-    if (!profileMenuOpen) return undefined;
-    const handleClickOutside = (event) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
-        setProfileMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [profileMenuOpen]);
-
   const paymentRequired = Boolean(
     authChecked
       && user
       && org
+      && user.membership_status !== 'plan_suspended'
       && !hasWorkspaceAccess(user, org),
   );
   const billingRouteAllowed = BILLING_ALLOWED_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -176,8 +166,6 @@ export default function AppShell({ children }) {
     ? [user.first_name, user.last_name].filter(Boolean).join(' ') || 'User'
     : '';
   const orgName = org?.name || '';
-  const isAdmin = user?.role === 'admin';
-
   const handleLogout = async () => {
     try {
       await api.post('/auth/logout');
@@ -194,6 +182,31 @@ export default function AppShell({ children }) {
     return (
       <div className="screen app-shell-screen" style={{ display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
         <p className="muted">Checking session...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="screen app-shell-screen" style={{ display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
+        <p className="muted">Redirecting to login...</p>
+      </div>
+    );
+  }
+
+  if (user.membership_status === 'plan_suspended') {
+    return (
+      <div className="screen app-shell-screen" style={{ display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
+        <div className="card" style={{ maxWidth: 500, padding: 32, textAlign: 'center' }}>
+          <div style={{ width: 46, height: 46, margin: '0 auto 14px', borderRadius: 14, display: 'grid', placeItems: 'center', background: 'var(--g-50)', color: 'var(--g-700)' }}>
+            <Icon name="users" size={22} />
+          </div>
+          <h1 className="display" style={{ fontSize: 24 }}>No active workspace seat</h1>
+          <p className="muted" style={{ marginTop: 10, lineHeight: 1.6 }}>
+            Your account is still part of {org?.name || 'this organization'}, but the current plan does not have an active seat for you. Ask the Owner to upgrade the plan or change the team access order.
+          </p>
+          <button className="btn btn-primary btn-sm" style={{ marginTop: 20 }} onClick={handleLogout}>Sign out</button>
+        </div>
       </div>
     );
   }
@@ -301,14 +314,16 @@ export default function AppShell({ children }) {
               <button
                 type="button"
                 style={{ position: 'relative', color: notifications.unreadCount > 0 ? 'var(--ink-2)' : 'var(--muted)', display: 'block' }}
-                onClick={() => setNotificationsOpen(open => !open)}
+                onClick={() => {
+                  setNotificationsOpen(open => !open);
+                }}
                 aria-haspopup="menu"
                 aria-expanded={notificationsOpen}
                 aria-label={notifications.unreadCount > 0
                   ? `Notifications: ${notifications.unreadCount} email${notifications.unreadCount === 1 ? '' : 's'} need your OK`
                   : 'Notifications'}
               >
-                <Icon name="bell" size={20} />
+                <Icon name="inbox" size={20} />
                 {notifications.unreadCount > 0 && (
                   <span
                     style={{
@@ -326,7 +341,19 @@ export default function AppShell({ children }) {
                 <div
                   className="card"
                   role="menu"
-                  style={{ position: 'absolute', top: '100%', right: 0, marginTop: 10, width: 340, maxWidth: '90vw', maxHeight: 420, overflowY: 'auto', padding: 6, zIndex: 40 }}
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: 10,
+                    width: 380,
+                    maxWidth: 'calc(100vw - 28px)',
+                    maxHeight: 420,
+                    overflowY: 'auto',
+                    padding: 6,
+                    zIndex: 90,
+                    isolation: 'isolate',
+                  }}
                 >
                   <div style={{ padding: '8px 10px 6px' }}>
                     <strong style={{ fontSize: 13 }}>Notifications</strong>
@@ -350,7 +377,7 @@ export default function AppShell({ children }) {
                       >
                         <span className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
                           <span style={{ flex: 'none', marginTop: 2, color: '#b45309' }}>
-                            <Icon name="bolt" size={14} />
+                            <Icon name="alertCircle" size={14} />
                           </span>
                           <span className="col" style={{ gap: 3, minWidth: 0 }}>
                             <strong style={{ fontSize: 13 }}>{item.title}</strong>
@@ -365,45 +392,13 @@ export default function AppShell({ children }) {
                 </div>
               )}
             </div>
-            {userName && !isAdmin && (
+            {userName && (
               <div className="row" style={{ gap: 9 }}>
                 <Avatar name={userName} size={34} />
                 <div className="col" style={{ lineHeight: 1.2 }}>
                   <span style={{ fontWeight: 800, fontSize: 13.5 }} className="nw">{userName}</span>
                   <span className="faint nw" style={{ fontSize: 11.5 }}>{orgName}</span>
                 </div>
-              </div>
-            )}
-            {userName && isAdmin && (
-              <div className="profile-menu" ref={profileMenuRef} style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  className="row profile-menu-trigger"
-                  style={{ gap: 9, background: 'transparent' }}
-                  onClick={() => setProfileMenuOpen(open => !open)}
-                  aria-haspopup="menu"
-                  aria-expanded={profileMenuOpen}
-                >
-                  <Avatar name={userName} size={34} />
-                  <div className="col" style={{ lineHeight: 1.2 }}>
-                    <span style={{ fontWeight: 800, fontSize: 13.5 }} className="nw">{userName}</span>
-                    <span className="faint nw" style={{ fontSize: 11.5 }}>{orgName}</span>
-                  </div>
-                  <Icon name="arrow" size={11} color="var(--faint)" style={{ transform: 'rotate(90deg)' }} />
-                </button>
-                {profileMenuOpen && (
-                  <div className="card profile-menu-dropdown" role="menu" style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, minWidth: 180, padding: 6, zIndex: 40 }}>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className="profile-menu-item"
-                      style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '9px 10px', borderRadius: 8, fontWeight: 700, fontSize: 13.5, textAlign: 'left', color: 'var(--ink-2)' }}
-                      onClick={() => { setProfileMenuOpen(false); goTo('/admin'); }}
-                    >
-                      <Icon name="sliders" size={16} color="var(--muted)" /> Admin panel
-                    </button>
-                  </div>
-                )}
               </div>
             )}
           </div>

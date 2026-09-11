@@ -48,23 +48,138 @@ function CampaignSkeleton() {
   );
 }
 
+function leadLabel(lead) {
+  const name = lead.name || [lead.firstName, lead.lastName].filter(Boolean).join(" ") || "Unnamed lead";
+  const detail = [lead.title, lead.company].filter(Boolean).join(" · ");
+  return detail ? `${name} · ${detail}` : name;
+}
+
+function CampaignSettingsDrawer({
+  campaign,
+  assignedLeads,
+  availableLeads,
+  selectedLeadIds,
+  onSelectedLeadIdsChange,
+  loading,
+  busy,
+  error,
+  onClose,
+  onAdd,
+  onRemove,
+}) {
+  if (!campaign) return null;
+
+  return (
+    <div
+      role="presentation"
+      onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}
+      style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(6, 35, 26, .22)", display: "flex", justifyContent: "flex-end" }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="campaign-settings-title"
+        style={{ width: "min(720px, 100vw)", height: "100%", overflowY: "auto", background: "#fff", boxShadow: "-18px 0 50px rgba(6, 35, 26, .16)", padding: 24 }}
+      >
+        <div className="row spread" style={{ gap: 16, alignItems: "flex-start" }}>
+          <div style={{ minWidth: 0 }}>
+            <span className="eyebrow">Campaign settings</span>
+            <h2 id="campaign-settings-title" style={{ margin: "4px 0 0", fontSize: 22 }}>{campaign.name}</h2>
+            <p className="faint" style={{ marginTop: 5 }}>{CHANNEL_LABELS[campaign.channel]} · {assignedLeads.length} assigned lead{assignedLeads.length === 1 ? "" : "s"}</p>
+          </div>
+          <button className="btn btn-ghost btn-sm" type="button" onClick={onClose}>
+            <Icon name="close" size={16} /> Close
+          </button>
+        </div>
+
+        {error ? <div className="notice-warn" style={{ marginTop: 16 }}>{error}</div> : null}
+
+        <div className="card" style={{ marginTop: 18, padding: 16, borderRadius: 8 }}>
+          <div className="row spread" style={{ gap: 12, alignItems: "flex-end" }}>
+            <label className="field" style={{ flex: 1 }}>
+              <span>Add lead to campaign</span>
+              <select
+                className="input"
+                value={selectedLeadIds[0] || ""}
+                onChange={event => onSelectedLeadIdsChange(event.target.value ? [event.target.value] : [])}
+                disabled={loading || busy}
+              >
+                <option value="">Choose an existing prospect</option>
+                {availableLeads.map(lead => <option key={lead.id} value={lead.id}>{leadLabel(lead)}</option>)}
+              </select>
+            </label>
+            <button className="btn btn-primary btn-sm" type="button" onClick={onAdd} disabled={busy || selectedLeadIds.length === 0}>
+              <Icon name="plus" size={15} color="#06231a" /> Add lead
+            </button>
+          </div>
+          <p className="faint" style={{ marginTop: 10, fontSize: 12.5 }}>Existing prospects can be added without recreating them.</p>
+        </div>
+
+        <div style={{ marginTop: 22 }}>
+          <div className="row spread" style={{ marginBottom: 10 }}>
+            <strong>Assigned leads</strong>
+            {loading ? <span className="faint">Loading...</span> : null}
+          </div>
+          <div className="card table-shell">
+            <div className="table-scroll">
+              <table className="data-table" style={{ minWidth: 560 }}>
+                <thead><tr>{["Lead", "Status", ""].map(header => <th key={header}>{header}</th>)}</tr></thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={3} className="table-empty">Loading campaign leads...</td></tr>
+                  ) : assignedLeads.length === 0 ? (
+                    <tr><td colSpan={3} className="table-empty">No leads are attached to this campaign.</td></tr>
+                  ) : assignedLeads.map(lead => (
+                    <tr className="data-row" key={lead.id}>
+                      <td><strong style={{ fontSize: 14 }}>{leadLabel(lead)}</strong><div className="faint">{lead.email || lead.phone || "No contact yet"}</div></td>
+                      <td><span className="chip">{lead.campaignMembership?.qualificationStatus || lead.status || "selected"}</span></td>
+                      <td style={{ textAlign: "right" }}>
+                        <button className="btn btn-ghost btn-sm danger-text" type="button" disabled={busy} onClick={() => onRemove(lead)}>
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export default function CampaignsPage() {
   const router = useRouter();
   const [campaigns, setCampaigns] = useState([]);
   const [summary, setSummary] = useState({ total: 0, active: 0, enrolled: 0, sent: 0, meetings: 0 });
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [assignmentFilter, setAssignmentFilter] = useState("mine");
+  const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState("");
+  const [settingsCampaign, setSettingsCampaign] = useState(null);
+  const [assignedLeads, setAssignedLeads] = useState([]);
+  const [availableLeads, setAvailableLeads] = useState([]);
+  const [selectedLeadIds, setSelectedLeadIds] = useState([]);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsBusy, setSettingsBusy] = useState(false);
+  const [settingsError, setSettingsError] = useState("");
 
   const loadCampaigns = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const { data } = await api.get("/campaigns");
+      const [{ data }, teamResult] = await Promise.all([
+        api.get("/campaigns"),
+        api.get("/team").catch(() => ({ data: null })),
+      ]);
       setCampaigns(Array.isArray(data?.items) ? data.items : []);
       setSummary(data?.summary ?? { total: 0, active: 0, enrolled: 0, sent: 0, meetings: 0 });
+      setTeam(teamResult.data ?? null);
     } catch (err) {
       setError(err?.response?.data?.error || "Campaigns could not be loaded. Check the API server and try again.");
     } finally {
@@ -80,16 +195,79 @@ export default function CampaignsPage() {
     const needle = search.trim().toLowerCase();
     return campaigns.filter(campaign => {
       const statusMatch = statusFilter === "all" || campaign.status === statusFilter;
+      const assignmentMatch = assignmentFilter === "all"
+        || (assignmentFilter === "unassigned" && !campaign.assignedUserId)
+        || (assignmentFilter === "mine" && (!team?.viewer?.id || campaign.assignedUserId === team.viewer.id));
       const textMatch =
         !needle ||
         campaign.name?.toLowerCase().includes(needle) ||
         CHANNEL_LABELS[campaign.channel]?.toLowerCase().includes(needle);
-      return statusMatch && textMatch;
+      return statusMatch && assignmentMatch && textMatch;
     });
-  }, [campaigns, search, statusFilter]);
+  }, [campaigns, search, statusFilter, assignmentFilter, team]);
 
   const setCampaignInList = updated => {
     setCampaigns(current => current.map(campaign => (campaign.id === updated.id ? updated : campaign)));
+  };
+
+  const loadCampaignSettings = useCallback(async campaign => {
+    if (!campaign) return;
+    setSettingsLoading(true);
+    setSettingsError("");
+    try {
+      const [assignedResult, allResult] = await Promise.all([
+        api.get("/leads", { params: { campaignId: campaign.id, perPage: 200 } }),
+        api.get("/leads", { params: { perPage: 500 } }),
+      ]);
+      const assigned = Array.isArray(assignedResult.data?.items) ? assignedResult.data.items : [];
+      const all = Array.isArray(allResult.data?.items) ? allResult.data.items : [];
+      const assignedIds = new Set(assigned.map(lead => lead.id));
+      setAssignedLeads(assigned);
+      setAvailableLeads(all.filter(lead => !assignedIds.has(lead.id)));
+      setSelectedLeadIds([]);
+    } catch (err) {
+      setSettingsError(err?.response?.data?.error || "Campaign settings could not be loaded.");
+    } finally {
+      setSettingsLoading(false);
+    }
+  }, []);
+
+  const openCampaignSettings = campaign => {
+    setSettingsCampaign(campaign);
+    setAssignedLeads([]);
+    setAvailableLeads([]);
+    setSelectedLeadIds([]);
+    loadCampaignSettings(campaign);
+  };
+
+  const addSelectedLeads = async () => {
+    if (!settingsCampaign || selectedLeadIds.length === 0) return;
+    setSettingsBusy(true);
+    setSettingsError("");
+    try {
+      await api.post(`/campaigns/${settingsCampaign.id}/assign-leads`, { leadIds: selectedLeadIds });
+      await Promise.all([loadCampaignSettings(settingsCampaign), loadCampaigns()]);
+    } catch (err) {
+      setSettingsError(err?.response?.data?.error || "Lead could not be added to this campaign.");
+    } finally {
+      setSettingsBusy(false);
+    }
+  };
+
+  const removeLeadFromCampaign = async lead => {
+    if (!settingsCampaign) return;
+    const ok = window.confirm(`Remove ${leadLabel(lead)} from "${settingsCampaign.name}"? The prospect record will stay in Prospects.`);
+    if (!ok) return;
+    setSettingsBusy(true);
+    setSettingsError("");
+    try {
+      await api.post(`/campaigns/${settingsCampaign.id}/remove-leads`, { leadIds: [lead.id] });
+      await Promise.all([loadCampaignSettings(settingsCampaign), loadCampaigns()]);
+    } catch (err) {
+      setSettingsError(err?.response?.data?.error || "Lead could not be removed from this campaign.");
+    } finally {
+      setSettingsBusy(false);
+    }
   };
 
   const runAction = async (campaign, action) => {
@@ -110,6 +288,18 @@ export default function CampaignsPage() {
     }
   };
 
+  const rebuildVoiceAgent = async campaign => {
+    setBusyId(campaign.id + "rebuild");
+    setError("");
+    try {
+      await api.post(`/campaigns/${campaign.id}/prepare`);
+      router.push(`/campaigns/${campaign.id}`);
+    } catch (err) {
+      setError(err?.response?.data?.error || "Voice agent rebuild could not be started. Please try again.");
+      setBusyId("");
+    }
+  };
+
   const deleteCampaign = async campaign => {
     const ok = window.confirm(`Delete "${campaign.name}"? This cannot be undone.`);
     if (!ok) return;
@@ -121,6 +311,20 @@ export default function CampaignsPage() {
       await loadCampaigns();
     } catch (err) {
       setError(err?.response?.data?.error || "Campaign could not be deleted.");
+    } finally {
+      setBusyId("");
+    }
+  };
+
+  const archiveCampaign = async campaign => {
+    if (!window.confirm(`Archive "${campaign.name}"? Its history will stay available, but outreach will stop.`)) return;
+    setBusyId(campaign.id + "archive");
+    setError("");
+    try {
+      await api.post(`/campaigns/${campaign.id}/archive`);
+      await loadCampaigns();
+    } catch (err) {
+      setError(err?.response?.data?.error || "Campaign could not be archived.");
     } finally {
       setBusyId("");
     }
@@ -168,6 +372,9 @@ export default function CampaignsPage() {
           />
         </div>
         <div className="row campaigns-status-filters" style={{ gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          {[['mine', 'My campaigns'], ['all', 'All campaigns'], ['unassigned', 'Unassigned']].map(([value, label]) => (
+            <button key={value} className="btn btn-ghost btn-sm" onClick={() => setAssignmentFilter(value)} style={{ height: 34, padding: "0 12px", fontSize: 12.5, background: assignmentFilter === value ? "var(--g-50)" : "#fff", borderColor: assignmentFilter === value ? "var(--g-300)" : "var(--line)" }}>{label}</button>
+          ))}
           {["all", "draft", "active", "paused", "completed"].map(status => (
             <button
               key={status}
@@ -212,12 +419,17 @@ export default function CampaignsPage() {
         ) : (
           <div className="col" style={{ gap: 12 }}>
             {filteredCampaigns.map(campaign => {
+              const viewer = team?.viewer;
+              const canOperate = !viewer || ['owner', 'admin'].includes(viewer.role) || campaign.assignedUserId === viewer.id;
+              const canDelete = viewer?.role === 'owner';
+              const assignee = team?.members?.find(member => member.id === campaign.assignedUserId);
               const statusStyle = STATUS_STYLES[campaign.status] ?? STATUS_STYLES.draft;
               const primaryAction = campaign.status === "active" ? "pause" : "launch";
               const hasReadyLeads = (campaign.stats?.ready ?? 0) > 0;
               const launchBlocked = primaryAction === "launch" && campaign.channel === "email" && !hasReadyLeads;
               const primaryLabel = campaign.status === "active" ? "Pause" : launchBlocked ? "Needs email" : "Launch";
               const actionBusy = busyId === campaign.id + primaryAction;
+              const rebuildBusy = busyId === campaign.id + "rebuild";
               return (
                 <div
                   key={campaign.id}
@@ -248,16 +460,31 @@ export default function CampaignsPage() {
                       <div className="col" style={{ minWidth: 0 }}>
                         <span style={{ fontWeight: 800, fontSize: 15 }} className="ellip">{campaign.name}</span>
                         <span className="faint" style={{ fontSize: 12.5, marginTop: 3 }}>
-                          {CHANNEL_LABELS[campaign.channel]} - Created {formatDate(campaign.createdAt)}
+                          {CHANNEL_LABELS[campaign.channel]} - Created {formatDate(campaign.createdAt)}{assignee ? ` · Assigned to ${[assignee.first_name, assignee.last_name].filter(Boolean).join(' ') || assignee.email}` : ' · Unassigned'}
                         </span>
                       </div>
                     </div>
                     <div className="row campaigns-card-actions" style={{ gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                      {!canOperate ? <span className="faint" style={{ fontSize: 12, fontWeight: 800 }}>View only</span> : null}
                       <span className="badge" style={{ background: statusStyle.bg, color: statusStyle.color, height: 26 }}>
                         <span style={{ width: 6, height: 6, borderRadius: 99, background: statusStyle.dot, flex: "none" }} />
                         {statusStyle.label}
                       </span>
-                      {campaign.status !== "completed" && (
+                      {canOperate && campaign.status === "paused" && campaign.channel === "voice" ? (
+                        <button
+                          className="btn btn-primary btn-sm"
+                          disabled={rebuildBusy}
+                          style={{ height: 32 }}
+                          onClick={event => {
+                            event.stopPropagation();
+                            rebuildVoiceAgent(campaign);
+                          }}
+                        >
+                          <Icon name="refresh" size={14} />
+                          {rebuildBusy ? "Rebuilding..." : "Rebuild agent"}
+                        </button>
+                      ) : null}
+                      {canOperate && campaign.status !== "completed" && (
                         <button
                           className="btn btn-ghost btn-sm"
                           disabled={actionBusy || launchBlocked}
@@ -274,6 +501,28 @@ export default function CampaignsPage() {
                       )}
                       <button
                         className="btn btn-ghost btn-sm"
+                        style={{ height: 32 }}
+                        disabled={!canOperate}
+                        onClick={event => {
+                          event.stopPropagation();
+                          openCampaignSettings(campaign);
+                        }}
+                      >
+                        <Icon name="cog" size={14} /> Settings
+                      </button>
+                      {canOperate && !campaign.archivedAt && <button
+                        className="btn btn-ghost btn-sm"
+                        disabled={busyId === campaign.id + "archive"}
+                        style={{ height: 32 }}
+                        onClick={event => {
+                          event.stopPropagation();
+                          archiveCampaign(campaign);
+                        }}
+                      >
+                        {busyId === campaign.id + "archive" ? "Archiving..." : "Archive"}
+                      </button>}
+                      {canDelete && <button
+                        className="btn btn-ghost btn-sm"
                         disabled={busyId === campaign.id + "delete"}
                         style={{ height: 32 }}
                         onClick={event => {
@@ -282,7 +531,7 @@ export default function CampaignsPage() {
                         }}
                       >
                         Delete
-                      </button>
+                      </button>}
                     </div>
                   </div>
 
@@ -307,6 +556,19 @@ export default function CampaignsPage() {
           </div>
         )}
       </div>
+      <CampaignSettingsDrawer
+        campaign={settingsCampaign}
+        assignedLeads={assignedLeads}
+        availableLeads={availableLeads}
+        selectedLeadIds={selectedLeadIds}
+        onSelectedLeadIdsChange={setSelectedLeadIds}
+        loading={settingsLoading}
+        busy={settingsBusy}
+        error={settingsError}
+        onClose={() => setSettingsCampaign(null)}
+        onAdd={addSelectedLeads}
+        onRemove={removeLeadFromCampaign}
+      />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 export const metadata = {
-  title: "Contact GNX Sales support",
+  title: { absolute: "Contact GNX Sales support" },
   description: "Reach the GNX sales team for product support, billing questions, sales, and security reports.",
+  alternates: { canonical: "/contact" },
+  openGraph: { url: "/contact" },
 };
 
 import Link from "next/link";
@@ -20,28 +22,28 @@ const channels = [
     icon: "mail",
     title: "Email us",
     body: "Not signed in, or prefer email? Write to us directly and include your organization name so we can find your account.",
-    action: { label: "support@globonexo.com", href: "mailto:support@globonexo.com" },
+    action: { label: "support@gnxsales.com", href: "mailto:support@gnxsales.com" },
     note: "Replies within 1 business day",
   },
   {
     icon: "building",
     title: "Sales and plans",
     body: "Questions about pricing, credit usage, campaign limits, or moving to the Scale plan. We can walk through your outbound motion first.",
-    action: { label: "sales@globonexo.com", href: "mailto:sales@globonexo.com" },
+    action: { label: "support@gnxsales.com", href: "mailto:support@gnxsales.com" },
     note: "Replies within 1 business day",
   },
   {
     icon: "lock",
     title: "Billing and refunds",
     body: "Invoices, payment methods, plan changes, duplicate charges, and refund requests handled under our Refund Policy.",
-    action: { label: "billing@globonexo.com", href: "mailto:billing@globonexo.com" },
+    action: { label: "support@gnxsales.com", href: "mailto:support@gnxsales.com" },
     note: "Refund requests reviewed within 3 business days",
   },
   {
     icon: "alertCircle",
     title: "Security and privacy",
     body: "Report a vulnerability, ask about data handling, or make a data deletion request. Please do not include credentials in your message.",
-    action: { label: "security@globonexo.com", href: "mailto:security@globonexo.com" },
+    action: { label: "support@gnxsales.com", href: "mailto:support@gnxsales.com" },
     note: "Acknowledged within 24 hours",
   },
   {
@@ -80,6 +82,10 @@ export default function ContactPage() {
         </section>
 
         <section className="content-section public-section">
+          <div className="content-section-head">
+            <h2>Choose the right way to reach us</h2>
+            <p>Find the support, sales, billing, or security channel that fits your question.</p>
+          </div>
           <div className="card-grid contact-card-grid">
             {channels.map((channel) => (
               <article key={channel.title} className="content-card">

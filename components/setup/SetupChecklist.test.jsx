@@ -56,12 +56,12 @@ describe("checklist states", () => {
 describe("integration state rendering", () => {
   it("shows a connected integration as Done with the backend's detail", () => {
     mockSetup({
-      steps: [step("gmail", { status: "complete", detail: "Sending from sales@globonexo.com." })],
+      steps: [step("gmail", { status: "complete", detail: "Sending from sales@example.com." })],
     });
     render(<SetupChecklist />);
 
     expect(screen.getByText("Done")).toBeTruthy();
-    expect(screen.getByText("Sending from sales@globonexo.com.")).toBeTruthy();
+    expect(screen.getByText("Sending from sales@example.com.")).toBeTruthy();
   });
 
   it("never renders Done for an unconnected integration", () => {

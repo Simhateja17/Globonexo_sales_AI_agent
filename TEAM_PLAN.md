@@ -1058,7 +1058,7 @@ STRIPE_PRICE_SCALE=price_...
 
 # Resend
 RESEND_API_KEY=...
-RESEND_FROM_EMAIL=noreply@globonexo.com
+RESEND_FROM_EMAIL=support@gnxsales.com
 
 # Redis
 REDIS_URL=redis://localhost:6379

@@ -1,6 +1,8 @@
 export const metadata = {
-  title: "GNX Sales help center",
+  title: { absolute: "GNX Sales help center" },
   description: "Guides for setting up agents, sourcing leads, running campaigns, handling replies, and managing billing in GNX sales.",
+  alternates: { canonical: "/help" },
+  openGraph: { url: "/help" },
 };
 
 import Link from "next/link";
@@ -122,6 +124,10 @@ export default function HelpPage() {
         </section>
 
         <section className="content-section public-section">
+          <div className="content-section-head">
+            <h2>Find an answer</h2>
+            <p>Start with the topic that matches what you are trying to do in GNX Sales.</p>
+          </div>
           <div className="card-grid help-card-grid">
             {categories.map((category) => (
               <article key={category.title} className="content-card">
@@ -145,7 +151,7 @@ export default function HelpPage() {
           </div>
           <div className="content-cta-actions">
             <Link className="btn btn-dark" href="/contact">Contact support</Link>
-            <a className="btn btn-ghost" href="mailto:support@globonexo.com">Email us</a>
+            <a className="btn btn-ghost" href="mailto:support@gnxsales.com">Email us</a>
           </div>
         </section>
       </main>

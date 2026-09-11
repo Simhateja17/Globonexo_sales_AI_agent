@@ -2,7 +2,7 @@ import { AuthAside } from "../../../components/layout/AuthAside";
 import { SignupForm } from "../../../components/auth/SignupForm";
 
 export const metadata = {
-  title: "Create a GNX Sales account",
+  title: { absolute: "Create a GNX Sales account" },
 };
 
 export default function SignupPage() {

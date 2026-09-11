@@ -15,9 +15,19 @@ const groups = [
     title: "Solutions",
     links: [
       { label: "Overview", href: "/solutions" },
-      { label: "For an individual", href: "/solutions#individual" },
-      { label: "For an agency", href: "/solutions#agency" },
-      { label: "For a startup", href: "/solutions#startup" },
+      { label: "For an individual", href: "/solutions/individuals" },
+      { label: "For agencies", href: "/solutions/agencies" },
+      { label: "For B2B startups", href: "/solutions/b2b-startups" },
+    ],
+  },
+  {
+    title: "Guides",
+    links: [
+      { label: "What is an AI sales agent?", href: "/ai-sales-agent-guide" },
+      { label: "AI SDR tools", href: "/ai-sdr-tools" },
+      { label: "B2B lead generation tools", href: "/b2b-lead-generation-tools" },
+      { label: "Sales automation software", href: "/sales-automation-software" },
+      { label: "Cold email software", href: "/cold-email-software" },
     ],
   },
   {
@@ -64,7 +74,7 @@ export default function PublicFooter() {
       </div>
       <div className="public-footer-base">
         <span>© 2026 Globonexo, Inc.</span>
-        <a href="mailto:support@globonexo.com">support@globonexo.com</a>
+        <a href="mailto:support@gnxsales.com">support@gnxsales.com</a>
       </div>
     </footer>
   );

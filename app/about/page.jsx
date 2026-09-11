@@ -1,6 +1,8 @@
 export const metadata = {
-  title: "About GNX Sales",
+  title: { absolute: "About GNX Sales" },
   description: "Globonexo builds AI sales agents that find buyers, start conversations, and book meetings for small sales teams.",
+  alternates: { canonical: "/about" },
+  openGraph: { url: "/about" },
 };
 
 import Link from "next/link";

@@ -5,6 +5,10 @@ import SetupCopilot from "../../components/setup/SetupCopilot";
 
 export const metadata = {
   title: "GNX sales",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function AppLayout({ children }) {
