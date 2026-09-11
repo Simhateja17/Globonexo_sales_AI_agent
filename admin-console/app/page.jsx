@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import Avatar from "../../components/ui/Avatar";
@@ -9,7 +8,8 @@ import Logo from "../../components/ui/Logo";
 import RouteSkeleton from "../../components/ui/RouteSkeleton";
 import Spinner from "../../components/ui/Spinner";
 import { useFirstLoad } from "../../hooks/useFirstLoad";
-import api from "../../lib/api";
+import adminApi from "../lib/admin-api";
+import { useAdminAuth } from "../providers/AdminAuthProvider";
 import { cleanText } from "../../lib/validation";
 
 const SUPPORT_STATUSES = new Set(["open", "resolved", "closed"]);
@@ -25,10 +25,12 @@ const NAV_ITEMS = [
   { id: "campaigns", label: "Campaigns", ico: "send" },
   { id: "apollo", label: "Lead database usage", ico: "chart" },
   { id: "costs", label: "Cost & margin", ico: "trend" },
+  { id: "agent", label: "Agent performance", ico: "spark" },
   { id: "support", label: "Support", ico: "chat" },
 ];
 
 function AdminSidebar({ tab, onTabChange, adminName, adminEmail, onLogout }) {
+  const customerAppUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gnxsales.com";
   return (
     <aside className="admin-sidebar" style={{ width: 200, flex: "none", background: "#fff", borderRight: "1px solid var(--line)", display: "flex", flexDirection: "column", padding: "18px 14px" }}>
       <div style={{ padding: "4px 6px 16px" }}><Logo size={26} /></div>
@@ -64,8 +66,8 @@ function AdminSidebar({ tab, onTabChange, adminName, adminEmail, onLogout }) {
           <span className="faint ellip" style={{ fontSize: 11.5 }}>{adminEmail}</span>
         </div>
       )}
-      <Link className="row nw" href="/dashboard" style={{ gap: 9, padding: "0 6px", height: 36, color: "var(--muted)", fontWeight: 700, fontSize: 13.5 }}>
-        <Icon name="arrowLeft" size={16} /> Back to app
+      <Link className="row nw" href={customerAppUrl} target="_blank" rel="noopener noreferrer" style={{ gap: 9, padding: "0 6px", height: 36, color: "var(--muted)", fontWeight: 700, fontSize: 13.5 }}>
+        <Icon name="arrowLeft" size={16} /> Open customer app
       </Link>
       <button type="button" className="row nw" onClick={onLogout} style={{ gap: 9, padding: "0 6px", height: 36, color: "var(--muted)", fontWeight: 700, fontSize: 13.5 }}>
         <Icon name="logout" size={16} /> Log out
@@ -302,8 +304,8 @@ function appendMessageOnce(messages = [], message) {
   return [...messages, message];
 }
 
-export default function AdminPage() {
-  const router = useRouter();
+function AdminDashboard() {
+  const { admin, logout } = useAdminAuth();
   const [data, setData] = useState(null);
   const [tab, setTab] = useState("orgs");
   const [search, setSearch] = useState("");
@@ -316,9 +318,9 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [adminUser, setAdminUser] = useState(null);
   const [apolloUsage, setApolloUsage] = useState(null);
   const [costUsage, setCostUsage] = useState(null);
+  const [agentPerformance, setAgentPerformance] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userCreditUsage, setUserCreditUsage] = useState(null);
   const [userCreditLoading, setUserCreditLoading] = useState(false);
@@ -326,34 +328,20 @@ export default function AdminPage() {
   const [planBusyId, setPlanBusyId] = useState("");
   const showSkeleton = useFirstLoad(loading);
 
-  useEffect(() => {
-    api.get("/auth/me").then(res => setAdminUser(res.data.user)).catch(() => {});
-  }, []);
-
-  const adminName = adminUser ? [adminUser.first_name, adminUser.last_name].filter(Boolean).join(" ") || adminUser.email : "";
-  const adminEmail = adminUser?.email || "";
-
-  const handleLogout = async () => {
-    try {
-      await api.post("/auth/logout");
-    } catch {}
-    window.location.href = "/login";
-  };
+  const adminName = admin?.email || "";
+  const adminEmail = admin?.email || "";
 
   const load = () => {
     setLoading(true);
     setError("");
-    return api.get("/admin/overview", { timeout: 10000 })
+    return adminApi.get("/ops/overview", { timeout: 10000 })
       .then(res => setData(res.data))
       .catch(err => {
         if (err.code === "ECONNABORTED") {
           setError("Admin API timed out. Confirm the backend is running on port 5001, then refresh.");
           return;
         }
-        if (err?.response?.status === 403) {
-          router.replace("/dashboard");
-          return;
-        }
+        if (err?.response?.status === 401) return;
         setError("Admin data could not be loaded.");
       })
       .finally(() => setLoading(false));
@@ -365,7 +353,7 @@ export default function AdminPage() {
 
   const loadSupportTickets = () => {
     setSupportLoading(true);
-    return api.get("/support/admin/tickets")
+    return adminApi.get("/ops-support/tickets")
       .then(res => {
         const items = Array.isArray(res.data?.items) ? res.data.items : [];
         setSupportTickets(items);
@@ -378,14 +366,19 @@ export default function AdminPage() {
   useEffect(() => {
     if (tab === "support") loadSupportTickets();
     if (tab === "apollo") {
-      api.get("/admin/apollo-credits")
+      adminApi.get("/ops/apollo-credits")
         .then(res => setApolloUsage(res.data))
         .catch(() => setError("Lead database credit usage could not be loaded."));
     }
     if (tab === "costs") {
-      api.get("/admin/costs")
+      adminApi.get("/ops/costs")
         .then(res => setCostUsage(res.data))
         .catch(() => setError("Provider cost usage could not be loaded."));
+    }
+    if (tab === "agent") {
+      adminApi.get("/ops/agent-performance")
+        .then(res => setAgentPerformance(res.data))
+        .catch(() => setError("Agent performance could not be loaded."));
     }
   }, [tab]);
 
@@ -396,7 +389,7 @@ export default function AdminPage() {
     }
 
     setSupportLoading(true);
-    api.get(`/support/admin/tickets/${selectedTicketId}`)
+    adminApi.get(`/ops-support/tickets/${selectedTicketId}`)
       .then(res => setSelectedTicket(res.data))
       .catch(() => setError("Support ticket details could not be loaded."))
       .finally(() => setSupportLoading(false));
@@ -413,7 +406,7 @@ export default function AdminPage() {
     setUserCreditLoading(true);
     setUserCreditUsage(null);
     setUserCreditError("");
-    api.get(`/admin/users/${selectedUser.id}/credit-usage`)
+    adminApi.get(`/ops/users/${selectedUser.id}/credit-usage`)
       .then(res => { if (active) setUserCreditUsage(res.data); })
       .catch(err => { if (active) setUserCreditError(err?.response?.data?.error || "User credit usage could not be loaded."); })
       .finally(() => { if (active) setUserCreditLoading(false); });
@@ -455,12 +448,20 @@ export default function AdminPage() {
       : tab === "costs" ? "Search costs by organization or provider..."
         : "Search campaigns by name or organization...";
 
+  const askReason = action => {
+    const reason = window.prompt(`Reason for ${action} (5–500 characters):`);
+    const trimmed = reason?.trim() || '';
+    return trimmed.length >= 5 ? trimmed.slice(0, 500) : null;
+  };
+
   const suspendOrg = async org => {
     if (!window.confirm(`Suspend ${org.name}? They will immediately lose access to the app.`)) return;
+    const reason = askReason(`suspending ${org.name}`);
+    if (!reason) return;
     setError("");
     setNotice("");
     try {
-      await api.post(`/admin/organizations/${org.id}/suspend`);
+      await adminApi.post(`/ops/organizations/${org.id}/suspend`, { reason });
       setNotice(`${org.name} suspended.`);
       load();
     } catch (err) {
@@ -469,10 +470,12 @@ export default function AdminPage() {
   };
 
   const unsuspendOrg = async org => {
+    const reason = askReason(`restoring ${org.name}`);
+    if (!reason) return;
     setError("");
     setNotice("");
     try {
-      await api.post(`/admin/organizations/${org.id}/unsuspend`);
+      await adminApi.post(`/ops/organizations/${org.id}/unsuspend`, { reason });
       setNotice(`${org.name} unsuspended.`);
       load();
     } catch (err) {
@@ -484,11 +487,13 @@ export default function AdminPage() {
     if (!planId || planId === org.planId || planBusyId) return;
     const planLabel = PLAN_OPTIONS.find(plan => plan.id === planId)?.label || planId;
     if (!window.confirm(`Move ${org.name} to the ${planLabel} plan? This changes app limits and current-period included credits.`)) return;
+    const reason = askReason(`changing ${org.name} to ${planLabel}`);
+    if (!reason) return;
     setPlanBusyId(org.id);
     setError("");
     setNotice("");
     try {
-      await api.patch(`/admin/organizations/${org.id}/plan`, { planId });
+      await adminApi.patch(`/ops/organizations/${org.id}/plan`, { planId, reason });
       setNotice(`${org.name} moved to ${planLabel}.`);
       await load();
     } catch (err) {
@@ -502,11 +507,13 @@ export default function AdminPage() {
     event.preventDefault();
     const safeBody = cleanText(replyBody, { max: 4000, multiline: true });
     if (!selectedTicketId || !safeBody) return;
+    const reason = askReason("sending this support reply");
+    if (!reason) return;
     setReplying(true);
     setError("");
     setNotice("");
     try {
-      const { data: message } = await api.post(`/support/admin/tickets/${selectedTicketId}/messages`, { body: safeBody });
+      const { data: message } = await adminApi.post(`/ops-support/tickets/${selectedTicketId}/messages`, { body: safeBody, reason });
       setSelectedTicket(current => current ? { ...current, messages: appendMessageOnce(current.messages, message) } : current);
       setReplyBody("");
       setNotice("Reply sent and email notification queued.");
@@ -520,9 +527,11 @@ export default function AdminPage() {
 
   const updateAdminTicketStatus = async status => {
     if (!selectedTicketId || !SUPPORT_STATUSES.has(status)) return;
+    const reason = askReason(`changing this ticket to ${status}`);
+    if (!reason) return;
     setError("");
     try {
-      await api.patch(`/support/admin/tickets/${selectedTicketId}/status`, { status });
+      await adminApi.patch(`/ops-support/tickets/${selectedTicketId}/status`, { status, reason });
       setSelectedTicket(current => current ? { ...current, status } : current);
       await loadSupportTickets();
     } catch {
@@ -539,7 +548,7 @@ export default function AdminPage() {
         onTabChange={(value) => { setTab(value); setSearch(""); setSelectedUser(null); }}
         adminName={adminName}
         adminEmail={adminEmail}
-        onLogout={handleLogout}
+        onLogout={logout}
       />
       <div className="admin-screen scroll grow" style={{ minHeight: 0 }}>
       <div className="page-head">
@@ -577,7 +586,7 @@ export default function AdminPage() {
         </div>
       </section>
 
-      {tab !== "support" && tab !== "costs" && (
+      {["orgs", "users", "campaigns"].includes(tab) && (
         <div className="input-wrap" style={{ width: 280, marginBottom: 12 }}>
           <span className="lead-ico"><Icon name="search" size={15} /></span>
           <input
@@ -789,6 +798,35 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
+      ) : tab === "agent" ? (
+        <div className="col" style={{ gap: 16 }}>
+          <div className="metric-grid">
+            <Metric label="agent runs (90d)" value={agentPerformance?.summary?.runs ?? 0} icon="spark" />
+            <Metric label="success rate" value={`${agentPerformance?.summary?.successRate ?? 0}%`} icon="check" />
+            <Metric label="avg latency" value={`${agentPerformance?.summary?.averageLatencyMs ?? 0} ms`} icon="trend" />
+            <Metric label="approval requests" value={agentPerformance?.summary?.approvalRequired ?? 0} icon="shield" tone="warn" />
+            <Metric label="credits debited" value={formatCredits(agentPerformance?.summary?.creditsDebited ?? 0)} icon="chart" />
+            <Metric label="input / output tokens" value={`${(agentPerformance?.summary?.inputTokens ?? 0).toLocaleString()} / ${(agentPerformance?.summary?.outputTokens ?? 0).toLocaleString()}`} icon="doc" />
+          </div>
+          <div className="row wrap" style={{ gap: 16, alignItems: "stretch" }}>
+            <div className="card" style={{ padding: 16, flex: "1 1 520px", minWidth: 0 }}>
+              <div className="row spread" style={{ marginBottom: 12 }}><div><span className="eyebrow">Run volume</span><p className="faint" style={{ margin: "4px 0 0" }}>Sanitized Agent telemetry · last 14 days</p></div><span className="chip">{agentPerformance?.window?.days ?? 90} day retention</span></div>
+              <div style={{ height: 150, display: "grid", gridTemplateColumns: `repeat(${Math.max(agentPerformance?.daily?.length || 1, 1)}, minmax(0, 1fr))`, gap: 5, alignItems: "end", borderBottom: "1px solid var(--line)", padding: "8px 4px 0" }}>
+                {(agentPerformance?.daily || []).map(day => { const max = Math.max(1, ...(agentPerformance?.daily || []).map(item => item.runs)); return <div key={day.date} className="col" style={{ height: "100%", justifyContent: "flex-end", alignItems: "center", gap: 4 }}><span title={`${day.runs} runs`} style={{ width: "100%", maxWidth: 18, height: `${Math.max(day.runs ? 8 : 2, (day.runs / max) * 100)}%`, background: day.failed > 0 ? "#f59e0b" : "var(--g-500)", borderRadius: "5px 5px 0 0" }} /><span className="faint" style={{ fontSize: 8 }}>{day.date.slice(5)}</span></div>; })}
+                {!agentPerformance?.daily?.length && <span className="faint" style={{ gridColumn: "1/-1", textAlign: "center", alignSelf: "center" }}>No telemetry recorded yet.</span>}
+              </div>
+            </div>
+            <div className="card" style={{ padding: 16, flex: "1 1 300px" }}>
+              <span className="eyebrow">Tool calls</span>
+              <div className="col" style={{ gap: 8, marginTop: 12 }}>{Object.entries(agentPerformance?.tools || {}).sort((a, b) => b[1] - a[1]).map(([tool, count]) => <div key={tool} className="row spread" style={{ gap: 8 }}><span style={{ fontSize: 12.5 }}>{tool.replaceAll("_", " ")}</span><strong style={{ color: "var(--g-700)" }}>{count}</strong></div>)}{Object.keys(agentPerformance?.tools || {}).length === 0 && <span className="faint" style={{ fontSize: 12 }}>No tool calls recorded yet.</span>}</div>
+            </div>
+          </div>
+          <div className="row wrap" style={{ gap: 16, alignItems: "stretch" }}>
+            <div className="card" style={{ padding: 16, flex: "1 1 420px" }}><span className="eyebrow">Approval outcomes</span><div className="admin-pill-list" style={{ marginTop: 12 }}><span className="chip">pending · {agentPerformance?.approvals?.pending ?? 0}</span><span className="chip">approved · {agentPerformance?.approvals?.approved ?? 0}</span><span className="chip">rejected · {agentPerformance?.approvals?.rejected ?? 0}</span></div></div>
+            <div className="card" style={{ padding: 16, flex: "1 1 420px" }}><span className="eyebrow">Data availability</span><div className="admin-pill-list" style={{ marginTop: 12 }}>{Object.entries(agentPerformance?.dataAvailability || {}).map(([name, available]) => <span key={name} className="chip" style={{ color: available ? "var(--g-700)" : "#c2410c" }}>{name} · {available ? "available" : "migration pending"}</span>)}</div></div>
+          </div>
+          <div className="card table-shell"><div className="table-scroll"><table className="data-table"><thead><tr>{["Time", "Tool", "Error", "Organization"].map(header => <th key={header}>{header}</th>)}</tr></thead><tbody>{(agentPerformance?.recentFailures || []).length === 0 ? <tr><td colSpan={4} className="table-empty">No Agent failures recorded in this window.</td></tr> : (agentPerformance?.recentFailures || []).map(failure => <tr className="data-row" key={failure.id}><td>{new Date(failure.createdAt).toLocaleString()}</td><td>{failure.toolName || "model request"}</td><td><span className="danger-text">{failure.errorCode || "error"}</span><div className="faint">{failure.errorMessage}</div></td><td>{failure.organizationId}</td></tr>)}</tbody></table></div></div>
+        </div>
       ) : (
         <section className="admin-support-grid">
           <div className="card admin-support-list">
@@ -882,4 +920,154 @@ export default function AdminPage() {
       />
     </div>
   );
+}
+
+function AdminLogin() {
+  const { startLogin, verifyLogin, enrollMfa, verifyMfa } = useAdminAuth();
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [code, setCode] = useState('');
+  const [step, setStep] = useState('email');
+  const [mfaSetup, setMfaSetup] = useState(null);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const submitEmail = async event => {
+    event.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      await startLogin(email.trim().toLowerCase());
+      setStep('otp');
+    } catch (err) {
+      setError(err?.response?.data?.error || 'We could not send a code.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitOtp = async event => {
+    event.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      const result = await verifyLogin(email.trim().toLowerCase(), otp);
+      if (result.enrollmentRequired) setMfaSetup(await enrollMfa());
+      setStep('mfa');
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Invalid or expired code.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitMfa = async event => {
+    event.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      await verifyMfa(code);
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Invalid authenticator code.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <main className="screen" style={{ display: 'grid', placeItems: 'center', background: 'var(--bg)', padding: 24 }}>
+      <section className="card" style={{ width: 'min(440px, 100%)', padding: 32 }}>
+        <div className="row" style={{ gap: 12, marginBottom: 24 }}>
+          <Logo size={30} />
+          <div className="col" style={{ gap: 2 }}>
+            <span className="eyebrow">Private operations</span>
+            <h1 className="display" style={{ margin: 0, fontSize: 26 }}>GNX Sales console</h1>
+          </div>
+        </div>
+        <p className="muted" style={{ lineHeight: 1.55 }}>
+          This console is for provisioned GNX Sales administrators only. Customer subscriptions and customer sessions do not grant access.
+        </p>
+
+        {step === 'email' && (
+          <form onSubmit={submitEmail} className="col" style={{ gap: 14, marginTop: 24 }}>
+            <label className="col" style={{ gap: 6 }}>
+              <span className="eyebrow">Administrator email</span>
+              <input className="input" type="email" value={email} onChange={event => setEmail(event.target.value)} autoComplete="email" required />
+            </label>
+            <button className="btn btn-primary btn-block" type="submit" disabled={busy}>{busy ? 'Sending…' : 'Send email code'}</button>
+          </form>
+        )}
+
+        {step === 'otp' && (
+          <form onSubmit={submitOtp} className="col" style={{ gap: 14, marginTop: 24 }}>
+            <label className="col" style={{ gap: 6 }}>
+              <span className="eyebrow">Email verification code</span>
+              <input className="input" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={otp} onChange={event => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))} autoComplete="one-time-code" required />
+            </label>
+            <button className="btn btn-primary btn-block" type="submit" disabled={busy}>{busy ? 'Checking…' : 'Continue to MFA'}</button>
+          </form>
+        )}
+
+        {step === 'mfa' && (
+          <form onSubmit={submitMfa} className="col" style={{ gap: 14, marginTop: 24 }}>
+            {mfaSetup && (
+              <div className="notice-good" style={{ lineHeight: 1.55 }}>
+                Add GNX Sales to your authenticator app using this secret, then enter the 6-digit code. Save the secret in your approved password manager before continuing.
+                <code style={{ display: 'block', marginTop: 10, wordBreak: 'break-all' }}>{mfaSetup.secret}</code>
+                <span className="faint" style={{ display: 'block', marginTop: 8, wordBreak: 'break-all', fontSize: 11 }}>{mfaSetup.otpauthUri}</span>
+              </div>
+            )}
+            <label className="col" style={{ gap: 6 }}>
+              <span className="eyebrow">Authenticator code</span>
+              <input className="input" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={code} onChange={event => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} autoComplete="one-time-code" required />
+            </label>
+            <button className="btn btn-primary btn-block" type="submit" disabled={busy}>{busy ? 'Verifying…' : 'Open console'}</button>
+          </form>
+        )}
+
+        {error && <p className="notice-warn" style={{ marginTop: 16 }}>{error}</p>}
+      </section>
+    </main>
+  );
+}
+
+function AdminStepUp() {
+  const { stepUpRequired, stepUp } = useAdminAuth();
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  if (!stepUpRequired) return null;
+
+  const submit = async event => {
+    event.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      await stepUp(code);
+      setCode('');
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Authenticator verification failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'grid', placeItems: 'center', padding: 24, background: 'rgba(6,35,26,.28)' }}>
+      <form className="card" onSubmit={submit} style={{ width: 'min(400px, 100%)', padding: 28 }}>
+        <span className="eyebrow">Sensitive action</span>
+        <h2 className="display" style={{ margin: '6px 0 8px', fontSize: 24 }}>Verify your authenticator</h2>
+        <p className="muted" style={{ lineHeight: 1.5 }}>This administrator session needs a fresh TOTP check before it can continue.</p>
+        <input className="input" style={{ marginTop: 18 }} inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={code} onChange={event => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} autoComplete="one-time-code" autoFocus required />
+        {error && <p className="notice-warn" style={{ marginTop: 12 }}>{error}</p>}
+        <button className="btn btn-primary btn-block" style={{ marginTop: 16 }} disabled={busy}>{busy ? 'Verifying…' : 'Continue'}</button>
+      </form>
+    </div>
+  );
+}
+
+export default function AdminPage() {
+  const { admin, loading } = useAdminAuth();
+  if (loading) return <div className="screen" style={{ display: 'grid', placeItems: 'center' }}>Checking administrator session…</div>;
+  return admin ? <><AdminDashboard /><AdminStepUp /></> : <AdminLogin />;
 }

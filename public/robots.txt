@@ -2,7 +2,6 @@ User-agent: *
 Allow: /
 
 # Keep authenticated workspace and transient account flows out of search.
-Disallow: /admin
 Disallow: /agent
 Disallow: /ai-test
 Disallow: /analytics

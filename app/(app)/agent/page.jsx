@@ -12,12 +12,64 @@ const STAT_ICONS = { 'emails sent': 'send', 'replies': 'chat', 'meetings booked'
 function apiMessageToMsg(m) {
   return {
     id: m.id,
+    conversationId: m.conversationId,
     who: m.role === 'user' ? 'user' : 'agent',
     kind: m.kind || 'text',
     text: m.content,
     stats: m.metadata?.stats,
     drafts: m.metadata?.drafts,
+    chart: m.metadata?.chart,
+    replies: m.metadata?.replies,
+    researched: m.metadata?.researched,
+    slots: m.metadata?.slots,
+    timezone: m.metadata?.timezone,
+    sequences: m.metadata?.sequences,
+    usage: m.metadata?.usage,
+    providerFailures: m.metadata?.providerFailures,
+    campaign: m.metadata?.campaign,
+    proposal: m.metadata?.proposal,
+    approval: m.metadata?.approval,
   };
+}
+
+function ConversationHistory({ conversations, activeId, loading, onSelect, onNew, onArchive }) {
+  return (
+    <div className="card" style={{ padding: 14, borderRadius: 14, marginBottom: 18 }}>
+      <div className="row spread" style={{ gap: 8 }}>
+        <div className="row" style={{ gap: 7 }}>
+          <Icon name="chat" size={14} color="var(--g-600)" />
+          <span className="eyebrow" style={{ margin: 0 }}>Chat history</span>
+        </div>
+        <button className="btn btn-ghost btn-sm" style={{ padding: '4px 7px', fontSize: 11 }} onClick={onNew} disabled={loading}>
+          <Icon name="plus" size={13} /> New
+        </button>
+      </div>
+      {loading ? <p className="faint" style={{ fontSize: 11.5, margin: '10px 0 0' }}>Loading conversations…</p> : conversations.length === 0 ? (
+        <p className="faint" style={{ fontSize: 11.5, margin: '10px 0 0' }}>Your conversations will appear here.</p>
+      ) : (
+        <div className="col" style={{ gap: 4, marginTop: 10 }}>
+          {conversations.slice(0, 8).map(conversation => (
+            <div key={conversation.id} className="row" style={{ gap: 5 }}>
+              <button
+                onClick={() => onSelect(conversation.id)}
+                className="row grow"
+                style={{
+                  minWidth: 0, gap: 8, border: 0, borderRadius: 8, padding: '8px 7px', textAlign: 'left', cursor: 'pointer',
+                  background: conversation.id === activeId ? 'var(--g-50)' : 'transparent', color: 'var(--ink)',
+                }}
+              >
+                <Icon name="chat" size={13} color={conversation.id === activeId ? 'var(--g-600)' : 'var(--muted)'} />
+                <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11.5, fontWeight: conversation.id === activeId ? 700 : 500 }}>{conversation.title || 'New conversation'}</span>
+              </button>
+              <button className="btn btn-ghost btn-sm" title="Archive conversation" style={{ padding: '4px 5px', color: 'var(--muted)' }} onClick={() => onArchive(conversation.id)} disabled={loading}>
+                <Icon name="close" size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 const bubbleStyle = (isUser) => ({
@@ -152,7 +204,178 @@ function DraftCard({ draft }) {
   );
 }
 
-function Bubble({ m }) {
+function TrendCard({ chart }) {
+  const labels = chart?.labels || [];
+  const series = chart?.series || [];
+  const max = Math.max(1, ...series.flatMap(s => s.values || []).map(Number));
+  const summary = chart?.summary || {};
+  const funnel = chart?.funnel || {};
+  return (
+    <div className="card" style={{ padding: 16, maxWidth: 560, borderRadius: 16 }}>
+      <div className="row spread" style={{ marginBottom: 12 }}>
+        <span style={{ fontWeight: 700, fontSize: 13.5 }}>Campaign performance</span>
+        <span className="faint" style={{ fontSize: 11 }}>Last 7 days</span>
+      </div>
+      <div style={{ height: 142, display: 'grid', gridTemplateColumns: `repeat(${Math.max(labels.length, 1)}, minmax(0, 1fr))`, gap: 7, alignItems: 'end', borderBottom: '1px solid var(--line)', padding: '8px 4px 0' }}>
+        {labels.length === 0 ? <span className="faint" style={{ gridColumn: '1/-1', textAlign: 'center', alignSelf: 'center' }}>No trend data yet.</span> : labels.map((label, index) => (
+          <div key={`${label}-${index}`} className="col" style={{ gap: 4, height: '100%', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <div className="row" style={{ gap: 2, height: 112, alignItems: 'end' }}>
+              {series.map(s => {
+                const value = Number(s.values?.[index] ?? 0);
+                return <span key={s.label} title={`${s.label}: ${value}`} style={{ width: 8, height: `${Math.max(value ? 8 : 2, (value / max) * 100)}%`, borderRadius: '4px 4px 0 0', background: s.color === 'teal' ? 'var(--teal-500, #28b7b0)' : 'var(--g-500)', minHeight: 2 }} />;
+              })}
+            </div>
+            <span className="faint" style={{ fontSize: 9 }}>{label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="row wrap" style={{ gap: 8, marginTop: 12 }}>
+        {series.map(s => <span key={s.label} className="faint" style={{ fontSize: 11 }}><span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: 3, background: s.color === 'teal' ? 'var(--teal-500, #28b7b0)' : 'var(--g-500)', marginRight: 4 }} />{s.label}</span>)}
+      </div>
+      <div className="row wrap" style={{ gap: 8, marginTop: 12 }}>
+        {[
+          ['Emails sent', summary.emailsSent ?? 0],
+          ['Reply rate', `${summary.replyRate ?? 0}%`],
+          ['Meetings', summary.meetings ?? 0],
+          ['Prospects', funnel.prospects ?? 0],
+        ].map(([label, value]) => <div key={label} style={{ background: 'var(--bg-2)', borderRadius: 10, padding: '8px 10px', minWidth: 86 }}><div className="display" style={{ fontSize: 17, color: 'var(--g-700)' }}>{value}</div><div className="faint" style={{ fontSize: 10 }}>{label}</div></div>)}
+      </div>
+    </div>
+  );
+}
+
+function ReplyReviewCard({ replies, drafts }) {
+  const rows = replies || [];
+  const draftRows = drafts || [];
+  return (
+    <div className="card" style={{ padding: 16, maxWidth: 560, borderRadius: 16 }}>
+      <div style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 10 }}>{draftRows.length > 0 ? 'Response drafts ready for review' : 'Incoming replies'}</div>
+      {(draftRows.length > 0 ? draftRows : rows).length === 0 ? <p className="faint" style={{ fontSize: 12.5 }}>No incoming replies found.</p> : (
+        <div className="col" style={{ gap: 9 }}>
+          {(draftRows.length > 0 ? draftRows : rows).map((item, i) => {
+            const lead = item.lead || {};
+            return <div key={item.id || i} style={{ background: 'var(--bg-2)', borderRadius: 10, padding: 10 }}>
+              <div className="row spread" style={{ gap: 8 }}><strong style={{ fontSize: 12.5 }}>{lead.name || [lead.first_name, lead.last_name].filter(Boolean).join(' ') || 'Prospect'}</strong><span className="faint" style={{ fontSize: 10.5 }}>{item.draftStatus || ''}</span></div>
+              {item.subject && <div style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4 }}>{item.subject}</div>}
+              <div className="faint" style={{ fontSize: 11.5, whiteSpace: 'pre-line', marginTop: 4 }}>{item.body}</div>
+            </div>;
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SlotCard({ slots, timezone }) {
+  return (
+    <div className="card" style={{ padding: 16, maxWidth: 480, borderRadius: 16 }}>
+      <div style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 8 }}>Available meeting times</div>
+      <div className="faint" style={{ fontSize: 11.5, marginBottom: 10 }}>{timezone || 'Calendar timezone'}</div>
+      {(slots || []).length === 0 ? <p className="faint" style={{ fontSize: 12.5 }}>No open slots matched those preferences.</p> : <div className="row wrap" style={{ gap: 7 }}>{slots.map(slot => <span key={slot.startAt} className="chip" style={{ fontSize: 11.5 }}>{slot.label}</span>)}</div>}
+    </div>
+  );
+}
+
+function SequencePreviewCard({ sequences }) {
+  return (
+    <div className="card" style={{ padding: 16, maxWidth: 560, borderRadius: 16 }}>
+      <div style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 10 }}>Personalized sequence drafts</div>
+      {(sequences || []).map((sequence, i) => <div key={sequence.lead?.id || i} style={{ borderTop: i ? '1px solid var(--line)' : 'none', paddingTop: i ? 10 : 0, marginTop: i ? 10 : 0 }}>
+        <strong style={{ fontSize: 12.5 }}>{sequence.lead?.name || [sequence.lead?.first_name, sequence.lead?.last_name].filter(Boolean).join(' ') || 'Lead'}</strong>
+        <div className="col" style={{ gap: 6, marginTop: 7 }}>{(sequence.steps || []).map(step => <div key={step.stepNumber} style={{ background: 'var(--bg-2)', borderRadius: 9, padding: 8 }}><div style={{ fontSize: 11.5, fontWeight: 700 }}>Step {step.stepNumber}: {step.subject}</div><div className="faint" style={{ fontSize: 11.5, whiteSpace: 'pre-line', marginTop: 3 }}>{step.body}</div></div>)}</div>
+      </div>)}
+    </div>
+  );
+}
+
+function CreditSummaryCard({ usage, providerFailures }) {
+  return (
+    <div className="card" style={{ padding: 16, maxWidth: 480, borderRadius: 16 }}>
+      <div style={{ fontWeight: 700, fontSize: 13.5 }}>Credit usage</div>
+      {usage && <div className="row wrap" style={{ gap: 8, marginTop: 10 }}>{[['Used', usage.usedCredits], ['Reserved', usage.reservedCredits], ['Remaining', usage.remainingCredits]].map(([label, value]) => <div key={label} style={{ background: 'var(--bg-2)', borderRadius: 10, padding: '8px 10px', minWidth: 86 }}><div className="display" style={{ fontSize: 17, color: 'var(--g-700)' }}>{value ?? 0}</div><div className="faint" style={{ fontSize: 10 }}>{label}</div></div>)}</div>}
+      {(providerFailures || []).length > 0 && <div style={{ marginTop: 12, fontSize: 11.5 }}><strong>Recent provider events</strong>{providerFailures.slice(0, 4).map((failure, i) => <div key={i} className="faint" style={{ marginTop: 4 }}>{failure.provider} · {failure.operation} · {failure.status}</div>)}</div>}
+    </div>
+  );
+}
+
+function CampaignDraftCard({ campaign, onPrepare }) {
+  const [busy, setBusy] = useState(false);
+  const prepare = async () => {
+    if (!campaign?.id || !onPrepare) return;
+    setBusy(true);
+    try {
+      await onPrepare(campaign.id);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="card" style={{ padding: 16, maxWidth: 480, borderRadius: 16, border: '1px solid var(--g-200, #b9efd8)' }}>
+      <div className="row spread" style={{ gap: 10 }}>
+        <div className="row" style={{ gap: 8 }}><Icon name="target" size={16} color="var(--g-600)" /><strong style={{ fontSize: 13.5 }}>Campaign draft created</strong></div>
+        <span className="chip" style={{ fontSize: 10.5 }}>Draft</span>
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 700, marginTop: 12 }}>{campaign.name || 'New campaign'}</div>
+      <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>{campaign.channel || 'email'} · up to {campaign.maxLeads ?? '—'} leads · nothing will send yet</div>
+      <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }} disabled={busy} onClick={prepare}>
+        <Icon name="bolt" size={13} color="#06231a" /> {busy ? 'Preparing…' : 'Proceed with Campaign preparation'}
+      </button>
+    </div>
+  );
+}
+
+function MeetingProposalCard({ proposal }) {
+  const lead = proposal?.lead || {};
+  const name = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || lead.name || 'Prospect';
+  const slots = proposal?.slots || [];
+  return (
+    <div className="card" style={{ padding: 16, maxWidth: 520, borderRadius: 16 }}>
+      <div className="row spread" style={{ gap: 10 }}><div className="row" style={{ gap: 8 }}><Icon name="calendar" size={16} color="var(--g-600)" /><strong style={{ fontSize: 13.5 }}>Meeting proposal draft</strong></div><span className="chip" style={{ fontSize: 10.5 }}>{proposal?.status === 'draft' ? 'Ready to review' : 'Unavailable'}</span></div>
+      <div style={{ fontSize: 13, fontWeight: 700, marginTop: 10 }}>{name}{lead.company ? ` · ${lead.company}` : ''}</div>
+      {proposal?.text && <p className="faint" style={{ fontSize: 12, lineHeight: 1.5, margin: '8px 0 10px' }}>{proposal.text}</p>}
+      {slots.length > 0 ? <div className="row wrap" style={{ gap: 7 }}>{slots.map(slot => <span key={slot.startAt} className="chip" style={{ fontSize: 11.5 }}>{slot.label}</span>)}</div> : <p className="faint" style={{ fontSize: 12 }}>No real calendar slots were available for this proposal.</p>}
+      <p className="faint" style={{ fontSize: 10.5, marginTop: 10 }}>Draft only — nothing was sent or booked.</p>
+    </div>
+  );
+}
+
+function LeadResearchCard({ researched }) {
+  const rows = researched || [];
+  return (
+    <div className="card" style={{ padding: 16, maxWidth: 560, borderRadius: 16 }}>
+      <div className="row spread" style={{ gap: 10 }}><div className="row" style={{ gap: 8 }}><Icon name="search" size={16} color="var(--g-600)" /><strong style={{ fontSize: 13.5 }}>Lead research</strong></div><span className="chip" style={{ fontSize: 10.5 }}>{rows.length} researched</span></div>
+      {rows.length === 0 ? <p className="faint" style={{ fontSize: 12, marginTop: 10 }}>No selected leads were available to research.</p> : <div className="col" style={{ gap: 9, marginTop: 10 }}>{rows.map((item, index) => {
+        const lead = item.lead || {};
+        const name = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || lead.name || 'Lead';
+        const facts = item.facts?.verifiedFacts || item.facts?.facts || [];
+        return <div key={lead.id || index} style={{ background: 'var(--bg-2)', borderRadius: 10, padding: 10 }}><div className="row spread" style={{ gap: 8 }}><strong style={{ fontSize: 12.5 }}>{name}</strong><span className="faint" style={{ fontSize: 10.5 }}>{lead.company || lead.title || ''}</span></div>{item.summary && <div className="faint" style={{ fontSize: 11.5, marginTop: 5, whiteSpace: 'pre-line' }}>{item.summary}</div>}{Array.isArray(facts) && facts.slice(0, 3).map((fact, factIndex) => <div key={factIndex} style={{ fontSize: 11, marginTop: 4 }}>• {typeof fact === 'string' ? fact : fact?.text || fact?.value || 'Verified fact recorded'}</div>)}</div>;
+      })}</div>}
+    </div>
+  );
+}
+
+function ApprovalCard({ approval, onResolved }) {
+  const [status, setStatus] = useState(approval?.status || 'pending');
+  const [busy, setBusy] = useState(false);
+  const [errorText, setErrorText] = useState('');
+  const resolve = async decision => {
+    if (!approval?.id) return;
+    setBusy(true);
+    setErrorText('');
+    try {
+      const { data } = await api.post(`/agent/approvals/${approval.id}`, { decision });
+      setStatus(decision === 'approve' ? 'approved' : 'rejected');
+      if (data?.message) onResolved?.(apiMessageToMsg(data.message));
+    } catch (err) {
+      setErrorText(err?.response?.data?.error || 'This approval could not be resolved.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return <div className="card" style={{ padding: 16, maxWidth: 480, borderRadius: 16, border: '1px solid var(--orange-200, #f6d2a5)' }}><div style={{ fontWeight: 700, fontSize: 13.5 }}>Approval needed</div><p className="faint" style={{ fontSize: 12.5, margin: '7px 0 10px' }}>Proceed with <strong>{String(approval?.tool || 'this action').replaceAll('_', ' ')}</strong>?</p>{errorText && <p style={{ color: 'var(--red-600, #c0392b)', fontSize: 11.5, margin: '0 0 9px' }}>{errorText}</p>}{status === 'pending' ? <div className="row" style={{ gap: 8 }}><button className="btn btn-primary btn-sm" disabled={busy} onClick={() => resolve('approve')}>Proceed</button><button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => resolve('reject')}>Cancel</button></div> : <span className="chip" style={{ fontSize: 11 }}>{status}</span>}</div>;
+}
+
+function Bubble({ m, onResolved, onPrepare }) {
   const isUser = m.who === 'user';
 
   if (m.kind === 'stats') {
@@ -189,11 +412,42 @@ function Bubble({ m }) {
     );
   }
 
+  if (m.kind === 'chart') {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><TrendCard chart={m.chart} /></div></div>;
+  }
+  if (m.kind === 'reply_review') {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><ReplyReviewCard replies={m.replies} drafts={m.drafts} /></div></div>;
+  }
+  if (m.kind === 'sequence_preview') {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><SequencePreviewCard sequences={m.sequences} /></div></div>;
+  }
+  if (m.kind === 'credit_summary') {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><CreditSummaryCard usage={m.usage} providerFailures={m.providerFailures} /></div></div>;
+  }
+  if (m.campaign) {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><CampaignDraftCard campaign={m.campaign} onPrepare={onPrepare} /></div></div>;
+  }
+  if (m.proposal) {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><MeetingProposalCard proposal={m.proposal} /></div></div>;
+  }
+  if (m.researched) {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><LeadResearchCard researched={m.researched} /></div></div>;
+  }
+  if (m.approval) {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><ApprovalCard approval={m.approval} onResolved={onResolved} /></div></div>;
+  }
+  if (m.slots) {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><SlotCard slots={m.slots} timezone={m.timezone} /></div></div>;
+  }
+
   return <TextRow text={m.text} isUser={isUser} />;
 }
 
 export default function AgentPage() {
   const [msgs, setMsgs] = useState([]);
+  const [conversations, setConversations] = useState([]);
+  const [activeConversationId, setActiveConversationId] = useState(null);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const [sidebarData, setSidebarData] = useState(null);
@@ -202,16 +456,25 @@ export default function AgentPage() {
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    Promise.all([
-      api.get('/dashboard').catch(() => null),
-      api.get('/agent/messages').catch(() => null),
-    ]).then(([dashboardRes, messagesRes]) => {
+    let cancelled = false;
+    const load = async () => {
+      const [dashboardRes, conversationsRes] = await Promise.all([
+        api.get('/dashboard').catch(() => null),
+        api.get('/agent/conversations').catch(() => null),
+      ]);
+      if (cancelled) return;
       const d = dashboardRes?.data;
       if (d) {
         setSidebarData(d);
         if (d.agentName) setName(d.agentName);
       }
 
+      const availableConversations = conversationsRes?.data?.items || [];
+      setConversations(availableConversations);
+      const active = availableConversations.find(item => !item.archivedAt) || availableConversations[0] || null;
+      setActiveConversationId(active?.id || null);
+      const messagesRes = await api.get('/agent/messages', active?.id ? { params: { conversationId: active.id } } : undefined).catch(() => null);
+      if (cancelled) return;
       const items = messagesRes?.data?.items || [];
       if (items.length > 0) {
         setMsgs(items.map(apiMessageToMsg));
@@ -234,17 +497,71 @@ export default function AgentPage() {
           },
         ]);
       } else {
-        setMsgs([
-          { who: 'agent', kind: 'text', text: `Hi 👋 I'm ${name}, your AI sales agent. How can I help?` },
-        ]);
+        setMsgs([{ who: 'agent', kind: 'text', text: `Hi 👋 I'm ${name}, your AI sales agent. How can I help?` }]);
       }
-    }).finally(() => setInitialLoaded(true));
+    };
+    load().finally(() => {
+      if (!cancelled) {
+        setHistoryLoading(false);
+        setInitialLoaded(true);
+      }
+    });
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [msgs, typing]);
+
+  const reloadConversations = async () => {
+    const { data } = await api.get('/agent/conversations');
+    setConversations(data?.items || []);
+  };
+
+  const selectConversation = async (conversationId) => {
+    if (conversationId === activeConversationId) return;
+    setHistoryLoading(true);
+    try {
+      const { data } = await api.get('/agent/messages', { params: { conversationId } });
+      setActiveConversationId(conversationId);
+      setMsgs((data?.items || []).map(apiMessageToMsg));
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const createConversation = async () => {
+    setHistoryLoading(true);
+    try {
+      const { data } = await api.post('/agent/conversations', { title: 'New conversation' });
+      const conversation = data;
+      setConversations(current => [conversation, ...current]);
+      setActiveConversationId(conversation.id);
+      setMsgs([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const archiveConversation = async (conversationId) => {
+    setHistoryLoading(true);
+    try {
+      await api.patch(`/agent/conversations/${conversationId}`, { archived: true });
+      const remaining = conversations.filter(item => item.id !== conversationId);
+      setConversations(remaining);
+      if (conversationId === activeConversationId) {
+        const next = remaining.find(item => !item.archivedAt) || remaining[0];
+        if (next) await selectConversation(next.id);
+        else {
+          setActiveConversationId(null);
+          setMsgs([]);
+        }
+      }
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   const send = async (text) => {
     const t = (text || input).trim();
@@ -257,8 +574,11 @@ export default function AgentPage() {
       // Search/draft tools can chase Apollo results across several calls plus
       // an extra LLM round-trip, so this needs real headroom past the 10s
       // default set on the shared api client.
-      const { data } = await api.post('/agent/chat', { message: t }, { timeout: 60000 });
-      setMsgs(m => [...m, apiMessageToMsg(data)]);
+      const { data } = await api.post('/agent/chat', { message: t, conversationId: activeConversationId }, { timeout: 60000 });
+      const nextMessage = apiMessageToMsg(data);
+      if (nextMessage.conversationId && nextMessage.conversationId !== activeConversationId) setActiveConversationId(nextMessage.conversationId);
+      setMsgs(m => [...m, nextMessage]);
+      await reloadConversations().catch(() => undefined);
     } catch (err) {
       const isTimeout = err?.code === 'ECONNABORTED';
       const reason = err?.response?.data?.error
@@ -270,6 +590,8 @@ export default function AgentPage() {
       setTyping(false);
     }
   };
+
+  const prepareCampaign = (campaignId) => send(`Prepare campaign ${campaignId} end to end`);
 
   const kpis = sidebarData?.kpis ?? {};
   const activity = sidebarData?.activity ?? [];
@@ -298,7 +620,7 @@ export default function AgentPage() {
                 <p className="muted">Loading…</p>
               </div>
             ) : (
-              msgs.map((m, i) => <Bubble key={m.id ?? i} m={m} />)
+              msgs.map((m, i) => <Bubble key={m.id ?? i} m={m} onResolved={resolved => setMsgs(current => [...current, resolved])} onPrepare={prepareCampaign} />)
             )}
             {typing && (
               <div className="row" style={{ gap: 9 }}>
@@ -330,6 +652,7 @@ export default function AgentPage() {
       </div>
 
       <aside data-tour="agent-overview" className="scroll agent-overview-panel" style={{ width: 300, flex: 'none', borderLeft: '1px solid var(--line)', background: '#fff', padding: 18 }}>
+        <ConversationHistory conversations={conversations} activeId={activeConversationId} loading={historyLoading} onSelect={selectConversation} onNew={createConversation} onArchive={archiveConversation} />
         <span className="eyebrow">Overview</span>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 12 }}>
           {[

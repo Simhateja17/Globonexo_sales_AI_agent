@@ -1,4 +1,6 @@
 import AdminShell from "../../components/layout/AdminShell";
+import "../../app/globals.css";
+import { AdminAuthProvider } from "../providers/AdminAuthProvider";
 
 export const metadata = {
   title: { absolute: "GNX Sales admin console" },
@@ -9,5 +11,5 @@ export const metadata = {
 };
 
 export default function AdminLayout({ children }) {
-  return <AdminShell>{children}</AdminShell>;
+  return <AdminAuthProvider><AdminShell>{children}</AdminShell></AdminAuthProvider>;
 }

@@ -29,7 +29,6 @@ const SESSION_COOKIE_NAMES = [
   'access_token',
   'refresh_token',
   'session',
-  'impersonation_token',
 ];
 
 const SITE_USERNAME = process.env.SITE_AUTH_USER;
@@ -65,6 +64,13 @@ function isAuthorized(request) {
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;
+
+  // The legacy customer-host admin surface is deliberately gone. Returning a
+  // generic 404 before the customer session gate prevents both redirects and
+  // information leakage about the replacement admin hostname.
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    return new Response('Not found.', { status: 404 });
+  }
 
   if (
     pathname.startsWith('/_next') ||
