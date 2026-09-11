@@ -65,6 +65,23 @@ const DEFAULT_SETTINGS = {
   minNoticeMinutes: 120,
   bookingWindowDays: 14,
   defaultMeetingUrl: "",
+  googleMeetEnabled: true,
+  reminderEnabled: true,
+  reminderLeadMinutes: 1440,
+};
+
+const REMINDER_CHOICES = [
+  { value: 1440, label: "24 hours before" },
+  { value: 2880, label: "2 days before" },
+  { value: 180, label: "3 hours before" },
+  { value: 60, label: "1 hour before" },
+];
+
+const GOOGLE_CALLBACK_MESSAGES = {
+  connected: { tone: "ok", text: "Google Calendar connected. Choose the calendar your meetings should be booked into." },
+  denied: { tone: "warn", text: "Google Calendar was not connected — the permission request was declined." },
+  missing_code: { tone: "warn", text: "Google did not complete the connection. Please try again." },
+  error: { tone: "warn", text: "Google Calendar could not be connected." },
 };
 
 function MeetingCard({ meeting, onCancel, canceling }) {
@@ -221,7 +238,41 @@ function SettingsPanel({ settings, onSave, saving }) {
         <div className="field">
           <label>Default meeting link</label>
           <input className="input" type="url" value={form.defaultMeetingUrl || ""} onChange={(e) => set("defaultMeetingUrl")(e.target.value)} placeholder="https://meet.google.com/…" />
-          <span style={{ fontSize: 11.5, color: "var(--faint)" }}>Sent automatically to the prospect and your connected mailbox after a call booking.</span>
+          <span style={{ fontSize: 11.5, color: "var(--faint)" }}>
+            Used when no Google Meet link is created — for example when Google Calendar is not connected.
+          </span>
+        </div>
+
+        <div className="field">
+          <label className="row" style={{ gap: 8, cursor: "pointer" }}>
+            <input type="checkbox" checked={form.googleMeetEnabled !== false} onChange={(e) => set("googleMeetEnabled")(e.target.checked)} />
+            <span>Add a Google Meet link to each booking</span>
+          </label>
+          <span style={{ fontSize: 11.5, color: "var(--faint)" }}>
+            Only applies when Google Calendar is connected. Google creates the link and includes it in the invitation.
+          </span>
+        </div>
+
+        <div className="field">
+          <label className="row" style={{ gap: 8, cursor: "pointer" }}>
+            <input type="checkbox" checked={form.reminderEnabled !== false} onChange={(e) => set("reminderEnabled")(e.target.checked)} />
+            <span>Email the prospect a reminder</span>
+          </label>
+          {form.reminderEnabled !== false && (
+            <select
+              className="input"
+              style={{ marginTop: 6 }}
+              value={form.reminderLeadMinutes ?? 1440}
+              onChange={(e) => set("reminderLeadMinutes")(Number(e.target.value))}
+            >
+              {REMINDER_CHOICES.map((choice) => (
+                <option key={choice.value} value={choice.value}>{choice.label}</option>
+              ))}
+            </select>
+          )}
+          <span style={{ fontSize: 11.5, color: "var(--faint)" }}>
+            Sent from your connected mailbox. Meetings booked inside this window get no reminder.
+          </span>
         </div>
 
         <button
@@ -237,6 +288,130 @@ function SettingsPanel({ settings, onSave, saving }) {
   );
 }
 
+function GoogleCalendarPanel({ status, loading, onChanged, onError }) {
+  const [busy, setBusy] = useState(false);
+  const [calendars, setCalendars] = useState(null);
+  const [listing, setListing] = useState(false);
+
+  const connected = status?.connected === true;
+  const revoked = status?.status === "revoked";
+
+  // The calendar list is only fetched when it can actually be shown: it costs a
+  // Google API round trip and is useless until an account is connected.
+  useEffect(() => {
+    if (!connected) {
+      setCalendars(null);
+      return;
+    }
+    setListing(true);
+    api.get("/calendar/google/calendars")
+      .then((res) => setCalendars(res.data.calendars || []))
+      .catch(() => setCalendars([]))
+      .finally(() => setListing(false));
+  }, [connected, status?.email]);
+
+  const connect = async () => {
+    setBusy(true);
+    try {
+      const { data } = await api.get("/calendar/google/auth-url");
+      if (data?.url) window.location.href = data.url;
+      else onError("Google did not return a connection link.");
+    } catch (err) {
+      onError(err.response?.data?.error || "Could not start the Google Calendar connection.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const disconnect = async () => {
+    setBusy(true);
+    try {
+      await api.delete("/calendar/google");
+      await onChanged();
+    } catch (err) {
+      onError(err.response?.data?.error || "Could not disconnect Google Calendar.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const choose = async (calendarId) => {
+    if (!calendarId) return;
+    setBusy(true);
+    try {
+      await api.post("/calendar/google/calendar", { calendarId });
+      await onChanged();
+    } catch (err) {
+      onError(err.response?.data?.error || "Could not select that calendar.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="card cal-settings-card">
+      <div className="row" style={{ gap: 8, marginBottom: 4 }}>
+        <Icon name="calendar" size={16} color="var(--g-700)" />
+        <strong style={{ fontSize: 14 }}>Google Calendar</strong>
+        <span
+          className="badge"
+          style={{
+            marginLeft: "auto",
+            fontSize: 10.5,
+            background: status?.bookable ? "var(--g-50)" : "var(--bg-2)",
+            color: status?.bookable ? "var(--g-700)" : "var(--muted)",
+          }}
+        >
+          {loading ? "Checking" : status?.bookable ? "Booking live" : connected ? "Calendar not chosen" : revoked ? "Reconnect needed" : "Not connected"}
+        </span>
+      </div>
+      <p className="muted" style={{ fontSize: 12, marginBottom: 14 }}>
+        When connected, the agent checks your real free/busy before offering a slot and puts every booking on your calendar.
+      </p>
+
+      {status?.lastError ? <div className="notice-warn" style={{ marginBottom: 12, fontSize: 12 }}>{status.lastError}</div> : null}
+
+      {connected ? (
+        <div className="col" style={{ gap: 12 }}>
+          <div className="col" style={{ gap: 2 }}>
+            <span style={{ fontSize: 12.5, fontWeight: 700 }}>{status.email}</span>
+            <span className="faint" style={{ fontSize: 11.5 }}>
+              {status.lastSyncedAt ? `Last synced ${new Date(status.lastSyncedAt).toLocaleString()}` : "Not synced yet"}
+              {status.pushActive ? " · live updates on" : ""}
+            </span>
+          </div>
+
+          <div className="field">
+            <label>Bookable calendar</label>
+            <select
+              className="input"
+              value={status.calendarId || ""}
+              disabled={busy || listing}
+              onChange={(e) => choose(e.target.value)}
+            >
+              <option value="" disabled>{listing ? "Loading calendars…" : "Choose a calendar"}</option>
+              {(calendars || []).map((calendar) => (
+                <option key={calendar.id} value={calendar.id}>
+                  {calendar.summary}{calendar.primary ? " (primary)" : ""}
+                </option>
+              ))}
+            </select>
+            <span style={{ fontSize: 11.5, color: "var(--faint)" }}>Only calendars you can write to are listed.</span>
+          </div>
+
+          <button type="button" className="btn btn-ghost btn-sm btn-block" disabled={busy} onClick={disconnect}>
+            {busy ? "Working…" : "Disconnect"}
+          </button>
+        </div>
+      ) : (
+        <button type="button" className="btn btn-primary btn-sm btn-block" disabled={busy || loading} onClick={connect}>
+          {busy ? "Opening Google…" : revoked ? "Reconnect Google Calendar" : "Connect Google Calendar"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function CalendarPage() {
   const [data, setData] = useState(null);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
@@ -246,7 +421,16 @@ export default function CalendarPage() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [cancelingId, setCancelingId] = useState(null);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+  const [googleStatus, setGoogleStatus] = useState(null);
+  const [googleLoading, setGoogleLoading] = useState(true);
+  const [notice, setNotice] = useState(null);
   const showSkeleton = useFirstLoad(loading || settingsLoading);
+
+  const loadGoogleStatus = () =>
+    api.get("/calendar/google/status")
+      .then((res) => setGoogleStatus(res.data))
+      .catch(() => setGoogleStatus(null))
+      .finally(() => setGoogleLoading(false));
 
   const loadMeetings = () => {
     setLoading(true);
@@ -258,10 +442,26 @@ export default function CalendarPage() {
 
   useEffect(() => {
     loadMeetings();
+    loadGoogleStatus();
     api.get("/calendar/settings")
       .then((res) => setSettings(res.data))
       .catch(() => {})
       .finally(() => setSettingsLoading(false));
+
+    // The OAuth callback route redirects back here with the outcome in the
+    // query string. It is stripped once read so a refresh does not replay a
+    // stale banner.
+    const params = new URLSearchParams(window.location.search);
+    const outcome = params.get("googleCalendar");
+    if (outcome) {
+      const message = GOOGLE_CALLBACK_MESSAGES[outcome] ?? GOOGLE_CALLBACK_MESSAGES.error;
+      const detail = params.get("googleCalendarError");
+      setNotice({ ...message, text: detail ? `${message.text} ${detail}` : message.text });
+      params.delete("googleCalendar");
+      params.delete("googleCalendarError");
+      const query = params.toString();
+      window.history.replaceState({}, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+    }
   }, []);
 
   const allMeetings = useMemo(() => (data?.meetings || []).map(normalizeMeeting), [data]);
@@ -322,6 +522,7 @@ export default function CalendarPage() {
       </div>
 
       {error ? <div className="notice-warn">{error}</div> : null}
+      {notice ? <div className={notice.tone === "ok" ? "notice" : "notice-warn"}>{notice.text}</div> : null}
 
       <div className="cal-layout" data-tour="calendar-hero">
         <div className="cal-grid">
@@ -348,7 +549,15 @@ export default function CalendarPage() {
           })}
         </div>
 
-        <SettingsPanel settings={settings} onSave={handleSaveSettings} saving={savingSettings} />
+        <div className="col" style={{ gap: 16 }}>
+          <GoogleCalendarPanel
+            status={googleStatus}
+            loading={googleLoading}
+            onChanged={loadGoogleStatus}
+            onError={setError}
+          />
+          <SettingsPanel settings={settings} onSave={handleSaveSettings} saving={savingSettings} />
+        </div>
       </div>
 
       {pastMeetings.length > 0 && (

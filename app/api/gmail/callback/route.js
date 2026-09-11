@@ -37,7 +37,10 @@ export async function GET(request) {
         'Content-Type': 'application/json',
         Cookie: request.headers.get('cookie') || '',
       },
-      body: JSON.stringify({ code }),
+      // The signed state must be forwarded, not just parsed for the return
+      // path: the backend uses it to verify the callback is single-use and
+      // belongs to this workspace.
+      body: JSON.stringify({ code, state }),
     });
 
     redirectUrl.searchParams.set('gmail', response.ok ? 'connected' : 'error');
