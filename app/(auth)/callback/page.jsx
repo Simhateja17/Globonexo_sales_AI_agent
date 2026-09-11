@@ -13,6 +13,7 @@ export default function AuthCallbackPage() {
     const refreshToken = hash.get('refresh_token');
     const expiresIn = Number(hash.get('expires_in')) || 3600;
     const errorDescription = hash.get('error_description');
+    const invitationToken = new URLSearchParams(window.location.search).get('invite');
 
     if (errorDescription || !accessToken) {
       router.replace('/login?error=' + encodeURIComponent(errorDescription || 'oauth_failed'));
@@ -20,7 +21,7 @@ export default function AuthCallbackPage() {
     }
 
     api
-      .post('/auth/google/callback', { accessToken, refreshToken, expiresIn })
+      .post('/auth/google/callback', { accessToken, refreshToken, expiresIn, invitationToken })
       .then((res) => {
         localStorage.setItem('returning_user', '1');
         const status = res.data.organization?.subscription_status;

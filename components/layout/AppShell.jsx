@@ -43,6 +43,7 @@ const NAV_GROUPS = [
     items: [
       { id: 'billing', label: 'Billing', ico: 'star' },
       { id: 'settings', label: 'Settings', ico: 'sliders' },
+      { id: 'settings/team', label: 'Team', ico: 'users' },
       { id: 'support', label: 'Support', ico: 'chat' },
     ]
   },
@@ -56,7 +57,7 @@ const BILLING_ALLOWED_PATHS = ['/support'];
 export default function AppShell({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const activeTab = pathname.split('/')[1] || 'dashboard';
+  const activeTab = pathname.startsWith('/settings/team') ? 'settings/team' : pathname.split('/')[1] || 'dashboard';
   const [user, setUser] = useState(null);
   const [org, setOrg] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -150,6 +151,7 @@ export default function AppShell({ children }) {
     authChecked
       && user
       && org
+      && user.membership_status !== 'plan_suspended'
       && !hasWorkspaceAccess(user, org),
   );
   const billingRouteAllowed = BILLING_ALLOWED_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -188,6 +190,23 @@ export default function AppShell({ children }) {
     return (
       <div className="screen app-shell-screen" style={{ display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
         <p className="muted">Redirecting to login...</p>
+      </div>
+    );
+  }
+
+  if (user.membership_status === 'plan_suspended') {
+    return (
+      <div className="screen app-shell-screen" style={{ display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
+        <div className="card" style={{ maxWidth: 500, padding: 32, textAlign: 'center' }}>
+          <div style={{ width: 46, height: 46, margin: '0 auto 14px', borderRadius: 14, display: 'grid', placeItems: 'center', background: 'var(--g-50)', color: 'var(--g-700)' }}>
+            <Icon name="users" size={22} />
+          </div>
+          <h1 className="display" style={{ fontSize: 24 }}>No active workspace seat</h1>
+          <p className="muted" style={{ marginTop: 10, lineHeight: 1.6 }}>
+            Your account is still part of {org?.name || 'this organization'}, but the current plan does not have an active seat for you. Ask the Owner to upgrade the plan or change the team access order.
+          </p>
+          <button className="btn btn-primary btn-sm" style={{ marginTop: 20 }} onClick={handleLogout}>Sign out</button>
+        </div>
       </div>
     );
   }

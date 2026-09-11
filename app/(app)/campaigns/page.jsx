@@ -156,6 +156,8 @@ export default function CampaignsPage() {
   const [summary, setSummary] = useState({ total: 0, active: 0, enrolled: 0, sent: 0, meetings: 0 });
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [assignmentFilter, setAssignmentFilter] = useState("mine");
+  const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState("");
@@ -171,9 +173,13 @@ export default function CampaignsPage() {
     setLoading(true);
     setError("");
     try {
-      const { data } = await api.get("/campaigns");
+      const [{ data }, teamResult] = await Promise.all([
+        api.get("/campaigns"),
+        api.get("/team").catch(() => ({ data: null })),
+      ]);
       setCampaigns(Array.isArray(data?.items) ? data.items : []);
       setSummary(data?.summary ?? { total: 0, active: 0, enrolled: 0, sent: 0, meetings: 0 });
+      setTeam(teamResult.data ?? null);
     } catch (err) {
       setError(err?.response?.data?.error || "Campaigns could not be loaded. Check the API server and try again.");
     } finally {
@@ -189,13 +195,16 @@ export default function CampaignsPage() {
     const needle = search.trim().toLowerCase();
     return campaigns.filter(campaign => {
       const statusMatch = statusFilter === "all" || campaign.status === statusFilter;
+      const assignmentMatch = assignmentFilter === "all"
+        || (assignmentFilter === "unassigned" && !campaign.assignedUserId)
+        || (assignmentFilter === "mine" && (!team?.viewer?.id || campaign.assignedUserId === team.viewer.id));
       const textMatch =
         !needle ||
         campaign.name?.toLowerCase().includes(needle) ||
         CHANNEL_LABELS[campaign.channel]?.toLowerCase().includes(needle);
-      return statusMatch && textMatch;
+      return statusMatch && assignmentMatch && textMatch;
     });
-  }, [campaigns, search, statusFilter]);
+  }, [campaigns, search, statusFilter, assignmentFilter, team]);
 
   const setCampaignInList = updated => {
     setCampaigns(current => current.map(campaign => (campaign.id === updated.id ? updated : campaign)));
@@ -307,6 +316,20 @@ export default function CampaignsPage() {
     }
   };
 
+  const archiveCampaign = async campaign => {
+    if (!window.confirm(`Archive "${campaign.name}"? Its history will stay available, but outreach will stop.`)) return;
+    setBusyId(campaign.id + "archive");
+    setError("");
+    try {
+      await api.post(`/campaigns/${campaign.id}/archive`);
+      await loadCampaigns();
+    } catch (err) {
+      setError(err?.response?.data?.error || "Campaign could not be archived.");
+    } finally {
+      setBusyId("");
+    }
+  };
+
   const metrics = [
     { k: "Campaigns", v: summary.total },
     { k: "Active", v: summary.active },
@@ -349,6 +372,9 @@ export default function CampaignsPage() {
           />
         </div>
         <div className="row campaigns-status-filters" style={{ gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          {[['mine', 'My campaigns'], ['all', 'All campaigns'], ['unassigned', 'Unassigned']].map(([value, label]) => (
+            <button key={value} className="btn btn-ghost btn-sm" onClick={() => setAssignmentFilter(value)} style={{ height: 34, padding: "0 12px", fontSize: 12.5, background: assignmentFilter === value ? "var(--g-50)" : "#fff", borderColor: assignmentFilter === value ? "var(--g-300)" : "var(--line)" }}>{label}</button>
+          ))}
           {["all", "draft", "active", "paused", "completed"].map(status => (
             <button
               key={status}
@@ -393,6 +419,10 @@ export default function CampaignsPage() {
         ) : (
           <div className="col" style={{ gap: 12 }}>
             {filteredCampaigns.map(campaign => {
+              const viewer = team?.viewer;
+              const canOperate = !viewer || ['owner', 'admin'].includes(viewer.role) || campaign.assignedUserId === viewer.id;
+              const canDelete = viewer?.role === 'owner';
+              const assignee = team?.members?.find(member => member.id === campaign.assignedUserId);
               const statusStyle = STATUS_STYLES[campaign.status] ?? STATUS_STYLES.draft;
               const primaryAction = campaign.status === "active" ? "pause" : "launch";
               const hasReadyLeads = (campaign.stats?.ready ?? 0) > 0;
@@ -430,16 +460,17 @@ export default function CampaignsPage() {
                       <div className="col" style={{ minWidth: 0 }}>
                         <span style={{ fontWeight: 800, fontSize: 15 }} className="ellip">{campaign.name}</span>
                         <span className="faint" style={{ fontSize: 12.5, marginTop: 3 }}>
-                          {CHANNEL_LABELS[campaign.channel]} - Created {formatDate(campaign.createdAt)}
+                          {CHANNEL_LABELS[campaign.channel]} - Created {formatDate(campaign.createdAt)}{assignee ? ` · Assigned to ${[assignee.first_name, assignee.last_name].filter(Boolean).join(' ') || assignee.email}` : ' · Unassigned'}
                         </span>
                       </div>
                     </div>
                     <div className="row campaigns-card-actions" style={{ gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                      {!canOperate ? <span className="faint" style={{ fontSize: 12, fontWeight: 800 }}>View only</span> : null}
                       <span className="badge" style={{ background: statusStyle.bg, color: statusStyle.color, height: 26 }}>
                         <span style={{ width: 6, height: 6, borderRadius: 99, background: statusStyle.dot, flex: "none" }} />
                         {statusStyle.label}
                       </span>
-                      {campaign.status === "paused" && campaign.channel === "voice" ? (
+                      {canOperate && campaign.status === "paused" && campaign.channel === "voice" ? (
                         <button
                           className="btn btn-primary btn-sm"
                           disabled={rebuildBusy}
@@ -453,7 +484,7 @@ export default function CampaignsPage() {
                           {rebuildBusy ? "Rebuilding..." : "Rebuild agent"}
                         </button>
                       ) : null}
-                      {campaign.status !== "completed" && (
+                      {canOperate && campaign.status !== "completed" && (
                         <button
                           className="btn btn-ghost btn-sm"
                           disabled={actionBusy || launchBlocked}
@@ -471,6 +502,7 @@ export default function CampaignsPage() {
                       <button
                         className="btn btn-ghost btn-sm"
                         style={{ height: 32 }}
+                        disabled={!canOperate}
                         onClick={event => {
                           event.stopPropagation();
                           openCampaignSettings(campaign);
@@ -478,7 +510,18 @@ export default function CampaignsPage() {
                       >
                         <Icon name="cog" size={14} /> Settings
                       </button>
-                      <button
+                      {canOperate && !campaign.archivedAt && <button
+                        className="btn btn-ghost btn-sm"
+                        disabled={busyId === campaign.id + "archive"}
+                        style={{ height: 32 }}
+                        onClick={event => {
+                          event.stopPropagation();
+                          archiveCampaign(campaign);
+                        }}
+                      >
+                        {busyId === campaign.id + "archive" ? "Archiving..." : "Archive"}
+                      </button>}
+                      {canDelete && <button
                         className="btn btn-ghost btn-sm"
                         disabled={busyId === campaign.id + "delete"}
                         style={{ height: 32 }}
@@ -488,7 +531,7 @@ export default function CampaignsPage() {
                         }}
                       >
                         Delete
-                      </button>
+                      </button>}
                     </div>
                   </div>
 

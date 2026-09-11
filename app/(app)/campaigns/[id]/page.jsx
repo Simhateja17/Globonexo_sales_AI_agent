@@ -108,7 +108,7 @@ function campaignEligibility(lead) {
   };
 }
 
-function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showEmail, showPhone, isAiVoice, actionKey, onEmailNow, onCallNow }) {
+function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showEmail, showPhone, isAiVoice, actionKey, onEmailNow, onCallNow, canOperate = true }) {
   const status = lead.status || "new";
   const hasEmail = isValidEmail(lead.email || "");
   const hasPhone = Boolean(lead.phone?.trim());
@@ -116,8 +116,8 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
   const eligibility = campaignEligibility(lead);
   const campaignBlocked = Boolean(eligibility?.blocked || (lead.campaignMembership && lead.campaignMembership.qualificationStatus !== "qualified"));
   const emailBlockReason = immediateEmailBlockReason({ hasEmail, campaignId: lead.campaignId, status, campaignBlocked });
-  const canEmailNow = showEmail && !emailBlockReason;
-  const canCallNow = canCallLeadImmediately({
+  const canEmailNow = canOperate && showEmail && !emailBlockReason;
+  const canCallNow = canOperate && canCallLeadImmediately({
     campaignStatus,
     showPhone,
     isAiVoice,
@@ -196,12 +196,14 @@ export default function CampaignDetailPage() {
   const autoSendStartedRef = useRef(false);
 
   const [campaign, setCampaign] = useState(null);
+  const [team, setTeam] = useState(null);
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [launching, setLaunching] = useState(false);
   const [pausing, setPausing] = useState(false);
+  const [assignmentBusy, setAssignmentBusy] = useState(false);
   const [actionKey, setActionKey] = useState("");
   const [schedule, setSchedule] = useState([]);
   const [displayTimezone, setDisplayTimezone] = useState(browserTimezone());
@@ -222,16 +224,18 @@ export default function CampaignDetailPage() {
     setLoading(true);
     setError("");
     try {
-      const [campaignRes, leadsRes, scheduleRes, settingsRes] = await Promise.all([
+      const [campaignRes, leadsRes, scheduleRes, settingsRes, teamRes] = await Promise.all([
         api.get(`/campaigns/${id}`),
         api.get("/leads", { params: { campaignId: id, perPage: 500 } }),
         api.get(`/campaigns/${id}/schedule`),
         api.get("/settings").catch(() => ({ data: {} })),
+        api.get("/team").catch(() => ({ data: null })),
       ]);
       setCampaign(campaignRes.data);
       setLeads(Array.isArray(leadsRes.data?.items) ? leadsRes.data.items : leadsRes.data ?? []);
       setSchedule(Array.isArray(scheduleRes.data?.items) ? scheduleRes.data.items : []);
       setDisplayTimezone(settingsRes.data?.displayTimezone || settingsRes.data?.profile?.displayTimezone || browserTimezone());
+      setTeam(teamRes.data ?? null);
     } catch (err) {
       setError(err?.response?.data?.error ?? "Failed to load campaign.");
     } finally {
@@ -241,7 +245,11 @@ export default function CampaignDetailPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  const viewer = team?.viewer;
+  const canOperate = !campaign || !viewer || ['owner', 'admin'].includes(viewer.role) || campaign.assignedUserId === viewer.id;
+
   const handleLaunch = async () => {
+    if (!canOperate) return;
     setLaunching(true);
     setError("");
     try {
@@ -265,6 +273,7 @@ export default function CampaignDetailPage() {
   };
 
   const handlePause = async () => {
+    if (!canOperate) return;
     setPausing(true);
     try {
       await api.post(`/campaigns/${id}/pause`);
@@ -274,6 +283,23 @@ export default function CampaignDetailPage() {
       showToast(err?.response?.data?.error ?? "Failed to pause campaign.");
     } finally {
       setPausing(false);
+    }
+  };
+
+  const handleAssignment = async event => {
+    const assignedUserId = event.target.value;
+    if (!assignedUserId) return;
+    setAssignmentBusy(true);
+    setError("");
+    try {
+      const { data } = await api.patch(`/campaigns/${id}/assignment`, { assignedUserId });
+      setCampaign(data);
+      showToast("Campaign assignment updated.");
+      await load();
+    } catch (err) {
+      setError(err?.response?.data?.error || "Could not update the campaign assignment.");
+    } finally {
+      setAssignmentBusy(false);
     }
   };
 
@@ -291,6 +317,7 @@ export default function CampaignDetailPage() {
   }, [id]);
 
   const sendLeadNow = useCallback(async leadId => {
+    if (!canOperate) return;
     setActionKey(`email:${leadId}`);
     setError("");
     try {
@@ -316,9 +343,10 @@ export default function CampaignDetailPage() {
     } finally {
       setActionKey("");
     }
-  }, [load, reconnectGmailForLead, showToast]);
+  }, [canOperate, load, reconnectGmailForLead, showToast]);
 
   const callLeadNow = useCallback(async leadId => {
+    if (!canOperate) return;
     setActionKey(`call:${leadId}`);
     setError("");
     try {
@@ -330,7 +358,7 @@ export default function CampaignDetailPage() {
     } finally {
       setActionKey("");
     }
-  }, [load, showToast]);
+  }, [canOperate, load, showToast]);
 
   useEffect(() => {
     const sendLeadId = searchParams.get("sendLeadId");
@@ -394,6 +422,8 @@ export default function CampaignDetailPage() {
   const dualChannel = emailEnabled && voiceEnabled;
   const isAiVoice = voiceEnabled && (campaign.voiceMode ?? "ai") === "ai";
   const launchGate = isAiVoice ? voiceLaunchGate(preparationData) : { blocked: false, message: "" };
+  const canAssign = ['owner', 'admin'].includes(viewer?.role);
+  const assignee = team?.members?.find(member => member.id === campaign.assignedUserId);
 
   // A dual-channel campaign shows an Email and a Phone column, so the lead
   // table columns are derived rather than picked from two fixed layouts.
@@ -426,16 +456,18 @@ export default function CampaignDetailPage() {
               <StatusBadge status={campaign.status} />
               <ChannelBadge channel={campaign.channel} />
               <span className="faint" style={{ fontSize: 12 }}>Created {formatDate(campaign.createdAt)}</span>
+              <span className="faint" style={{ fontSize: 12 }}>Assigned to {assignee ? [assignee.first_name, assignee.last_name].filter(Boolean).join(" ") || assignee.email : "Unassigned"}</span>
             </div>
           </div>
         </div>
         <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-          {(campaign.status === "draft" || campaign.status === "paused") && (
+          {!canOperate && <span className="faint" style={{ fontSize: 12, fontWeight: 800, alignSelf: "center" }}>View only</span>}
+          {canOperate && (campaign.status === "draft" || campaign.status === "paused") && (
             <button className="btn btn-primary btn-sm" data-tour="campaign-launch" onClick={handleLaunch} disabled={launching || launchGate.blocked} title={launchGate.blocked ? launchGate.message : undefined}>
               {launching ? "Launching..." : "Launch campaign"}
             </button>
           )}
-          {campaign.status === "active" && (
+          {canOperate && campaign.status === "active" && (
             <button className="btn btn-ghost btn-sm" onClick={handlePause} disabled={pausing}>
               {pausing ? "Pausing..." : "Pause"}
             </button>
@@ -445,9 +477,11 @@ export default function CampaignDetailPage() {
 
       {error ? <div className="notice-warn">{error}</div> : null}
 
+      {canAssign && team?.members?.length > 0 && <div className="card" style={{ padding: 14, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}><span style={{ fontSize: 12, fontWeight: 800, color: "var(--muted)" }}>Campaign owner</span><select className="input" aria-label="Campaign assignee" value={campaign.assignedUserId || ""} onChange={handleAssignment} disabled={assignmentBusy} style={{ width: "min(100%, 280px)", height: 34 }}><option value="" disabled>Unassigned</option>{team.members.filter(member => member.membership_status === "active").map(member => <option key={member.id} value={member.id}>{[member.first_name, member.last_name].filter(Boolean).join(" ") || member.email} · {member.role}</option>)}</select>{assignmentBusy && <span className="faint" style={{ fontSize: 12 }}>Saving…</span>}</div>}
+
       <div className="scroll grow app-page">
         <div className="col" style={{ gap: 16 }}>
-          <CampaignPreparationPanel campaignId={campaign.id} channel={campaign.channel} campaignStatus={campaign.status} onChanged={handlePreparationChanged} />
+          {canOperate ? <CampaignPreparationPanel campaignId={campaign.id} channel={campaign.channel} campaignStatus={campaign.status} onChanged={handlePreparationChanged} /> : <div className="card" style={{ padding: 16, color: "var(--muted)", fontSize: 13 }}>This campaign is assigned to another teammate. You can review its status and history, but operational controls are read-only.</div>}
 
           <div className="metric-grid">
             {metrics.map(([label, value]) => (
@@ -511,7 +545,7 @@ export default function CampaignDetailPage() {
           )}
 
           {emailEnabled && activeTab === "emails" && (
-            <DraftReview campaignId={campaign.id} displayTimezone={displayTimezone} onChanged={load} />
+            canOperate ? <DraftReview campaignId={campaign.id} displayTimezone={displayTimezone} onChanged={load} /> : <div className="card" style={{ padding: 20, color: "var(--muted)", fontSize: 13 }}>Message drafts are read-only for campaigns assigned to another teammate.</div>
           )}
 
           {(!emailEnabled || activeTab === "leads") && (
@@ -534,7 +568,7 @@ export default function CampaignDetailPage() {
                   {leads.length === 0 ? (
                     <tr><td colSpan={leadColumns.length} className="table-empty">No leads are attached to this campaign.</td></tr>
                   ) : leads.map(lead => (
-                    <CampaignLeadRow key={lead.id} lead={lead} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} />
+                    <CampaignLeadRow key={lead.id} lead={lead} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} canOperate={canOperate} />
                   ))}
                 </tbody>
               </table>
