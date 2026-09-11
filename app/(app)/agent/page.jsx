@@ -29,6 +29,9 @@ function apiMessageToMsg(m) {
     campaign: m.metadata?.campaign,
     proposal: m.metadata?.proposal,
     approval: m.metadata?.approval,
+    leadSearchPreview: m.metadata?.leadSearchPreview,
+    exactFilters: m.metadata?.exactFilters,
+    relaxations: m.metadata?.relaxations,
   };
 }
 
@@ -354,6 +357,26 @@ function LeadResearchCard({ researched }) {
   );
 }
 
+function LeadSearchPreviewCard({ preview }) {
+  if (!preview) return null;
+  const person = preview.person || {};
+  const company = preview.company || {};
+  const rows = value => Array.isArray(value) ? value.join(', ') : value ? JSON.stringify(value) : 'None';
+  return <div className="card" style={{ padding: 16, maxWidth: 620, borderRadius: 16, border: '1px solid var(--g-200)' }}>
+    <div className="row spread" style={{ gap: 10 }}><strong style={{ fontSize: 13.5 }}>Lead search filter preview</strong><span className="chip">{preview.requestedCount} requested</span></div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 12, marginTop: 12 }}>
+      <div><div className="eyebrow">Person</div><div className="faint" style={{ fontSize: 11.5, lineHeight: 1.6 }}>Titles: {rows(person.titles)}<br/>Seniorities: {rows(person.seniorities)}<br/>Locations: {rows(person.locations)}<br/>Email status: {rows(person.emailStatuses)}</div></div>
+      <div><div className="eyebrow">Company</div><div className="faint" style={{ fontSize: 11.5, lineHeight: 1.6 }}>HQ: {rows(company.hqLocations)}<br/>Domains: {rows(company.domains)}<br/>Employees: {rows(company.employeeRanges)}<br/>Company tags: {rows(company.keywordTags)}</div></div>
+    </div>
+    {preview.explicitGeneralKeywords && <p style={{ fontSize: 11.5, margin: '10px 0 0' }}>Exact keyword: “{preview.explicitGeneralKeywords}”</p>}
+    {(preview.ambiguousLocations || []).length > 0 && <p style={{ fontSize: 11.5, color: 'var(--orange-700)', margin: '10px 0 0' }}>Clarify person location vs company HQ: {preview.ambiguousLocations.join(', ')}</p>}
+    {(preview.unresolvedConcepts || []).length > 0 && <p style={{ fontSize: 11.5, color: 'var(--orange-700)', margin: '6px 0 0' }}>Unresolved company concepts: {preview.unresolvedConcepts.join(', ')}</p>}
+    {(preview.unresolvedTechnologies || []).length > 0 && <p style={{ fontSize: 11.5, color: 'var(--orange-700)', margin: '6px 0 0' }}>Unmatched technologies: {preview.unresolvedTechnologies.join(', ')}</p>}
+    <div className="row wrap" style={{ gap: 6, marginTop: 10 }}>{(preview.operations || []).map(op => <span className="chip" key={op.name}>{op.name.replaceAll('_', ' ')} · {op.creditCost}</span>)}</div>
+    {preview.maximumOrganizationSearchCredits > 0 && <p style={{ fontSize: 11.5, fontWeight: 700, margin: '10px 0 0' }}>Maximum Organization Search cost: {preview.maximumOrganizationSearchCredits} Apollo credit{preview.maximumOrganizationSearchCredits === 1 ? '' : 's'}</p>}
+  </div>;
+}
+
 function ApprovalCard({ approval, onResolved }) {
   const [status, setStatus] = useState(approval?.status || 'pending');
   const [busy, setBusy] = useState(false);
@@ -372,7 +395,8 @@ function ApprovalCard({ approval, onResolved }) {
       setBusy(false);
     }
   };
-  return <div className="card" style={{ padding: 16, maxWidth: 480, borderRadius: 16, border: '1px solid var(--orange-200, #f6d2a5)' }}><div style={{ fontWeight: 700, fontSize: 13.5 }}>Approval needed</div><p className="faint" style={{ fontSize: 12.5, margin: '7px 0 10px' }}>Proceed with <strong>{String(approval?.tool || 'this action').replaceAll('_', ' ')}</strong>?</p>{errorText && <p style={{ color: 'var(--red-600, #c0392b)', fontSize: 11.5, margin: '0 0 9px' }}>{errorText}</p>}{status === 'pending' ? <div className="row" style={{ gap: 8 }}><button className="btn btn-primary btn-sm" disabled={busy} onClick={() => resolve('approve')}>Proceed</button><button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => resolve('reject')}>Cancel</button></div> : <span className="chip" style={{ fontSize: 11 }}>{status}</span>}</div>;
+  const leadSearch = approval?.tool === 'execute_company_first_lead_search';
+  return <div className="card" style={{ padding: 16, maxWidth: 480, borderRadius: 16, border: '1px solid var(--orange-200, #f6d2a5)' }}><div style={{ fontWeight: 700, fontSize: 13.5 }}>Approval needed</div><p className="faint" style={{ fontSize: 12.5, margin: '7px 0 10px' }}>Proceed with <strong>{leadSearch ? 'company-first Apollo lead search' : String(approval?.tool || 'this action').replaceAll('_', ' ')}</strong>?</p>{errorText && <p style={{ color: 'var(--red-600, #c0392b)', fontSize: 11.5, margin: '0 0 9px' }}>{errorText}</p>}{status === 'pending' ? <div className="row" style={{ gap: 8 }}><button className="btn btn-primary btn-sm" disabled={busy} onClick={() => resolve('approve')}>{leadSearch ? 'Proceed with lead search' : 'Proceed'}</button><button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => resolve('reject')}>Cancel</button></div> : <span className="chip" style={{ fontSize: 11 }}>{status}</span>}</div>;
 }
 
 function Bubble({ m, onResolved, onPrepare }) {
@@ -395,6 +419,9 @@ function Bubble({ m, onResolved, onPrepare }) {
             ))}
           </div>
         )}
+        {m.leadSearchPreview && <div style={{ marginLeft: 41 }}><LeadSearchPreviewCard preview={m.leadSearchPreview} /></div>}
+        {m.exactFilters && <details style={{ marginLeft: 41, fontSize: 11.5 }}><summary>Exact Apollo filters applied</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(m.exactFilters, null, 2)}</pre></details>}
+        {(m.relaxations || []).length > 0 && <div className="row wrap" style={{ gap: 6, marginLeft: 41 }}>{m.relaxations.map(item => <button key={item.field} className="btn btn-ghost btn-sm">Try: {item.label}</button>)}</div>}
       </div>
     );
   }
@@ -434,7 +461,7 @@ function Bubble({ m, onResolved, onPrepare }) {
     return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><LeadResearchCard researched={m.researched} /></div></div>;
   }
   if (m.approval) {
-    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><ApprovalCard approval={m.approval} onResolved={onResolved} /></div></div>;
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}{m.leadSearchPreview && <div style={{ marginLeft: 41 }}><LeadSearchPreviewCard preview={m.leadSearchPreview} /></div>}<div style={{ marginLeft: 41 }}><ApprovalCard approval={m.approval} onResolved={onResolved} /></div></div>;
   }
   if (m.slots) {
     return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><SlotCard slots={m.slots} timezone={m.timezone} /></div></div>;
