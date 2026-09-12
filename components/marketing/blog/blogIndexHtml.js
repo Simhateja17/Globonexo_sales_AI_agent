@@ -1,9 +1,9 @@
 // Generated from the "Blogs" design file. Rendered by BlogDesignBody.
-export const blogIndexHtml = `<div style="max-width:1160px;margin:0 auto;padding-inline:max(24px,calc((100vw - 1080px)/2))">
+export const blogIndexHtml = `<div style="max-width:1160px;margin:0 auto;padding-inline:24px">
 
   <section style="padding:clamp(48px,7vw,88px) 0 clamp(32px,4vw,48px);border-bottom:1px solid var(--line)">
     <div data-reveal style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--g-700);margin-bottom:18px">Blog</div>
-    <h1 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(36px,6vw,60px);line-height:1.04;letter-spacing:-.05em;font-weight:600;margin:0;max-width:820px">Outbound, explained</h1>
+    <h1 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(36px,6vw,68px);line-height:1.04;letter-spacing:-.05em;font-weight:600;margin:0;max-width:900px">Outbound, explained</h1>
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0;max-width:620px">How automated outbound actually works: what a platform runs, what your team keeps, and what to check before you buy one.</p>
   </section>
 

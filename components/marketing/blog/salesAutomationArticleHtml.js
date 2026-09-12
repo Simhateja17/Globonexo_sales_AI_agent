@@ -1,5 +1,5 @@
 // Generated from the "Sales Automation Article" design file. Rendered by BlogDesignBody.
-export const salesAutomationArticleHtml = `<article style="max-width:1160px;margin:0 auto;padding-inline:max(24px,calc((100vw - 1080px)/2));padding-bottom:0">
+export const salesAutomationArticleHtml = `<article style="max-width:1160px;margin:0 auto;padding-inline:24px;padding-bottom:0">
 
   <div style="padding:22px 0;border-bottom:1px solid var(--line)"><a href="/blog" style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--g-700);border-bottom:none">← GNX Sales / Outbound, explained</a></div>
 
@@ -9,15 +9,15 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
       <div style="position:absolute;width:460px;height:460px;right:-6%;top:-25%;border-radius:50%;filter:blur(60px);background:radial-gradient(circle,rgba(21,196,192,.45),transparent 65%);animation:gnxDrift 22s ease-in-out infinite reverse"></div>
       <div style="position:absolute;width:420px;height:420px;left:38%;bottom:-55%;border-radius:50%;filter:blur(60px);background:radial-gradient(circle,rgba(141,242,122,.35),transparent 65%);animation:gnxDrift 16s ease-in-out infinite"></div>
     </div>
-    <div style="position:relative;max-width:820px">
+    <div style="position:relative;max-width:900px">
       <div data-reveal style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--g-300);margin-bottom:18px">Part 1 of 4 &nbsp;·&nbsp; 7 min read &nbsp;·&nbsp; Sources verified Sept 2026</div>
-      <h1 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(36px,6vw,64px);line-height:1.02;letter-spacing:-.045em;font-weight:600;margin:0">What Is a Sales Automation Platform?</h1>
+      <h1 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(36px,6vw,72px);line-height:1.02;letter-spacing:-.045em;font-weight:600;margin:0">What Is a Sales Automation Platform?</h1>
       <p data-reveal style="font-family:var(--font-display);font-size:clamp(18px,2.4vw,26px);letter-spacing:-.02em;color:var(--g-300);margin:18px 0 0;font-weight:500">And what it actually replaces</p>
     </div>
   </section>
-<div style="max-width:760px;margin:0 auto;padding-top:26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap"><span style="width:38px;height:38px;border-radius:50%;background:var(--g-600);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:800;flex:none">GS</span><div><div style="font-size:14px;font-weight:800;color:var(--ink)">The GNX Sales team</div><div style="font-size:13px;font-weight:600;color:var(--muted)">Published <time datetime="2026-09-12">12 September 2026</time> &nbsp;·&nbsp; 7 min read</div></div></div>
+<div style="max-width:820px;margin:0 auto;padding-top:26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap"><span style="width:38px;height:38px;border-radius:50%;background:var(--g-600);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:800;flex:none">GS</span><div><div style="font-size:14px;font-weight:800;color:var(--ink)">The GNX Sales team</div><div style="font-size:13px;font-weight:600;color:var(--muted)">Published <time datetime="2026-09-12">12 September 2026</time> &nbsp;·&nbsp; 7 min read</div></div></div>
 
-  <div style="max-width:760px;margin:0 auto">
+  <div style="max-width:820px;margin:0 auto">
 
     <blockquote data-reveal style="margin:clamp(40px,6vw,64px) 0 0;padding:26px 28px;border-radius:var(--r-lg);background:linear-gradient(135deg,#f7fff9,#eafaf2);border:1px solid var(--g-100);font-family:var(--font-display);font-size:clamp(18px,2.2vw,22px);line-height:1.5;letter-spacing:-.02em;color:var(--g-900)">If your team still builds lists, checks contact details, writes every email, remembers every follow-up, and logs every activity by hand, a sales automation platform can take that work off their plate.</blockquote>
 
@@ -26,7 +26,7 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0">In a 2022 survey, Salesforce found that <strong style="color:var(--ink)">sales reps spent 28% of their week actually selling</strong>. The rest went to work such as deal management and data entry. <a href="https://www.salesforce.com/news/stories/sales-research-2023/" target="_blank" rel="noopener">Salesforce</a></p>
   </div>
 
-  <figure data-reveal style="margin:28px auto 0;max-width:1000px;border:1px solid var(--line);border-radius:8px;background:var(--surface);box-shadow:var(--sh-sm);padding:clamp(22px,3vw,34px)">
+  <figure data-reveal style="margin:28px auto 0;max-width:1112px;border:1px solid var(--line);border-radius:8px;background:var(--surface);box-shadow:var(--sh-sm);padding:clamp(22px,3vw,34px)">
     <figcaption style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:20px">
       <span style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--g-700)">A rep's week</span>
       <span style="font-size:13px;font-weight:600;color:var(--muted)">Salesforce, 2022 survey</span>
@@ -45,19 +45,19 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
     </div>
   </figure>
 
-  <div style="max-width:760px;margin:0 auto">
+  <div style="max-width:820px;margin:0 auto">
     <blockquote data-reveal style="margin:40px 0 0;padding-left:22px;border-left:3px solid var(--g-500);font-family:var(--font-display);font-size:clamp(19px,2.4vw,24px);line-height:1.45;letter-spacing:-.025em;color:var(--ink)">You do not need to automate the relationship. You need to automate the repetitive work around it.</blockquote>
 
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:28px 0 0">This guide shows you what a sales automation platform does, where it helps, what your team should still control, and what to ask before you buy one.</p>
 
-    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">What a sales automation platform actually is</h2>
+    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,44px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">What a sales automation platform actually is</h2>
 
     <blockquote data-reveal style="margin:26px 0 0;padding:26px 28px;border-radius:var(--r-lg);background:linear-gradient(135deg,#f7fff9,#eafaf2);border:1px solid var(--g-100);font-size:17px;line-height:1.7;color:var(--g-900);font-weight:600">A sales automation platform runs the repeatable parts of outbound sales: finding prospects, enriching contact data, creating outreach, following up, placing calls, booking meetings, and recording what happened.</blockquote>
 
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:26px 0 0">Three things it is not.</p>
   </div>
 
-  <div data-reveal style="max-width:1000px;margin:22px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+  <div data-reveal style="max-width:1112px;margin:22px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
     <div style="border:1px solid var(--line);border-radius:8px;background:var(--surface);box-shadow:var(--sh-xs);padding:24px;transition:transform .2s cubic-bezier(.2,.7,.2,1),box-shadow .2s" style-hover="transform:translateY(-2px);box-shadow:var(--sh-md)">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
         <span style="width:28px;height:28px;border-radius:8px;background:var(--stop-50);color:var(--stop);display:grid;place-items:center;font-size:15px;font-weight:800;flex:none">✕</span>
@@ -81,12 +81,12 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
     </div>
   </div>
 
-  <div style="max-width:760px;margin:0 auto">
-    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">The six steps in an outbound sales workflow</h2>
+  <div style="max-width:820px;margin:0 auto">
+    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,44px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">The six steps in an outbound sales workflow</h2>
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0">You may run these steps in a spreadsheet, across several tools, or inside one platform. The work is still the same.</p>
   </div>
 
-  <figure data-reveal style="max-width:1000px;margin:28px auto 0;border:1px solid var(--line);border-radius:8px;background:linear-gradient(135deg,#f7fff9,#eafaf2);padding:clamp(26px,3.5vw,40px)">
+  <figure data-reveal style="max-width:1112px;margin:28px auto 0;border:1px solid var(--line);border-radius:8px;background:linear-gradient(135deg,#f7fff9,#eafaf2);padding:clamp(26px,3.5vw,40px)">
     <div style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--g-700);margin-bottom:24px">Workflow</div>
     <div style="position:relative;margin-bottom:22px">
       <div style="position:absolute;left:0;right:0;top:17px;height:2px;background:var(--g-100)"></div>
@@ -122,8 +122,8 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
     <p style="font-size:15px;line-height:1.7;color:var(--ink-2);margin:0">A platform can run all six steps. Your team still decides who to target, what to promise, how much automation to allow, and how to handle the sales conversations that need human judgment.</p>
   </figure>
 
-  <div style="max-width:760px;margin:0 auto">
-    <ol style="list-style:none;padding:0;margin:clamp(32px,5vw,48px) 0 0;display:flex;flex-direction:column;gap:clamp(28px,4vw,40px)">
+  <div style="max-width:820px;margin:0 auto">
+    <ol style="list-style:none;padding:0;margin:clamp(32px,5vw,48px) 0 0;display:flex;flex-direction:column;gap:clamp(28px,4vw,44px)">
 
       <li data-reveal style="display:grid;grid-template-columns:44px 1fr;gap:18px;align-items:start">
         <span style="width:44px;height:44px;border-radius:50%;background:var(--g-600);color:#fff;display:grid;place-items:center;font-size:15px;font-weight:800">1</span>
@@ -243,11 +243,11 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
 
     <blockquote data-reveal style="margin:clamp(40px,6vw,56px) 0 0;padding-left:22px;border-left:3px solid var(--g-500);font-family:var(--font-display);font-size:clamp(19px,2.4vw,24px);line-height:1.45;letter-spacing:-.025em;color:var(--ink)">The platform runs the workflow. You set the rules, review the work, and take over when the conversation needs your judgment.</blockquote>
 
-    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">What automation cannot fix for you</h2>
+    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,44px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">What automation cannot fix for you</h2>
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0">A platform can run your process, but it cannot make weak targeting, unclear positioning, or poor email infrastructure work. You still need the right foundation.</p>
   </div>
 
-  <div style="max-width:1000px;margin:24px auto 0;display:flex;flex-direction:column;gap:12px">
+  <div style="max-width:1112px;margin:24px auto 0;display:flex;flex-direction:column;gap:12px">
     <div data-reveal style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:20px 22px">
       <span style="width:10px;height:10px;border-radius:50%;background:var(--g-500);margin-top:7px"></span>
       <p style="margin:0;font-size:16px;line-height:1.7;color:var(--ink-2)"><strong style="color:var(--ink)">Your target.</strong> The platform needs a clear ideal customer profile. A vague target produces a vague list.</p>
@@ -285,12 +285,12 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
     </div>
   </div>
 
-  <div style="max-width:760px;margin:0 auto">
-    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">What your team should control</h2>
+  <div style="max-width:820px;margin:0 auto">
+    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,44px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">What your team should control</h2>
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0">You should use automation to remove repetitive work while keeping control of the decisions that affect your market, reputation, and deals.</p>
   </div>
 
-  <div data-reveal style="max-width:1000px;margin:24px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
+  <div data-reveal style="max-width:1112px;margin:24px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
     <div style="border:1px solid var(--g-100);border-radius:8px;background:linear-gradient(160deg,#fff,#f4fdf8);padding:24px;transition:transform .2s cubic-bezier(.2,.7,.2,1),box-shadow .2s" style-hover="transform:translateY(-2px);box-shadow:var(--sh-md)">
       <div style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--g-700);margin-bottom:12px">Yours</div>
       <h3 style="font-family:var(--font-display);font-size:19px;letter-spacing:-.02em;font-weight:600;margin:0 0 10px">Who you target</h3>
@@ -313,15 +313,15 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
     </div>
   </div>
 
-  <div data-reveal style="max-width:1000px;margin:clamp(32px,5vw,48px) auto 0;border-radius:var(--r-xl);background:linear-gradient(135deg,#06311f,#075a3e);padding:clamp(34px,5vw,56px);text-align:center">
+  <div data-reveal style="max-width:1112px;margin:clamp(32px,5vw,48px) auto 0;border-radius:var(--r-xl);background:linear-gradient(135deg,#06311f,#075a3e);padding:clamp(34px,5vw,56px);text-align:center">
     <p class="display" style="font-family:var(--font-display);font-size:clamp(26px,4vw,40px);letter-spacing:-.035em;font-weight:600;color:#fff;margin:0">Automate the effort. <span style="color:var(--g-300)">Keep the judgment.</span></p>
   </div>
 
-  <div style="max-width:760px;margin:0 auto">
-    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">Seven questions to ask before you buy one</h2>
+  <div style="max-width:820px;margin:0 auto">
+    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,44px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">Seven questions to ask before you buy one</h2>
   </div>
 
-  <div data-reveal style="max-width:1000px;margin:24px auto 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface);box-shadow:var(--sh-sm)">
+  <div data-reveal style="max-width:1112px;margin:24px auto 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface);box-shadow:var(--sh-sm)">
     <details open style="border-bottom:1px solid var(--line-2)">
       <summary style="display:flex;gap:16px;align-items:center;padding:20px 24px;transition:background .12s" style-hover="background:var(--g-50)">
         <span style="font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--g-600);flex:none">01</span>
@@ -380,12 +380,12 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
     </details>
   </div>
 
-  <div style="max-width:760px;margin:0 auto">
-    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">Where GNX Sales fits</h2>
+  <div style="max-width:820px;margin:0 auto">
+    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,44px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">Where GNX Sales fits</h2>
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0">If you currently use separate tools for data, email, calling, scheduling, and reporting, GNX Sales brings those steps into one outbound workflow.</p>
   </div>
 
-  <div data-reveal style="max-width:1000px;margin:24px auto 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface);box-shadow:var(--sh-sm)">
+  <div data-reveal style="max-width:1112px;margin:24px auto 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface);box-shadow:var(--sh-sm)">
     <div style="display:grid;grid-template-columns:1fr 1.3fr 1.3fr;gap:0;background:var(--bg);border-bottom:1px solid var(--line)">
       <div style="padding:14px 20px;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Step</div>
       <div style="padding:14px 20px;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Typical stack</div>
@@ -423,11 +423,11 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
     </div>
   </div>
 
-  <div style="max-width:760px;margin:0 auto">
+  <div style="max-width:820px;margin:0 auto">
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:24px 0 0">When every step uses the same prospect record, you have fewer handoffs to manage and a clearer view of what happened.</p>
   </div>
 
-  <figure data-reveal style="max-width:1000px;margin:clamp(32px,5vw,48px) auto 0;border:1px solid var(--g-100);border-radius:var(--r-lg);background:linear-gradient(135deg,#f7fff9,#eafaf2);padding:clamp(28px,4vw,44px)">
+  <figure data-reveal style="max-width:1112px;margin:clamp(32px,5vw,48px) auto 0;border:1px solid var(--g-100);border-radius:var(--r-lg);background:linear-gradient(135deg,#f7fff9,#eafaf2);padding:clamp(28px,4vw,44px)">
     <h3 class="display" style="font-family:var(--font-display);font-size:clamp(22px,3vw,30px);letter-spacing:-.03em;font-weight:600;margin:0 0 28px;color:var(--g-900)">The full loop, one workflow</h3>
     <div style="display:grid;grid-template-columns:auto 1fr;gap:0 22px">
       <div style="display:flex;flex-direction:column;align-items:center;grid-row:span 5">
@@ -444,8 +444,8 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
     </div>
   </figure>
 
-  <div style="max-width:760px;margin:0 auto">
-    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">The takeaway</h2>
+  <div style="max-width:820px;margin:0 auto">
+    <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(28px,4vw,44px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">The takeaway</h2>
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0">If your team is doing every outbound task manually, important work will eventually be delayed. Follow-ups get missed, lists become outdated, and calls compete with everything else on the calendar.</p>
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0">A <a href="/sales-automation-software">sales automation platform</a> gives your team one place to run the repeatable work. Your people keep control of the market, message, important conversations, and deals.</p>
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0">If you want to see how this works for your own ideal customer profile, we can build a campaign with you and show you the leads and workflow on a live account.</p>
@@ -456,11 +456,11 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
     </div>
   </div>
 
-  <div style="max-width:760px;margin:0 auto">
+  <div style="max-width:820px;margin:0 auto">
     <h2 data-reveal class="display" style="font-family:var(--font-display);font-size:clamp(24px,3.2vw,32px);letter-spacing:-.03em;font-weight:600;margin:clamp(56px,8vw,88px) 0 0;padding-top:clamp(40px,6vw,56px);border-top:1px solid var(--line)">Next in this series</h2>
   </div>
 
-  <div data-reveal style="max-width:1000px;margin:24px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px">
+  <div data-reveal style="max-width:1112px;margin:24px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px">
     <div style="border:1px solid var(--g-100);border-radius:8px;background:var(--g-50);padding:22px">
       <div style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--g-700);margin-bottom:12px">Part 1</div>
       <h3 style="font-family:var(--font-display);font-size:17px;letter-spacing:-.02em;font-weight:600;margin:0 0 10px;color:var(--ink)">What Is a Sales Automation Platform?</h3>
