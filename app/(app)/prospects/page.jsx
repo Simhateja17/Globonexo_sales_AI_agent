@@ -196,6 +196,14 @@ function csvToLeads(text) {
   }).filter(lead => lead.name || lead.firstName || lead.lastName || lead.email || lead.company);
 }
 
+function leadPhoto(lead) {
+  const raw = lead?.rawData;
+  const candidate = lead?.photoUrl
+    || (raw && typeof raw === "object" ? raw.photo_url || raw.photoUrl || raw["Photo Url"] : "");
+  const url = safeExternalUrl(candidate);
+  return url.startsWith("https://") ? url : "";
+}
+
 function leadName(lead) {
   return lead.name || [lead.firstName, lead.lastName].filter(Boolean).join(" ") || "Unnamed lead";
 }
@@ -255,6 +263,7 @@ function LeadDetailModal({ lead, onClose, onEnrich, enriching, onSendNow, sendin
   }, [onClose]);
 
   const name = leadName(lead);
+  const photo = leadPhoto(lead);
   const status = lead.status || "new";
   const safeEmail = isValidEmail(lead.email) ? lead.email : "";
   const safeLinkedIn = safeExternalUrl(lead.linkedinUrl);
@@ -290,7 +299,7 @@ function LeadDetailModal({ lead, onClose, onEnrich, enriching, onSendNow, sendin
       <div className="csv-modal lead-detail-modal" style={{ position: "relative", background: "#fff", borderRadius: 16, maxHeight: "88vh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 24px 60px rgba(0,0,0,.2)" }}>
         <div className="row spread lead-detail-head" style={{ padding: "18px 24px", borderBottom: "1px solid var(--line)", flex: "none", gap: 12 }}>
           <div className="row" style={{ gap: 12, minWidth: 0 }}>
-            <Avatar name={name} size={44} />
+            <Avatar name={name} size={44} src={photo} />
             <div className="col" style={{ minWidth: 0 }}>
               <h2 className="ellip" style={{ fontSize: 18, fontWeight: 800 }}>{name}</h2>
               <span className="faint ellip" style={{ fontSize: 12.5 }}>
@@ -442,6 +451,7 @@ function LeadDetailModal({ lead, onClose, onEnrich, enriching, onSendNow, sendin
 
 function LeadRow({ lead, onDelete, onSendNow, onOpen, sending }) {
   const name = leadName(lead);
+  const photo = leadPhoto(lead);
   const score = lead.score ?? 0;
   const status = lead.status || "new";
   const source = lead.source || "manual";
@@ -463,7 +473,7 @@ function LeadRow({ lead, onDelete, onSendNow, onOpen, sending }) {
     >
       <td>
         <div className="row" style={{ gap: 11, minWidth: 0 }}>
-          <Avatar name={name} size={34} />
+          <Avatar name={name} size={34} src={photo} />
           <div className="col" style={{ minWidth: 0 }}>
             <span style={{ fontWeight: 800, fontSize: 14 }} className="ellip">{name}</span>
             <span className="faint ellip" style={{ fontSize: 12 }}>{lead.title || "No title"} · {lead.company || "No company"}</span>
@@ -508,6 +518,7 @@ function LeadRow({ lead, onDelete, onSendNow, onOpen, sending }) {
 
 function LeadMobileCard({ lead, onDelete, onSendNow, onOpen, sending }) {
   const name = leadName(lead);
+  const photo = leadPhoto(lead);
   const score = lead.score ?? 0;
   const status = lead.status || "new";
   const source = lead.source || "manual";
@@ -520,7 +531,7 @@ function LeadMobileCard({ lead, onDelete, onSendNow, onOpen, sending }) {
   return (
     <article className="prospect-mobile-card card row-clickable" onClick={() => onOpen(lead.id)}>
       <div className="row" style={{ gap: 11, minWidth: 0 }}>
-        <Avatar name={name} size={36} />
+        <Avatar name={name} size={36} src={photo} />
         <div className="col" style={{ minWidth: 0 }}>
           <span style={{ fontWeight: 800, fontSize: 14 }} className="ellip">{name}</span>
           <span className="faint ellip" style={{ fontSize: 12 }}>{lead.title || "No title"} · {lead.company || "No company"}</span>
