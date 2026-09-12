@@ -303,19 +303,6 @@ export default function CampaignDetailPage() {
     }
   };
 
-  const reconnectGmailForLead = useCallback(async leadId => {
-    const { data } = await api.get("/gmail/auth-url", {
-      params: {
-        // The send was started from the leads table, so come back to it
-        // rather than dropping the customer on the default Emails tab.
-        returnTo: `/campaigns/${id}?tab=leads`,
-        sendLeadId: leadId,
-      },
-    });
-    if (!data?.url) throw new Error("Gmail connection URL was not returned.");
-    window.location.assign(data.url);
-  }, [id]);
-
   const sendLeadNow = useCallback(async leadId => {
     if (!canOperate) return;
     setActionKey(`email:${leadId}`);
@@ -328,22 +315,11 @@ export default function CampaignDetailPage() {
       showToast("Email sent to this lead.");
       await load();
     } catch (err) {
-      const message = err?.response?.data?.error || "Could not send this email now.";
-      if (message.toLowerCase().includes("gmail connection is not authorized")) {
-        showToast("Reconnect Gmail to finish sending this email.");
-        try {
-          await reconnectGmailForLead(leadId);
-          return;
-        } catch {
-          setError("Gmail reconnect could not be started.");
-        }
-      } else {
-        setError(message);
-      }
+      setError(err?.response?.data?.error || "Could not send this email now.");
     } finally {
       setActionKey("");
     }
-  }, [canOperate, load, reconnectGmailForLead, showToast]);
+  }, [canOperate, load, showToast]);
 
   const callLeadNow = useCallback(async leadId => {
     if (!canOperate) return;

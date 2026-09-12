@@ -62,7 +62,7 @@ const SMTP_PRESETS = {
       imapHost: 'imap.gmail.com',
       imapPort: '993',
     },
-    note: 'For this preset, use a Google app password rather than your normal Google account password. For one-click Google OAuth, use the Gmail OAuth connection below.',
+    note: 'For this preset, use a Google app password rather than your normal Google account password.',
   },
   outlook: {
     label: 'Outlook',
@@ -110,12 +110,12 @@ export default function SettingsPage() {
   const [dailyEmailCap, setDailyEmailCap] = useState(100);
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
-  const [gmailLoading, setGmailLoading] = useState(true);
-  const [gmailBusy, setGmailBusy] = useState(false);
-  const [gmailStatus, setGmailStatus] = useState({ connected: false, active: false, email: null, expiresAt: null });
   const [smtpLoading, setSmtpLoading] = useState(true);
   const [smtpBusy, setSmtpBusy] = useState(false);
-  const [smtpStatus, setSmtpStatus] = useState({ connections: [] });
+  const [inboxes, setInboxes] = useState({ accounts: [], limit: 1, used: 0, canManage: false });
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [inboxBusyId, setInboxBusyId] = useState(null);
+  const [addingInbox, setAddingInbox] = useState(false);
   const [smtpPreset, setSmtpPreset] = useState('gmail');
   const [smtpForm, setSmtpForm] = useState({ ...EMPTY_SMTP_FORM, ...SMTP_PRESETS.gmail.values });
   const [voiceAgentId, setVoiceAgentId] = useState(null);
@@ -172,15 +172,19 @@ export default function SettingsPage() {
       .catch(() => setError('Failed to load settings. Check the API server and refresh.'))
       .finally(() => setLoading(false));
 
-    api.get('/gmail/status', requestOptions())
-      .then(({ data }) => setGmailStatus(data))
-      .catch(() => setGmailStatus({ connected: false, active: false, email: null, expiresAt: null }))
-      .finally(() => setGmailLoading(false));
-
-    api.get('/smtp/status', requestOptions())
-      .then(({ data }) => setSmtpStatus({ connections: Array.isArray(data?.connections) ? data.connections : [] }))
-      .catch(() => setSmtpStatus({ connections: [] }))
+    api.get('/email-accounts', requestOptions())
+      .then(({ data }) => setInboxes({
+        accounts: Array.isArray(data?.accounts) ? data.accounts : [],
+        limit: Number(data?.limit ?? 1),
+        used: Number(data?.used ?? 0),
+        canManage: data?.canManage === true,
+      }))
+      .catch(() => setInboxes({ accounts: [], limit: 1, used: 0, canManage: false }))
       .finally(() => setSmtpLoading(false));
+
+    api.get('/team', requestOptions())
+      .then(({ data }) => setTeamMembers(Array.isArray(data?.members) ? data.members : []))
+      .catch(() => setTeamMembers([]));
 
     api.get('/system/status', requestOptions())
       .then(({ data }) => setSystemStatus(data))
@@ -229,64 +233,17 @@ export default function SettingsPage() {
     setSuccess(false);
   };
 
-  const refreshSmtpStatus = async () => {
-    const { data } = await api.get('/smtp/status', requestOptions());
-    setSmtpStatus({ connections: Array.isArray(data?.connections) ? data.connections : [] });
+  const refreshInboxes = async () => {
+    const { data } = await api.get('/email-accounts', requestOptions());
+    setInboxes({
+      accounts: Array.isArray(data?.accounts) ? data.accounts : [],
+      limit: Number(data?.limit ?? 1),
+      used: Number(data?.used ?? 0),
+      canManage: data?.canManage === true,
+    });
   };
 
-  const refreshGmailStatus = async () => {
-    const { data } = await api.get('/gmail/status', requestOptions());
-    setGmailStatus(data);
-  };
-
-  const connectGmail = async () => {
-    setError('');
-    setGmailBusy(true);
-    try {
-      const { data } = await api.get('/gmail/auth-url');
-      if (data?.url) {
-        window.location.href = data.url;
-        return;
-      }
-      setError('Gmail connection URL was not returned.');
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to start Gmail connection.');
-    } finally {
-      setGmailBusy(false);
-    }
-  };
-
-  const disconnectGmail = async () => {
-    setError('');
-    setGmailBusy(true);
-    try {
-      await api.delete('/gmail/disconnect');
-      setGmailStatus({ connected: false, active: false, email: null, expiresAt: null });
-      await refreshSmtpStatus().catch(() => undefined);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to disconnect Gmail.');
-    } finally {
-      setGmailBusy(false);
-    }
-  };
-
-  const activateGmail = async () => {
-    setError('');
-    setGmailBusy(true);
-    try {
-      await api.post('/gmail/activate');
-      setGmailStatus((status) => ({ ...status, active: true }));
-      setSmtpStatus((status) => ({
-        connections: status.connections.map((connection) => ({ ...connection, active: false })),
-      }));
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to activate Gmail.');
-    } finally {
-      setGmailBusy(false);
-    }
-  };
-
-  const connectSmtp = async () => {
+  const addInbox = async () => {
     setError('');
     setSuccess(false);
     setSmtpBusy(true);
@@ -294,7 +251,7 @@ export default function SettingsPage() {
       // IMAP always authenticates with the same credentials as SMTP for every
       // provider this form supports. Asking twice was pure friction, not a
       // real capability. Secure is inferred from the port instead of a toggle.
-      const { data } = await api.post('/smtp/connect', {
+      await api.post('/email-accounts', {
         ...smtpForm,
         smtpPort: Number(smtpForm.smtpPort),
         smtpSecure: inferSmtpSecure(smtpForm.smtpPort),
@@ -303,9 +260,9 @@ export default function SettingsPage() {
         imapUsername: smtpForm.smtpUsername,
         imapPassword: smtpForm.smtpPassword,
       });
-      setSmtpForm((formState) => ({ ...formState, smtpPassword: '' }));
-      await refreshSmtpStatus();
-      setGmailStatus((status) => ({ ...status, active: false }));
+      setSmtpForm({ ...EMPTY_SMTP_FORM, ...SMTP_PRESETS[smtpPreset].values });
+      setAddingInbox(false);
+      await refreshInboxes();
       setSuccess(true);
     } catch (err) {
       setError(err.response?.data?.error || 'Could not verify the SMTP and IMAP connection.');
@@ -314,33 +271,43 @@ export default function SettingsPage() {
     }
   };
 
-  const activateSmtp = async (connectionId) => {
+  const testInbox = async (accountId) => {
     setError('');
-    setSmtpBusy(true);
+    setInboxBusyId(accountId);
     try {
-      await api.post('/smtp/activate');
-      setSmtpStatus((status) => ({
-        connections: status.connections.map((connection) => ({ ...connection, active: connection.id === connectionId })),
-      }));
-      setGmailStatus((status) => ({ ...status, active: false }));
+      await api.post(`/email-accounts/${accountId}/test`);
+      await refreshInboxes();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to activate custom email.');
+      setError(err.response?.data?.error || 'This inbox could not be reached. Check its settings and password.');
+      await refreshInboxes().catch(() => undefined);
     } finally {
-      setSmtpBusy(false);
+      setInboxBusyId(null);
     }
   };
 
-  const disconnectSmtp = async () => {
+  const patchInbox = async (accountId, patch) => {
     setError('');
-    setSmtpBusy(true);
+    setInboxBusyId(accountId);
     try {
-      await api.delete('/smtp/disconnect');
-      await refreshSmtpStatus();
-      await refreshGmailStatus().catch(() => undefined);
+      await api.patch(`/email-accounts/${accountId}`, patch);
+      await refreshInboxes();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to disconnect custom email.');
+      setError(err.response?.data?.error || 'Could not update the inbox.');
     } finally {
-      setSmtpBusy(false);
+      setInboxBusyId(null);
+    }
+  };
+
+  const removeInbox = async (accountId) => {
+    setError('');
+    setInboxBusyId(accountId);
+    try {
+      await api.delete(`/email-accounts/${accountId}`);
+      await refreshInboxes();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Could not remove the inbox.');
+    } finally {
+      setInboxBusyId(null);
     }
   };
 
@@ -447,8 +414,10 @@ export default function SettingsPage() {
   const pendingPhone = phoneNumbers.find(phone => ['requested', 'provisioning'].includes(phone.status));
   const failedPhone = phoneNumbers.find(phone => phone.status === 'failed');
   const phoneReady = Boolean(activePhone);
-  const smtpConnection = smtpStatus.connections.find((connection) => connection.provider === 'smtp') || null;
-  const emailConnectionReady = gmailStatus.active === true || smtpConnection?.active === true;
+  const activeInboxes = inboxes.accounts.filter((account) => account.status === 'active');
+  const emailConnectionReady = activeInboxes.length > 0;
+  const inboxSlotsLeft = Math.max(0, inboxes.limit - inboxes.used);
+  const memberName = (member) => [member.first_name, member.last_name].filter(Boolean).join(' ') || member.email;
 
   if (showSkeleton) return <RouteSkeleton />;
 
@@ -506,55 +475,124 @@ export default function SettingsPage() {
             <section className="card" data-tour="settings-email" style={{ padding: 24, borderRadius: 8 }}>
               <div className="row spread" style={{ gap: 16, marginBottom: 18, alignItems: 'flex-start' }}>
                 <div className="row" style={{ gap: 10, minWidth: 0 }}>
-                  <span style={{ width: 36, height: 36, borderRadius: 10, background: smtpConnection?.active ? 'var(--g-50)' : 'var(--bg-2)', display: 'grid', placeItems: 'center', color: smtpConnection?.active ? 'var(--g-700)' : 'var(--ink-2)', flex: 'none' }}>
+                  <span style={{ width: 36, height: 36, borderRadius: 10, background: emailConnectionReady ? 'var(--g-50)' : 'var(--bg-2)', display: 'grid', placeItems: 'center', color: emailConnectionReady ? 'var(--g-700)' : 'var(--ink-2)', flex: 'none' }}>
                     <Icon name="send" size={18} />
                   </span>
                   <div>
-                    <h2 style={{ fontSize: 16, fontWeight: 800 }}>SMTP + IMAP mailbox</h2>
-                    <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Choose a provider preset or enter your own server details. SMTP sends outbound email; IMAP polls replies.</p>
+                    <h2 style={{ fontSize: 16, fontWeight: 800 }}>Sending inboxes</h2>
+                    <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Each inbox needs SMTP to send and IMAP to read replies. Give an inbox to a teammate, or leave it shared with the team.</p>
                   </div>
                 </div>
                 <span
                   style={{
                     padding: '7px 10px',
                     borderRadius: 999,
-                    border: `1px solid ${smtpConnection?.active ? 'var(--g-100)' : 'var(--line)'}`,
-                    background: smtpConnection?.active ? 'var(--g-50)' : 'var(--bg-2)',
-                    color: smtpConnection?.active ? 'var(--g-700)' : 'var(--muted)',
+                    border: `1px solid ${emailConnectionReady ? 'var(--g-100)' : 'var(--line)'}`,
+                    background: emailConnectionReady ? 'var(--g-50)' : 'var(--bg-2)',
+                    color: emailConnectionReady ? 'var(--g-700)' : 'var(--muted)',
                     fontSize: 12,
                     fontWeight: 900,
                     flex: 'none',
                   }}
                 >
-                  {smtpLoading ? 'Checking' : smtpConnection?.active ? 'Active' : smtpConnection ? 'Connected, not active' : 'Not connected'}
+                  {smtpLoading ? 'Checking' : `${inboxes.used} of ${inboxes.limit} used`}
                 </span>
               </div>
 
-              {smtpConnection && (
-                <div style={{ padding: 14, border: '1px solid var(--line)', borderRadius: 8, background: 'var(--bg-2)', marginBottom: 18 }}>
-                  <div className="row spread" style={{ gap: 12, alignItems: 'flex-start' }}>
-                    <div className="col" style={{ gap: 4, minWidth: 0 }}>
-                      <span className="ellip" style={{ fontSize: 13.5, fontWeight: 800 }}>{smtpConnection.email}</span>
-                      <span style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45 }}>
-                        SMTP: {smtpConnection.smtpHost || 'configured'} · IMAP: {smtpConnection.imapHost || 'configured'}
-                      </span>
-                      <span style={{ fontSize: 12, color: 'var(--faint)' }}>Passwords are never displayed after saving.</span>
-                    </div>
-                    <div className="row" style={{ gap: 8, flex: 'none' }}>
-                      {!smtpConnection.active && (
-                        <button type="button" className="btn btn-primary btn-sm" onClick={() => activateSmtp(smtpConnection.id)} disabled={smtpBusy || smtpLoading}>
-                          Use this mailbox
-                        </button>
-                      )}
-                      <button type="button" className="btn btn-ghost btn-sm" onClick={disconnectSmtp} disabled={smtpBusy || smtpLoading}>
-                        <Icon name="logout" size={15} />
-                        Disconnect
-                      </button>
-                    </div>
-                  </div>
+              {inboxes.accounts.length > 0 && (
+                <div className="col" style={{ gap: 10, marginBottom: 18 }}>
+                  {inboxes.accounts.map((account) => {
+                    const needsAttention = account.status === 'needs_attention';
+                    const busy = inboxBusyId === account.id;
+                    return (
+                      <div key={account.id} style={{ padding: 14, border: `1px solid ${needsAttention ? 'var(--r-200, var(--line))' : 'var(--line)'}`, borderRadius: 8, background: 'var(--bg-2)' }}>
+                        <div className="row spread" style={{ gap: 12, alignItems: 'flex-start' }}>
+                          <div className="col" style={{ gap: 4, minWidth: 0 }}>
+                            <span className="ellip" style={{ fontSize: 13.5, fontWeight: 800 }}>
+                              {account.email}
+                              {account.displayName ? ` · ${account.displayName}` : ''}
+                            </span>
+                            <span style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45 }}>
+                              SMTP: {account.smtpHost || 'configured'} · IMAP: {account.imapHost || 'configured'}
+                            </span>
+                            <span style={{ fontSize: 12, color: needsAttention ? 'var(--r-700, var(--ink-2))' : 'var(--faint)' }}>
+                              {needsAttention
+                                ? `Needs attention: ${account.lastError || 'the mail server rejected the login'}. Campaigns using it are paused.`
+                                : `${account.sentToday} of ${account.dailySendCap} sent today`}
+                            </span>
+                          </div>
+                          {inboxes.canManage && (
+                            <div className="row" style={{ gap: 8, flex: 'none' }}>
+                              <button type="button" className="btn btn-ghost btn-sm" onClick={() => testInbox(account.id)} disabled={busy}>
+                                {busy ? 'Testing...' : 'Test'}
+                              </button>
+                              <button type="button" className="btn btn-ghost btn-sm" onClick={() => removeInbox(account.id)} disabled={busy}>
+                                <Icon name="logout" size={15} />
+                                Remove
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        {inboxes.canManage && (
+                          <div className="settings-two-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 150px', gap: 12, marginTop: 12 }}>
+                            <div className="field" style={{ margin: 0 }}>
+                              <label>Belongs to</label>
+                              <div className="input-wrap">
+                                <select
+                                  className="input"
+                                  value={account.assignedUserId || ''}
+                                  disabled={busy}
+                                  onChange={(e) => patchInbox(account.id, { assignedUserId: e.target.value || null })}
+                                >
+                                  <option value="">Shared with the team</option>
+                                  {teamMembers.map((member) => (
+                                    <option key={member.id} value={member.id}>{memberName(member)}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                            <div className="field" style={{ margin: 0 }}>
+                              <label>Daily limit</label>
+                              <div className="input-wrap">
+                                <input
+                                  className="input"
+                                  type="number"
+                                  min={1}
+                                  max={2000}
+                                  defaultValue={account.dailySendCap}
+                                  disabled={busy}
+                                  onBlur={(e) => {
+                                    const next = Number(e.target.value);
+                                    if (next && next !== account.dailySendCap) patchInbox(account.id, { dailySendCap: next });
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
+              {inboxes.canManage && !addingInbox && (
+                <div className="row spread" style={{ gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>
+                    {inboxSlotsLeft > 0
+                      ? `You can add ${inboxSlotsLeft} more inbox${inboxSlotsLeft === 1 ? '' : 'es'} on the ${planId} plan.`
+                      : `You have used all ${inboxes.limit} inbox${inboxes.limit === 1 ? '' : 'es'} on the ${planId} plan. Remove one or upgrade to add another.`}
+                  </span>
+                  <button type="button" className="btn btn-primary btn-sm" onClick={() => setAddingInbox(true)} disabled={inboxSlotsLeft === 0} style={{ flex: 'none' }}>
+                    <Icon name="plus" size={15} color="#06231a" />
+                    Add inbox
+                  </button>
+                </div>
+              )}
+
+              {inboxes.canManage && addingInbox && (
+              <>
               <div style={{ marginBottom: 18 }}>
                 <div
                   role="tablist"
@@ -642,12 +680,19 @@ export default function SettingsPage() {
                   <span style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45, maxWidth: 520 }}>
                     The selected preset only fills server settings. Enter the mailbox address and password/app password, then test before saving.
                   </span>
-                  <button type="button" className="btn btn-primary btn-sm" onClick={connectSmtp} disabled={smtpBusy || smtpLoading} style={{ flex: 'none' }}>
-                    <Icon name="check" size={15} color="#06231a" />
-                    {smtpBusy ? 'Testing and saving...' : 'Test & save connection'}
-                  </button>
+                  <div className="row" style={{ gap: 8, flex: 'none' }}>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAddingInbox(false)} disabled={smtpBusy}>
+                      Cancel
+                    </button>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={addInbox} disabled={smtpBusy || smtpLoading}>
+                      <Icon name="check" size={15} color="#06231a" />
+                      {smtpBusy ? 'Testing and saving...' : 'Test & add inbox'}
+                    </button>
+                  </div>
                 </div>
               </div>
+              </>
+              )}
             </section>
 
             <section className="card" style={{ padding: 24, borderRadius: 8 }}>
@@ -750,80 +795,6 @@ export default function SettingsPage() {
               </div>
             </section>
 
-            <section className="card" style={{ padding: 24, borderRadius: 8 }}>
-              <div className="row spread" style={{ gap: 16, marginBottom: 20, alignItems: 'flex-start' }}>
-                <div className="row" style={{ gap: 10, minWidth: 0 }}>
-                  <span style={{ width: 36, height: 36, borderRadius: 10, background: gmailStatus.active ? 'var(--g-50)' : 'var(--bg-2)', display: 'grid', placeItems: 'center', color: gmailStatus.active ? 'var(--g-700)' : 'var(--ink-2)', flex: 'none' }}>
-                    <Icon name="google" size={18} />
-                  </span>
-                  <div>
-                    <h2 style={{ fontSize: 16, fontWeight: 800 }}>Gmail OAuth Connection</h2>
-                    <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Use one-click Google OAuth instead of entering Gmail SMTP and IMAP credentials.</p>
-                  </div>
-                </div>
-                <span
-                  style={{
-                    padding: '7px 10px',
-                    borderRadius: 999,
-                    border: `1px solid ${gmailStatus.active ? 'var(--g-100)' : 'var(--line)'}`,
-                    background: gmailStatus.active ? 'var(--g-50)' : 'var(--bg-2)',
-                    color: gmailStatus.active ? 'var(--g-700)' : 'var(--muted)',
-                    fontSize: 12,
-                    fontWeight: 900,
-                    flex: 'none',
-                  }}
-                >
-                  {gmailLoading ? 'Checking' : gmailStatus.active ? 'Active' : gmailStatus.connected ? 'Connected, not active' : 'Not connected'}
-                </span>
-              </div>
-
-              <div className="settings-gmail-row" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 16, alignItems: 'center' }}>
-                <div className="col" style={{ gap: 6, minWidth: 0 }}>
-                  <span className="ellip" style={{ fontSize: 14, fontWeight: 800 }}>
-                    {gmailLoading ? 'Checking Gmail status...' : gmailStatus.connected ? gmailStatus.email || 'Gmail account connected' : 'No Gmail account connected'}
-                  </span>
-                  <span style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45 }}>
-                    {gmailStatus.connected
-                      ? `Token expiry: ${gmailStatus.expiresAt ? new Date(gmailStatus.expiresAt).toLocaleString() : 'refresh token available'}`
-                      : 'Connect Gmail or configure custom SMTP + IMAP before launching email campaigns.'}
-                  </span>
-                </div>
-                {gmailStatus.connected ? (
-                  <div className="row" style={{ gap: 8, flex: 'none' }}>
-                    {!gmailStatus.active && (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm"
-                        onClick={activateGmail}
-                        disabled={gmailBusy || gmailLoading}
-                      >
-                        Use Gmail
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-sm"
-                      onClick={disconnectGmail}
-                      disabled={gmailBusy || gmailLoading}
-                    >
-                      <Icon name="logout" size={15} />
-                      Disconnect
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={connectGmail}
-                    disabled={gmailBusy || gmailLoading}
-                    style={{ flex: 'none' }}
-                  >
-                    <Icon name="google" size={15} />
-                    {gmailBusy ? 'Opening...' : 'Connect Gmail'}
-                  </button>
-                )}
-              </div>
-            </section>
 
             <section className="card" style={{ padding: 24, borderRadius: 8 }}>
               <div className="row spread" style={{ gap: 16, marginBottom: 20, alignItems: 'flex-start' }}>
