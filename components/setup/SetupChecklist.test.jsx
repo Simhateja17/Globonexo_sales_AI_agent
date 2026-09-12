@@ -56,7 +56,7 @@ describe("checklist states", () => {
 describe("integration state rendering", () => {
   it("shows a connected integration as Done with the backend's detail", () => {
     mockSetup({
-      steps: [step("gmail", { status: "complete", detail: "Sending from sales@example.com." })],
+      steps: [step("email", { status: "complete", detail: "Sending from sales@example.com." })],
     });
     render(<SetupChecklist />);
 
@@ -66,13 +66,13 @@ describe("integration state rendering", () => {
 
   it("never renders Done for an unconnected integration", () => {
     mockSetup({
-      steps: [step("gmail", { status: "incomplete", detail: "Gmail is not connected yet." })],
+      steps: [step("email", { status: "incomplete", detail: "No inbox is connected yet." })],
     });
     render(<SetupChecklist />);
 
     expect(screen.queryByText("Done")).toBeNull();
     expect(screen.getByText("To do")).toBeTruthy();
-    expect(screen.getByText("Gmail is not connected yet.")).toBeTruthy();
+    expect(screen.getByText("No inbox is connected yet.")).toBeTruthy();
   });
 
   it("renders an unavailable provider without offering an action", () => {
@@ -100,7 +100,7 @@ describe("compact dashboard card", () => {
     mockSetup({
       steps: [
         step("profile", { status: "complete" }),
-        step("gmail", { status: "complete" }),
+        step("email", { status: "complete" }),
         step("leads"),
       ],
     });
@@ -134,7 +134,7 @@ describe("compact dashboard card", () => {
 
 describe("skipping optional steps", () => {
   it("offers a skip on optional integrations only", () => {
-    mockSetup({ steps: [step("calendar"), step("gmail")] });
+    mockSetup({ steps: [step("calendar"), step("email")] });
     render(<SetupChecklist />);
 
     // Calendar is skippable, but Gmail is not, so exactly one skip control.

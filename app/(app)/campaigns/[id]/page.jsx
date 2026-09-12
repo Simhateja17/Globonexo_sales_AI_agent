@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import SenderPicker from "@/components/campaigns/SenderPicker";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import api from "../../../../lib/api";
 import Icon from "../../../../components/ui/Icon";
@@ -193,7 +194,6 @@ export default function CampaignDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const autoSendStartedRef = useRef(false);
 
   const [campaign, setCampaign] = useState(null);
   const [team, setTeam] = useState(null);
@@ -336,15 +336,8 @@ export default function CampaignDetailPage() {
     }
   }, [canOperate, load, showToast]);
 
-  useEffect(() => {
-    const sendLeadId = searchParams.get("sendLeadId");
-    if (!sendLeadId || searchParams.get("gmail") !== "connected" || autoSendStartedRef.current) return;
-    autoSendStartedRef.current = true;
-    sendLeadNow(sendLeadId);
-  }, [searchParams, sendLeadNow]);
-
-  // The tab lives in the URL so a reload, a shared link, and the Gmail
-  // reconnect round-trip all land on the section the customer was reading.
+  // The tab lives in the URL so a reload and a shared link both land on the
+  // section the customer was reading.
   const activeTab = searchParams.get("tab") === "leads" ? "leads" : "emails";
   const selectTab = useCallback(tab => {
     const params = new URLSearchParams(searchParams.toString());
@@ -415,6 +408,7 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="col" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <SenderPicker campaignId={campaign.id} channel={campaign.channel} value={campaign.channel === "email" ? campaign.emailAccountId : campaign.phoneNumberId} disabled={!canOperate} onSaved={id => setCampaign(current => ({ ...current, [current.channel === "email" ? "emailAccountId" : "phoneNumberId"]: id }))} />
       {toast && (
         <div style={{ position: "fixed", bottom: 24, right: 24, background: "var(--fg)", color: "var(--bg)", padding: "12px 20px", borderRadius: 10, fontSize: 13, fontWeight: 500, zIndex: 9999, maxWidth: 360, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
           {toast}

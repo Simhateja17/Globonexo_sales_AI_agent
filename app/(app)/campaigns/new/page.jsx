@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import SenderPicker from "@/components/campaigns/SenderPicker";
 import { useRouter } from "next/navigation";
 import api from "../../../../lib/api";
 import Icon from "../../../../components/ui/Icon";
@@ -587,6 +588,7 @@ export default function NewCampaignPage() {
 
   return (
     <form className="col campaign-new-form" onSubmit={submit} style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <SenderPicker channel={form.channel} value={form.channel === "email" ? form.emailAccountId : form.phoneNumberId} onChange={id => setForm(current => ({ ...current, emailAccountId: current.channel === "email" ? id : null, phoneNumberId: current.channel === "voice" ? id : null }))} />
       <div className="row spread campaign-new-topbar" style={{ padding: "16px 24px", borderBottom: "1px solid var(--line)", flex: "none", background: "#fff", gap: 16 }}>
         <div className="row" style={{ gap: 12, minWidth: 0 }}>
           <button type="button" className="btn btn-ghost btn-sm" style={{ width: 40, padding: 0 }} onClick={() => router.push("/campaigns")} aria-label="Back to campaigns">

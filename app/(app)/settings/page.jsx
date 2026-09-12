@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
+import PhoneNumbers from '@/components/settings/PhoneNumbers';
 import { Field } from '../../../components/ui/Input';
 import Icon from '../../../components/ui/Icon';
 import RouteSkeleton from '../../../components/ui/RouteSkeleton';
@@ -103,7 +104,6 @@ export default function SettingsPage() {
     autoApproveReplies: false,
     dailyEmailSendCap: 100,
     bookingLink: '',
-    retellPhoneNumber: '',
     displayTimezone: browserTimezone(),
   });
   const [planId, setPlanId] = useState('starter');
@@ -164,7 +164,6 @@ export default function SettingsPage() {
           autoApproveReplies: Boolean(agentConfig.autoApproveReplies),
           dailyEmailSendCap:  Math.min(agentConfig.dailyEmailSendCap || planCap, planCap),
           bookingLink:        agentConfig.bookingLink || '',
-          retellPhoneNumber:  agentConfig.retellPhoneNumber || '',
           displayTimezone:    profile.displayTimezone || browserTimezone(),
         });
         setVoiceAgentId(agentConfig.retellAgentId || null);
@@ -243,6 +242,7 @@ export default function SettingsPage() {
     });
   };
 
+  const [editingInboxId, setEditingInboxId] = useState(null);
   const addInbox = async () => {
     setError('');
     setSuccess(false);
@@ -251,7 +251,7 @@ export default function SettingsPage() {
       // IMAP always authenticates with the same credentials as SMTP for every
       // provider this form supports. Asking twice was pure friction, not a
       // real capability. Secure is inferred from the port instead of a toggle.
-      await api.post('/email-accounts', {
+      const settings = {
         ...smtpForm,
         smtpPort: Number(smtpForm.smtpPort),
         smtpSecure: inferSmtpSecure(smtpForm.smtpPort),
@@ -259,7 +259,10 @@ export default function SettingsPage() {
         imapSecure: inferImapSecure(smtpForm.imapPort),
         imapUsername: smtpForm.smtpUsername,
         imapPassword: smtpForm.smtpPassword,
-      });
+      };
+      if (editingInboxId) await api.patch(`/email-accounts/${editingInboxId}`, { settings });
+      else await api.post('/email-accounts', settings);
+      setEditingInboxId(null);
       setSmtpForm({ ...EMPTY_SMTP_FORM, ...SMTP_PRESETS[smtpPreset].values });
       setAddingInbox(false);
       await refreshInboxes();
@@ -410,11 +413,11 @@ export default function SettingsPage() {
     }
   };
 
-  const activePhone = phoneNumbers.find(phone => phone.status === 'active' && phone.phone_number);
+  const activePhone = phoneNumbers.find(phone => ['active', 'over_limit'].includes(phone.status) && phone.phone_number);
   const pendingPhone = phoneNumbers.find(phone => ['requested', 'provisioning'].includes(phone.status));
   const failedPhone = phoneNumbers.find(phone => phone.status === 'failed');
   const phoneReady = Boolean(activePhone);
-  const activeInboxes = inboxes.accounts.filter((account) => account.status === 'active');
+  const activeInboxes = inboxes.accounts.filter((account) => ['active', 'over_limit'].includes(account.status));
   const emailConnectionReady = activeInboxes.length > 0;
   const inboxSlotsLeft = Math.max(0, inboxes.limit - inboxes.used);
   const memberName = (member) => [member.first_name, member.last_name].filter(Boolean).join(' ') || member.email;
@@ -523,6 +526,11 @@ export default function SettingsPage() {
                           </div>
                           {inboxes.canManage && (
                             <div className="row" style={{ gap: 8, flex: 'none' }}>
+                              <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => {
+                                setEditingInboxId(account.id);
+                                setSmtpForm({ ...EMPTY_SMTP_FORM, email: account.email, displayName: account.displayName || '', smtpHost: account.smtpHost || '', imapHost: account.imapHost || '', smtpUsername: account.email });
+                                setAddingInbox(true);
+                              }}>Edit settings</button>
                               <button type="button" className="btn btn-ghost btn-sm" onClick={() => testInbox(account.id)} disabled={busy}>
                                 {busy ? 'Testing...' : 'Test'}
                               </button>
@@ -584,7 +592,7 @@ export default function SettingsPage() {
                       ? `You can add ${inboxSlotsLeft} more inbox${inboxSlotsLeft === 1 ? '' : 'es'} on the ${planId} plan.`
                       : `You have used all ${inboxes.limit} inbox${inboxes.limit === 1 ? '' : 'es'} on the ${planId} plan. Remove one or upgrade to add another.`}
                   </span>
-                  <button type="button" className="btn btn-primary btn-sm" onClick={() => setAddingInbox(true)} disabled={inboxSlotsLeft === 0} style={{ flex: 'none' }}>
+                  <button type="button" className="btn btn-primary btn-sm" onClick={() => { setEditingInboxId(null); setAddingInbox(true); }} disabled={inboxSlotsLeft === 0} style={{ flex: 'none' }}>
                     <Icon name="plus" size={15} color="#06231a" />
                     Add inbox
                   </button>
@@ -681,12 +689,12 @@ export default function SettingsPage() {
                     The selected preset only fills server settings. Enter the mailbox address and password/app password, then test before saving.
                   </span>
                   <div className="row" style={{ gap: 8, flex: 'none' }}>
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAddingInbox(false)} disabled={smtpBusy}>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setAddingInbox(false); setEditingInboxId(null); }} disabled={smtpBusy}>
                       Cancel
                     </button>
                     <button type="button" className="btn btn-primary btn-sm" onClick={addInbox} disabled={smtpBusy || smtpLoading}>
                       <Icon name="check" size={15} color="#06231a" />
-                      {smtpBusy ? 'Testing and saving...' : 'Test & add inbox'}
+                      {smtpBusy ? 'Testing and saving...' : editingInboxId ? 'Test & save changes' : 'Test & add inbox'}
                     </button>
                   </div>
                 </div>
@@ -795,7 +803,8 @@ export default function SettingsPage() {
               </div>
             </section>
 
-
+            <PhoneNumbers teamMembers={teamMembers} />
+            <a href="/settings/senders">Choose inboxes and numbers to keep after a plan change</a>
             <section className="card" style={{ padding: 24, borderRadius: 8 }}>
               <div className="row spread" style={{ gap: 16, marginBottom: 20, alignItems: 'flex-start' }}>
                 <div className="row" style={{ gap: 10, minWidth: 0 }}>
@@ -845,14 +854,6 @@ export default function SettingsPage() {
                   {voiceBusy ? 'Working...' : voiceAgentId ? 'Update voice agent' : 'Set up voice agent'}
                 </button>
               </div>
-
-              <Field
-                label="Retell phone number"
-                type="tel"
-                value={form.retellPhoneNumber || ''}
-                onChange={set('retellPhoneNumber')}
-                hint="Your included US/Canada number is provisioned here after payment. Custom numbers can still be entered in E.164 format."
-              />
 
               <div
                 style={{

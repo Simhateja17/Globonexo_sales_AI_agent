@@ -97,6 +97,7 @@ export default function InboxPage() {
   const [composerBody, setComposerBody] = useState("");
   const [sentMessages, setSentMessages] = useState({});
   const [activeFilter, setActiveFilter] = useState("all");
+  const [senderFilter, setSenderFilter] = useState("");
   const showSkeleton = useFirstLoad(loading);
 
   useEffect(() => {
@@ -249,7 +250,7 @@ export default function InboxPage() {
   const hasReply = detail?.kind === "reply";
   const canReply = Boolean(thread);
   const manualMessages = selectedId ? sentMessages[selectedId] || [] : [];
-  const filteredThreads = filterThreads(threads, activeFilter);
+  const filteredThreads = filterThreads(threads, activeFilter).filter(item => !senderFilter || item.connectedAccountId === senderFilter);
   const filterCounts = {
     all: threads.length,
     replies: filterThreads(threads, "replies").length,
@@ -268,6 +269,10 @@ export default function InboxPage() {
   return (
     <div className="email-inbox-shell">
       <aside data-tour="inbox-threads" className="email-list-panel">
+        <select className="input" aria-label="Filter by inbox" value={senderFilter} onChange={event => setSenderFilter(event.target.value)}>
+          <option value="">All inboxes</option>
+          {[...new Map(threads.filter(item => item.connectedAccountId).map(item => [item.connectedAccountId, item.inboxAddress])).entries()].map(([id, address]) => <option key={id} value={id}>{address || "Inbox"}</option>)}
+        </select>
         <div className="email-list-head">
           <div className="row spread" style={{ gap: 12 }}>
             <div>
@@ -312,6 +317,7 @@ export default function InboxPage() {
                   </div>
                   <p className="ellip">{item.company || item.email || "Lead"}</p>
                   <div className="email-thread-subject ellip">{item.subject}</div>
+                  {item.inboxAddress && <div className="faint">{item.inboxAddress}</div>}
                   <div className="email-thread-preview ellip">{item.preview}</div>
                 </div>
                 <div className="email-thread-footer">

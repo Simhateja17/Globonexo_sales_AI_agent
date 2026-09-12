@@ -16,7 +16,7 @@ const ICON_MAP = {
 };
 
 const TASK_ICON_MAP = {
-  gmail: "mail",
+  email: "mail",
   reply: "chat",
   email: "send",
   campaign: "target",

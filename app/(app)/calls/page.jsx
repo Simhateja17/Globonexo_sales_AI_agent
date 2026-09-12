@@ -226,6 +226,9 @@ export default function CallsPage() {
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState("");
   const [filter, setFilter]         = useState("all");
+  const [numberFilter, setNumberFilter] = useState("");
+  const [numbers, setNumbers] = useState([]);
+  useEffect(() => { api.get('/phone-numbers').then(({ data }) => setNumbers(data.numbers || [])).catch(() => {}); }, []);
   const [toast, setToast]           = useState("");
   const [selectedCall, setSelectedCall] = useState(null);
   const [retrying, setRetrying]     = useState("");
@@ -236,7 +239,10 @@ export default function CallsPage() {
     setLoading(true);
     setError("");
     try {
-      const params = filter !== "all" ? `?status=${filter}` : "";
+      const query = new URLSearchParams();
+      if (filter !== "all") query.set('status', filter);
+      if (numberFilter) query.set('phoneNumberId', numberFilter);
+      const params = `?${query}`;
       const { data } = await api.get(`/calls${params}`);
       setCalls(Array.isArray(data) ? data : []);
     } catch {
@@ -245,7 +251,7 @@ export default function CallsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, numberFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -306,6 +312,9 @@ export default function CallsPage() {
       </div>
 
       {/* Filter chips */}
+      <select className="input" aria-label="Filter by phone number" value={numberFilter} onChange={event => setNumberFilter(event.target.value)}>
+        <option value="">All phone numbers</option>{numbers.map(number => <option key={number.id} value={number.id}>{number.phone_number || number.label || 'Pending number'}</option>)}
+      </select>
       <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
         {FILTERS.map(f => (
           <button
@@ -373,6 +382,7 @@ export default function CallsPage() {
                         <div className="col" style={{ minWidth: 0 }}>
                           <div style={{ fontWeight: 700 }}>{leadName(call.leads)}</div>
                           <div style={{ fontSize: 11, color: "var(--muted)" }}>{call.leads?.company || (call.direction === "inbound" ? call.from_number : call.to_number)}</div>
+                          <div className="faint">{call.direction === 'inbound' ? `To ${call.to_number}` : `From ${call.from_number}`}</div>
                         </div>
                       </div>
                     </td>

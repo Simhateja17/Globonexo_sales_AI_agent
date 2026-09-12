@@ -644,6 +644,18 @@ function AdminDashboard() {
                     </td>
                     <td>
                       <div className="row" style={{ gap: 8, justifyContent: "flex-end" }}>
+                        <button className="btn btn-ghost btn-sm" type="button" onClick={async () => {
+                          const emailText = window.prompt("Inbox limit override (blank uses plan limit)");
+                          if (emailText === null) return;
+                          const phoneText = window.prompt("Phone number limit override (blank uses plan limit)");
+                          if (phoneText === null) return;
+                          const reason = askReason(`changing sender limits for ${org.name}`);
+                          if (!reason) return;
+                          try {
+                            await adminApi.patch(`/ops/organizations/${org.id}/sender-limits`, { maxEmailAccounts: emailText.trim() ? Number(emailText) : null, maxPhoneNumbers: phoneText.trim() ? Number(phoneText) : null, reason });
+                            setNotice(`Sender limits updated for ${org.name}.`);
+                          } catch (err) { setError(err?.response?.data?.error || "Sender limits could not be changed."); }
+                        }}>Sender limits</button>
                         {org.subscriptionStatus === "suspended" ? (
                           <button className="btn btn-ghost btn-sm success-text" type="button" onClick={() => unsuspendOrg(org)}>Unsuspend</button>
                         ) : (
