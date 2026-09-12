@@ -348,7 +348,7 @@ export default function InboxPage() {
             <>
               <div className="row" style={{ gap: 12 }}>
                 <span className="email-chat-icon"><Icon name="mail" size={20} /></span>
-                <div>
+                <div className="col">
                   <strong>Emails</strong>
                   <span>No conversation selected</span>
                 </div>
