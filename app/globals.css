@@ -6294,3 +6294,99 @@ canvas {
 .guide-callout p { margin-top: 0; color: var(--ink); font-size: 15px; line-height: 1.7; }
 .guide-callout p + p { margin-top: 12px; }
 .guide-body .faq-list { margin-top: 22px; }
+
+/* Lead detail dialog */
+.row-clickable {
+  cursor: pointer;
+}
+.data-row.row-clickable:hover {
+  background: var(--g-50, #f4faf6);
+}
+.data-row.row-clickable:focus-visible {
+  outline: 2px solid var(--g-400, #22c07a);
+  outline-offset: -2px;
+}
+.lead-detail-modal {
+  width: min(760px, 100%);
+}
+.lead-detail-section {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.lead-detail-section:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.lead-detail-section:first-child {
+  padding-top: 0;
+}
+.lead-detail-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.lead-detail-section-head h3 {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.lead-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+}
+.lead-detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.lead-detail-field > span {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.lead-detail-field > strong {
+  font-size: 13.5px;
+  font-weight: 700;
+  word-break: break-word;
+}
+.lead-detail-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lead-detail-list {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.lead-detail-list-row {
+  padding: 9px 12px;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.lead-detail-list-row:last-child {
+  border-bottom: 0;
+}
+.lead-detail-raw {
+  margin-top: 14px;
+}
+.lead-detail-raw > summary {
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+@media (max-width: 720px) {
+  .lead-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
