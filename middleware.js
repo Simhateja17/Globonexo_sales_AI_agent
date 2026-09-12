@@ -22,6 +22,7 @@ const PUBLIC_PATHS = [
   '/ai-sales-agent-guide',
   '/sales-automation-software',
   '/cold-email-software',
+  '/blog',
   '/callback',
 ];
 

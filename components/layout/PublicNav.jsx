@@ -36,6 +36,7 @@ export default function PublicNav({ variant = "light", scrollTo, onSignIn }) {
         <Link href="/accuracy" onClick={() => setMobileOpen(false)}>No Guessing</Link>
         <Link href="/solutions" onClick={() => setMobileOpen(false)}>Who It&apos;s For</Link>
         <Link href="/pricing" onClick={() => setMobileOpen(false)}>Pricing</Link>
+        <Link href="/blog" onClick={() => setMobileOpen(false)}>Blog</Link>
       </nav>
 
       <div className="site-nav-actions" style={loading ? { visibility: "hidden" } : undefined} aria-hidden={loading || undefined}>
@@ -73,6 +74,7 @@ export default function PublicNav({ variant = "light", scrollTo, onSignIn }) {
           <Link href="/accuracy" onClick={() => setMobileOpen(false)}>No Guessing</Link>
           <Link href="/solutions" onClick={() => setMobileOpen(false)}>Who It&apos;s For</Link>
           <Link href="/pricing" onClick={() => setMobileOpen(false)}>Pricing</Link>
+          <Link href="/blog" onClick={() => setMobileOpen(false)}>Blog</Link>
 
           <div className="site-nav-mobile-actions" style={loading ? { visibility: "hidden" } : undefined} aria-hidden={loading || undefined}>
             {user ? (

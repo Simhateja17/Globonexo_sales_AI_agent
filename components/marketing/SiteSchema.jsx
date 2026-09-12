@@ -88,3 +88,73 @@ export function BreadcrumbSchema({ trail }) {
     />
   );
 }
+
+// Article schema for blog posts. The publisher and author both point back to
+// the Organization node the root layout already emits, so there is one identity
+// across the site rather than a second, slightly different company on each post.
+export function ArticleSchema({
+  headline,
+  description,
+  path,
+  datePublished,
+  dateModified,
+  image = "/og-image.png",
+  wordCount,
+  articleSection,
+}) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "@id": `${SITE_URL}${path}#article`,
+    headline,
+    description,
+    url: `${SITE_URL}${path}`,
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}${path}` },
+    datePublished,
+    dateModified: dateModified || datePublished,
+    image: [`${SITE_URL}${image}`],
+    author: { "@id": `${SITE_URL}/#organization` },
+    publisher: { "@id": `${SITE_URL}/#organization` },
+    isPartOf: { "@id": `${SITE_URL}/blog#blog` },
+    inLanguage: "en",
+    ...(wordCount ? { wordCount } : {}),
+    ...(articleSection ? { articleSection } : {}),
+  };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+// The blog index itself, plus the posts it lists. Posts that are not written
+// yet are deliberately absent — listing an unpublished URL is a broken promise
+// to a crawler.
+export function BlogSchema({ name, description, posts = [] }) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": `${SITE_URL}/blog#blog`,
+    name,
+    description,
+    url: `${SITE_URL}/blog`,
+    publisher: { "@id": `${SITE_URL}/#organization` },
+    inLanguage: "en",
+    blogPost: posts.map((post) => ({
+      "@type": "BlogPosting",
+      "@id": `${SITE_URL}${post.path}#article`,
+      headline: post.headline,
+      description: post.description,
+      url: `${SITE_URL}${post.path}`,
+      datePublished: post.datePublished,
+      author: { "@id": `${SITE_URL}/#organization` },
+    })),
+  };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
