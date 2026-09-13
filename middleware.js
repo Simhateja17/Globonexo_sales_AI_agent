@@ -24,6 +24,7 @@ const PUBLIC_PATHS = [
   '/cold-email-software',
   '/blog',
   '/callback',
+  '/invite',
 ];
 
 const SESSION_COOKIE_NAMES = [
