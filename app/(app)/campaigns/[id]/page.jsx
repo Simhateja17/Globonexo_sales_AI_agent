@@ -12,6 +12,7 @@ import DraftReview from "../../../../components/campaigns/DraftReview";
 import CampaignPreparationPanel from "./CampaignPreparationPanel";
 import { browserTimezone, campaignReadyCount, canCallLeadImmediately, formatScheduledInTimezone, voiceLaunchGate } from "../../../../lib/campaign-display";
 import { immediateEmailBlockReason } from "../../../../lib/manual-outreach";
+import { ACTIVE_ATTEMPT_STATUSES, CALL_NOW_ACTIVE_LIMIT, callNowLimitFromError, outreachAttemptLabel } from "../../../../lib/outreach-status";
 
 const STATUS_STYLES = {
   active: { label: "Active", bg: "var(--g-50)", color: "var(--g-700)", dot: "var(--g-500)" },
@@ -110,7 +111,7 @@ function campaignEligibility(lead) {
   };
 }
 
-function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showEmail, showPhone, isAiVoice, actionKey, onEmailNow, onCallNow, canOperate = true }) {
+function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showEmail, showPhone, isAiVoice, actionKey, onEmailNow, onCallNow, canOperate = true, callNowLimit = null }) {
   const status = lead.status || "new";
   const hasEmail = isValidEmail(lead.email || "");
   const hasPhone = Boolean(lead.phone?.trim());
@@ -154,7 +155,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
         {attempt ? (
           <div className="col" style={{ gap: 2 }}>
             <strong style={{ fontSize: 12.5 }}>{attempt.scheduled_at ? formatScheduledInTimezone(attempt.scheduled_at, displayTimezone) : "Not scheduled"}</strong>
-            <span className="faint" style={{ fontSize: 11.5 }}>{attempt.blocked_reason ? attempt.blocked_reason.replace(/_/g, " ") : `${attempt.status} · ${attempt.lead_timezone || "timezone required"}`}</span>
+            <span className="faint" style={{ fontSize: 11.5 }}>{attempt.blocked_reason ? outreachAttemptLabel(attempt) : `${outreachAttemptLabel(attempt)} · ${attempt.lead_timezone || "timezone required"}`}</span>
           </div>
         ) : <span className="faint" style={{ fontSize: 12 }}>Not scheduled</span>}
       </td>
@@ -176,8 +177,8 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
             <button
               className="btn btn-ghost btn-sm"
               type="button"
-              disabled={!canCallNow || Boolean(actionKey)}
-              title={!isAiVoice ? "Immediate calls are available for AI voice campaigns" : !hasPhone ? "Lead needs a phone number" : campaignBlocked ? eligibility?.label || "Lead is not ready" : stopped ? "Calls are stopped for this lead" : "Call this lead now"}
+              disabled={!canCallNow || Boolean(callNowLimit) || Boolean(actionKey)}
+              title={!isAiVoice ? "Immediate calls are available for AI voice campaigns" : !hasPhone ? "Lead needs a phone number" : campaignBlocked ? eligibility?.label || "Lead is not ready" : stopped ? "Calls are stopped for this lead" : callNowLimit ? callNowLimit.message : "Call this lead now"}
               style={{ height: 32, padding: "0 10px", fontSize: 12, whiteSpace: "nowrap" }}
               onClick={() => onCallNow(lead.id)}
             >
@@ -209,6 +210,9 @@ export default function CampaignDetailPage() {
   const [schedule, setSchedule] = useState([]);
   const [displayTimezone, setDisplayTimezone] = useState(browserTimezone());
   const [preparationData, setPreparationData] = useState(null);
+  // Set when the server refuses "Call now" for being over a limit; greys out
+  // every Call now button until `until` passes.
+  const [callNowLimit, setCallNowLimit] = useState(null);
   const handlePreparationChanged = useCallback(data => {
     setPreparationData(data);
     const status = data?.campaign?.status;
@@ -237,6 +241,8 @@ export default function CampaignDetailPage() {
       setSchedule(Array.isArray(scheduleRes.data?.items) ? scheduleRes.data.items : []);
       setDisplayTimezone(settingsRes.data?.displayTimezone || settingsRes.data?.profile?.displayTimezone || browserTimezone());
       setTeam(teamRes.data ?? null);
+      // A fresh list may show an instant call has finished, so let people try again.
+      setCallNowLimit(current => current?.code === CALL_NOW_ACTIVE_LIMIT ? null : current);
     } catch (err) {
       setError(err?.response?.data?.error ?? "Failed to load campaign.");
     } finally {
@@ -245,6 +251,17 @@ export default function CampaignDetailPage() {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (!callNowLimit) return undefined;
+    const wait = callNowLimit.until - Date.now();
+    if (wait <= 0) {
+      setCallNowLimit(null);
+      return undefined;
+    }
+    const timer = setTimeout(() => setCallNowLimit(null), Math.min(wait, 2_147_000_000));
+    return () => clearTimeout(timer);
+  }, [callNowLimit]);
 
   const viewer = team?.viewer;
   const canOperate = !campaign || !viewer || ['owner', 'admin'].includes(viewer.role) || campaign.assignedUserId === viewer.id;
@@ -327,11 +344,21 @@ export default function CampaignDetailPage() {
     setActionKey(`call:${leadId}`);
     setError("");
     try {
-      await api.post(`/leads/${leadId}/call-now`);
-      showToast("Calling this lead now.");
+      const { data } = await api.post(`/leads/${leadId}/call-now`);
+      if (data?.queueStatus === "waiting_for_line") {
+        showToast(data.message || "All lines are busy, this call will start as soon as one frees up.");
+      } else {
+        showToast("Calling this lead now.");
+      }
       await load();
     } catch (err) {
-      setError(err?.response?.data?.error || "Could not call this lead now.");
+      const limit = callNowLimitFromError(err);
+      if (limit) {
+        setCallNowLimit(limit);
+        setError(limit.message);
+      } else {
+        setError(err?.response?.data?.error || "Could not call this lead now.");
+      }
     } finally {
       setActionKey("");
     }
@@ -362,7 +389,7 @@ export default function CampaignDetailPage() {
   const nextAttemptByLead = useMemo(() => {
     const map = new Map();
     for (const attempt of schedule) {
-      if (!map.has(attempt.lead_id) && ["planned", "scheduled", "processing", "calling", "paused", "blocked", "rescheduling"].includes(attempt.status)) map.set(attempt.lead_id, attempt);
+      if (!map.has(attempt.lead_id) && ACTIVE_ATTEMPT_STATUSES.includes(attempt.status)) map.set(attempt.lead_id, attempt);
     }
     return map;
   }, [schedule]);
@@ -539,7 +566,7 @@ export default function CampaignDetailPage() {
                   {leads.length === 0 ? (
                     <tr><td colSpan={leadColumns.length} className="table-empty">No leads are attached to this campaign.</td></tr>
                   ) : leads.map(lead => (
-                    <CampaignLeadRow key={lead.id} lead={lead} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} canOperate={canOperate} />
+                    <CampaignLeadRow key={lead.id} lead={lead} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} canOperate={canOperate} callNowLimit={callNowLimit} />
                   ))}
                 </tbody>
               </table>

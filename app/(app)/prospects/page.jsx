@@ -12,6 +12,7 @@ import {
   normalizeApolloLocations,
   uniqueApolloValues,
 } from "../../../lib/apollo-targeting";
+import { outreachAttemptLabel } from "../../../lib/outreach-status";
 
 const COMPANY_SIZE_OPTIONS = ["1,10", "11,50", "51,200", "201,500", "501,1000", "1001,5000", "5001,10000", "10001,"];
 const TITLE_OPTIONS = ["Founder", "Co-Founder", "Owner", "CEO", "Chief Revenue Officer", "Chief Sales Officer", "VP Sales", "VP Revenue", "Head of Sales", "Head of Revenue", "Sales Director", "Revenue Operations Director"];
@@ -215,8 +216,9 @@ function stageStyle(status) {
 
 function formatNextOutreach(attempt) {
   if (!attempt) return "Not scheduled";
-  if (!attempt.scheduled_at) return attempt.blocked_reason ? `Blocked: ${attempt.blocked_reason.replace(/_/g, " ")}` : "Not scheduled";
-  return new Intl.DateTimeFormat("en", { timeZone: attempt.display_timezone || undefined, month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" }).format(new Date(attempt.scheduled_at));
+  if (!attempt.scheduled_at) return attempt.blocked_reason ? outreachAttemptLabel(attempt) : "Not scheduled";
+  const time = new Intl.DateTimeFormat("en", { timeZone: attempt.display_timezone || undefined, month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" }).format(new Date(attempt.scheduled_at));
+  return `${time} · ${outreachAttemptLabel(attempt)}`;
 }
 
 function formatDateTime(value) {
