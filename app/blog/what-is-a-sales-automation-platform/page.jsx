@@ -3,6 +3,7 @@ const PUBLISHED = "2026-09-12";
 const TITLE = "What Is a Sales Automation Platform? And What It Actually Replaces";
 const DESCRIPTION =
   "What a sales automation platform runs, what it is not, the six steps of an outbound workflow, what your team should still control, and seven questions to ask a vendor.";
+const SOCIAL_IMAGE = `${PATH}/opengraph-image`;
 
 export const metadata = {
   title: "What Is a Sales Automation Platform?",
@@ -19,7 +20,7 @@ export const metadata = {
     section: "Outbound, explained",
     images: [
       {
-        url: "/og-image.png",
+        url: SOCIAL_IMAGE,
         width: 1200,
         height: 630,
         alt: "What is a sales automation platform — GNX Sales",
@@ -31,7 +32,7 @@ export const metadata = {
     title: TITLE,
     description:
       "What a platform does, where it helps, what your team should still control, and the seven questions to ask a vendor.",
-    images: ["/og-image.png"],
+    images: [SOCIAL_IMAGE],
   },
 };
 
