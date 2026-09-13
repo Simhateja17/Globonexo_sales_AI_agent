@@ -261,8 +261,10 @@ function VoiceTestSection({ catalog, organizations, setError, setNotice }) {
   const [callState, setCallState] = useState("idle");
   const [tests, setTests] = useState({ available: true, items: [] });
   const clientRef = useRef(null);
+  const [toNumber, setToNumber] = useState(() => { try { return window.localStorage.getItem("gnx-staff-test-phone") || ""; } catch { return ""; } });
+  const saveToNumber = value => { setToNumber(value); try { window.localStorage.setItem("gnx-staff-test-phone", value); } catch {} };
 
-  const loadTests = () => adminApi.get("/ops/ai-testing/voice-tests").then(res => setTests(res.data)).catch(() => {});
+  const loadTests =() => adminApi.get("/ops/ai-testing/voice-tests").then(res => setTests(res.data)).catch(() => {});
   useEffect(() => { loadTests(); return () => clientRef.current?.stopCall(); }, []);
 
   useEffect(() => {
@@ -282,8 +284,10 @@ function VoiceTestSection({ catalog, organizations, setError, setNotice }) {
     setError("");
     setNotice("");
     try {
-      const { data } = await adminApi.post("/ops/ai-testing/voice-tests", { organizationId: orgId, campaignId, kind, ...overrides }, { timeout: 120000 });
-      if (kind === "web_call") {
+      const { data } = await adminApi.post("/ops/ai-testing/voice-tests", { organizationId: orgId, campaignId, kind, ...overrides, ...(kind === "phone_call" ? { toNumber: toNumber.replace(/[\s-]/g, "") } : {}) }, { timeout: 120000 });
+      if (kind === "phone_call") {
+        setNotice(`Calling ${toNumber} from ${data.fromNumber}. Answer your phone. Use Refresh on the test below for the transcript and recording after you hang up.`);
+      } else if (kind === "web_call") {
         const { RetellWebClient } = await import("retell-client-js-sdk");
         const client = new RetellWebClient();
         clientRef.current = client;
@@ -366,6 +370,10 @@ function VoiceTestSection({ catalog, organizations, setError, setNotice }) {
                 <Icon name="phone" size={14} color="#06231a" /> Start test call in browser
               </button>
             )}
+            <input className="input" type="tel" aria-label="Your phone number" placeholder="+916309599582" value={toNumber} onChange={event => saveToNumber(event.target.value)} style={{ height: 32, width: 170 }} />
+            <button className="btn btn-ghost btn-sm" type="button" disabled={busy || inCall || !campaign.voiceTestable || !/^\+[1-9]\d{7,14}$/.test(toNumber.replace(/[\s-]/g, ""))} onClick={() => start("phone_call")}>
+              <Icon name="phone" size={14} /> Call my phone
+            </button>
             <button className="btn btn-ghost btn-sm" type="button" disabled={busy || inCall || !campaign.simulationTestable} onClick={() => start("simulation")}>
               <Icon name="play" size={14} /> Run simulation (text, model only)
             </button>
@@ -384,7 +392,7 @@ function VoiceTestSection({ catalog, organizations, setError, setNotice }) {
                 <tr className="data-row" key={test.id}>
                   <td><span className="faint">{new Date(test.created_at).toLocaleString()}</span></td>
                   <td><strong>{test.organization_name}</strong><div className="faint">{test.campaign_name}</div></td>
-                  <td><span className="chip">{test.kind === "web_call" ? "test call" : "simulation"}</span></td>
+                  <td><span className="chip">{test.kind === "web_call" ? "browser call" : test.kind === "phone_call" ? "phone call" : "simulation"}</span></td>
                   <td>{test.voice_id || "current voice"}<div className="faint">{test.model || "current model"}</div></td>
                   <td>
                     <span className="chip">{test.status}</span>
