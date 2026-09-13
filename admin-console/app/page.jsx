@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import QRCode from "qrcode";
 import Icon from "../../components/ui/Icon";
 import Avatar from "../../components/ui/Avatar";
 import Logo from "../../components/ui/Logo";
@@ -28,6 +29,43 @@ const NAV_ITEMS = [
   { id: "agent", label: "Agent performance", ico: "spark" },
   { id: "support", label: "Support", ico: "chat" },
 ];
+
+function MfaEnrollmentQrCode({ uri }) {
+  const [dataUrl, setDataUrl] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    setDataUrl("");
+
+    QRCode.toDataURL(uri, {
+      errorCorrectionLevel: "M",
+      margin: 2,
+      width: 224,
+      color: { dark: "#06231a", light: "#ffffff" },
+    }).then(url => {
+      if (active) setDataUrl(url);
+    }).catch(() => {
+      if (active) setDataUrl("");
+    });
+
+    return () => { active = false; };
+  }, [uri]);
+
+  if (!dataUrl) return null;
+
+  return (
+    <div style={{ display: "grid", placeItems: "center", marginBottom: 16 }}>
+      <img
+        src={dataUrl}
+        alt="GNX Sales authenticator setup QR code"
+        width={224}
+        height={224}
+        style={{ width: 224, maxWidth: "100%", height: "auto", borderRadius: 12, border: "1px solid var(--line)" }}
+      />
+      <span className="faint" style={{ marginTop: 8, fontSize: 12 }}>Scan with your authenticator app</span>
+    </div>
+  );
+}
 
 function AdminSidebar({ tab, onTabChange, adminName, adminEmail, onLogout }) {
   const customerAppUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gnxsales.com";
@@ -1024,9 +1062,9 @@ function AdminLogin() {
           <form onSubmit={submitMfa} className="col" style={{ gap: 14, marginTop: 24 }}>
             {mfaSetup && (
               <div className="notice-good" style={{ lineHeight: 1.55 }}>
-                Add GNX Sales to your authenticator app using this secret, then enter the 6-digit code. Save the secret in your approved password manager before continuing.
+                <MfaEnrollmentQrCode uri={mfaSetup.otpauthUri} />
+                Scan the QR code with your authenticator app, then enter the 6-digit code. If you cannot scan it, use the setup key below. Save the key in your approved password manager before continuing.
                 <code style={{ display: 'block', marginTop: 10, wordBreak: 'break-all' }}>{mfaSetup.secret}</code>
-                <span className="faint" style={{ display: 'block', marginTop: 8, wordBreak: 'break-all', fontSize: 11 }}>{mfaSetup.otpauthUri}</span>
               </div>
             )}
             <label className="col" style={{ gap: 6 }}>
