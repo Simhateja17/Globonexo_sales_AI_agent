@@ -12,6 +12,7 @@ import { useFirstLoad } from "../../hooks/useFirstLoad";
 import adminApi from "../lib/admin-api";
 import { useAdminAuth } from "../providers/AdminAuthProvider";
 import { cleanText } from "../../lib/validation";
+import AiTestingPanel from "./AiTestingPanel";
 
 const SUPPORT_STATUSES = new Set(["open", "resolved", "closed"]);
 const PLAN_OPTIONS = [
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { id: "apollo", label: "Lead database usage", ico: "chart" },
   { id: "costs", label: "Cost & margin", ico: "trend" },
   { id: "agent", label: "Agent performance", ico: "spark" },
+  { id: "ai", label: "AI testing", ico: "phone" },
   { id: "support", label: "Support", ico: "chat" },
 ];
 
@@ -667,7 +669,10 @@ function AdminDashboard() {
                         {PLAN_OPTIONS.map(plan => <option key={plan.id} value={plan.id}>{plan.label}</option>)}
                       </select>
                     </td>
-                    <td><StatusBadge value={org.subscriptionStatus} /></td>
+                    <td>
+                      <StatusBadge value={org.subscriptionStatus} />
+                      {org.voiceOverride ? <div style={{ marginTop: 4 }}><span className="chip" title="This organization has its own voice/model setting">voice override</span></div> : null}
+                    </td>
                     <td>
                       <StatChips items={[
                         { label: "leads", value: org.counts.leads },
@@ -848,6 +853,8 @@ function AdminDashboard() {
             </div>
           </div>
         </div>
+      ) : tab === "ai" ? (
+        <AiTestingPanel organizations={organizations} setError={setError} setNotice={setNotice} onOverridesChanged={load} />
       ) : tab === "agent" ? (
         <div className="col" style={{ gap: 16 }}>
           <div className="metric-grid">

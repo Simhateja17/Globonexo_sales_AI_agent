@@ -6,6 +6,7 @@ import Icon from "../ui/Icon";
 import Avatar from "../ui/Avatar";
 import api from "../../lib/api";
 import { hasWorkspaceAccess } from "../../lib/billingAccess";
+import { canSee, pageKeyForPath, RoleContext } from "../../lib/access";
 
 const NAV_GROUPS = [
   {
@@ -162,6 +163,18 @@ export default function AppShell({ children }) {
     }
   }, [paymentRequired, billingRouteAllowed, router]);
 
+  // Pages hidden from this role send the person to the Dashboard.
+  const role = user?.role ?? null;
+  const pageKey = pageKeyForPath(pathname);
+  const pageHidden = Boolean(authChecked && user && pageKey && !canSee(role, pageKey));
+  const navGroups = NAV_GROUPS
+    .map(g => ({ ...g, items: g.items.filter(n => canSee(role, `page.${n.id}`)) }))
+    .filter(g => g.items.length > 0);
+
+  useEffect(() => {
+    if (pageHidden) router.replace('/dashboard');
+  }, [pageHidden, router]);
+
   const userName = user
     ? [user.first_name, user.last_name].filter(Boolean).join(' ') || 'User'
     : '';
@@ -227,7 +240,16 @@ export default function AppShell({ children }) {
     );
   }
 
+  if (pageHidden) {
+    return (
+      <div className="screen app-shell-screen" style={{ display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
+        <p className="muted">Redirecting to dashboard...</p>
+      </div>
+    );
+  }
+
   return (
+    <RoleContext.Provider value={role}>
     <div className="screen app-shell-screen" style={{ background: 'var(--bg)' }}>
       <aside className="app-shell-sidebar" style={{ background: '#fff', borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', padding: '18px 14px' }}>
         <div className="app-shell-brand" style={{ padding: '4px 6px 16px' }}><Logo size={28} /></div>
@@ -245,7 +267,7 @@ export default function AppShell({ children }) {
         </button>
 
         <nav className="col scroll grow app-shell-nav" style={{ gap: 0 }}>
-          {NAV_GROUPS.map((g, gi) => (
+          {navGroups.map((g, gi) => (
             <div key={gi} style={{ marginBottom: 4 }}>
               {g.label && <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--faint)', padding: '10px 10px 4px' }}>{g.label}</div>}
               {g.items.map(n => {
@@ -268,7 +290,7 @@ export default function AppShell({ children }) {
         </nav>
 
         <div className={`app-shell-mobile-drawer ${mobileNavOpen ? 'is-open' : ''}`}>
-          {NAV_GROUPS.map((g, gi) => (
+          {navGroups.map((g, gi) => (
             <div key={gi} className="app-shell-mobile-group">
               {g.label && <div className="app-shell-mobile-label">{g.label}</div>}
               {g.items.map(n => {
@@ -406,5 +428,6 @@ export default function AppShell({ children }) {
         <div className="grow" style={{ minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>{children}</div>
       </div>
     </div>
+    </RoleContext.Provider>
   );
 }

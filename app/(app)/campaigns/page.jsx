@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
+import { canSee } from "../../../lib/access";
 import Icon from "../../../components/ui/Icon";
 
 const STATUS_STYLES = {
@@ -421,7 +422,7 @@ export default function CampaignsPage() {
             {filteredCampaigns.map(campaign => {
               const viewer = team?.viewer;
               const canOperate = !viewer || ['owner', 'admin'].includes(viewer.role) || campaign.assignedUserId === viewer.id;
-              const canDelete = viewer?.role === 'owner';
+              const canDelete = canSee(viewer?.role, 'campaign.delete');
               const assignee = team?.members?.find(member => member.id === campaign.assignedUserId);
               const statusStyle = STATUS_STYLES[campaign.status] ?? STATUS_STYLES.draft;
               const primaryAction = campaign.status === "active" ? "pause" : "launch";
@@ -499,17 +500,16 @@ export default function CampaignsPage() {
                           {actionBusy ? "Working..." : primaryLabel}
                         </button>
                       )}
-                      <button
+                      {canOperate && <button
                         className="btn btn-ghost btn-sm"
                         style={{ height: 32 }}
-                        disabled={!canOperate}
                         onClick={event => {
                           event.stopPropagation();
                           openCampaignSettings(campaign);
                         }}
                       >
                         <Icon name="cog" size={14} /> Settings
-                      </button>
+                      </button>}
                       {canOperate && !campaign.archivedAt && <button
                         className="btn btn-ghost btn-sm"
                         disabled={busyId === campaign.id + "archive"}

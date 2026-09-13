@@ -11,6 +11,7 @@ import Icon from "../../../components/ui/Icon";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import useBillingCheckout from "../../../hooks/useBillingCheckout";
 import api from "../../../lib/api";
+import { useCanSee } from "../../../lib/access";
 import { ACCESS_STATUSES as ACTIVE_STATUSES, MOST_POPULAR_PLAN_ID, PLAN_CONFIG } from "../../../lib/plans";
 
 function formatDate(iso) {
@@ -63,7 +64,8 @@ export default function BillingPage() {
   const status = usage?.subscriptionStatus ?? 'payment_required';
   const subscription = usage?.subscription;
   const hasEntitlement = ACTIVE_STATUSES.has(status);
-  const canManageBilling = usage?.canManageBilling !== false;
+  const roleSeesPlanControls = useCanSee('billing.planControls');
+  const canManageBilling = roleSeesPlanControls && usage?.canManageBilling !== false;
   const currentPlanId = usage?.plan ?? 'starter';
   const currentPlanConfig = PLAN_CONFIG.find((p) => p.id === currentPlanId) ?? PLAN_CONFIG[0];
   const currentPlanRank = PLAN_CONFIG.findIndex((p) => p.id === currentPlanId);
@@ -77,9 +79,9 @@ export default function BillingPage() {
   useEffect(() => {
     if (!loading && !initializedView.current) {
       initializedView.current = true;
-      if (!hasEntitlement) setActiveView('explore');
+      if (!hasEntitlement && canManageBilling) setActiveView('explore');
     }
-  }, [loading, hasEntitlement]);
+  }, [loading, hasEntitlement, canManageBilling]);
   const statusLabel = useMemo(() => ({
     active: 'Active',
     past_due: 'Payment retry in progress',
@@ -255,7 +257,7 @@ export default function BillingPage() {
             <span className="badge" style={{ marginLeft: 10, background: hasEntitlement ? 'var(--g-50)' : '#fff8e6', color: hasEntitlement ? 'var(--g-700)' : '#8a5a00' }}>{statusLabel}</span>
           </p>
         </div>
-        <BillingViewToggle view={activeView} onChange={setActiveView} />
+        {canManageBilling && <BillingViewToggle view={activeView} onChange={setActiveView} />}
       </div>
 
       {(requiredNotice || status === 'payment_required') && (
@@ -283,7 +285,7 @@ export default function BillingPage() {
         </div>
       )}
 
-      {activeView === 'current' ? (
+      {activeView === 'current' || !canManageBilling ? (
         <>
           <div className="billing-current-stack">
             {hasEntitlement ? (
@@ -324,14 +326,14 @@ export default function BillingPage() {
                     {canManageBilling && !subscription?.cancelAtCycleEnd && (
                       <button className="btn btn-ghost btn-sm" onClick={handleCancel} disabled={busy === 'cancel'}>{busy === 'cancel' ? 'Scheduling…' : 'Cancel at period end'}</button>
                     )}
-                    <button className="btn btn-dark btn-sm" onClick={() => setActiveView('explore')}>Change plan</button>
+                    {canManageBilling && <button className="btn btn-dark btn-sm" onClick={() => setActiveView('explore')}>Change plan</button>}
                   </div>
                 </div>
               </div>
             ) : (
               <div className="card" style={{ padding: 24, textAlign: 'center' }}>
                 <p className="muted" style={{ fontSize: 14 }}>You don&apos;t have an active plan yet.</p>
-                <button className="btn btn-primary btn-sm" style={{ marginTop: 14 }} onClick={() => setActiveView('explore')}>Explore plans</button>
+                {canManageBilling && <button className="btn btn-primary btn-sm" style={{ marginTop: 14 }} onClick={() => setActiveView('explore')}>Explore plans</button>}
               </div>
             )}
 
@@ -387,7 +389,6 @@ export default function BillingPage() {
               <p className="muted" style={{ fontSize: 13, lineHeight: 1.55, marginTop: 18 }}>
                 Usage resets at the start of each billing month. Credits are settled from the cost the provider reports after the action completes.
               </p>
-              {!canManageBilling && <p className="muted" style={{ fontSize: 13, marginTop: 18 }}>Only the organization billing manager can start, change, or cancel a subscription.</p>}
             </div>
           </div>
 

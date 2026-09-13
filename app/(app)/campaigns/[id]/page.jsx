@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import SenderPicker from "@/components/campaigns/SenderPicker";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import api from "../../../../lib/api";
+import { canSee } from "../../../../lib/access";
 import Icon from "../../../../components/ui/Icon";
 import Avatar from "../../../../components/ui/Avatar";
 import { isValidEmail } from "../../../../lib/validation";
@@ -391,7 +392,7 @@ export default function CampaignDetailPage() {
   const dualChannel = emailEnabled && voiceEnabled;
   const isAiVoice = voiceEnabled && (campaign.voiceMode ?? "ai") === "ai";
   const launchGate = isAiVoice ? voiceLaunchGate(preparationData) : { blocked: false, message: "" };
-  const canAssign = ['owner', 'admin'].includes(viewer?.role);
+  const canAssign = canSee(viewer?.role, 'campaign.assign');
   const assignee = team?.members?.find(member => member.id === campaign.assignedUserId);
 
   // A dual-channel campaign shows an Email and a Phone column, so the lead

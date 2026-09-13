@@ -10,7 +10,7 @@ export default function SenderSelectionPage() {
   const [done, setDone] = useState(false);
   useEffect(() => { api.get("/senders").then(({ data }) => {
     setState(data); setEmails(data.emailAccounts.slice(0, data.emailAccountLimit).map(item => item.id)); setPhones(data.phoneNumbers.slice(0, data.phoneNumberLimit).map(item => item.id));
-  }).catch(err => setError(err.response?.data?.error || "Only the Owner can choose senders to keep.")); }, []);
+  }).catch(err => setError(err.response?.data?.error || "Only the Owner or an Admin can choose senders to keep.")); }, []);
   const toggle = (setter, id) => setter(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]);
   async function save() {
     if (!window.confirm("Disconnect unchecked inboxes and permanently release unchecked phone numbers? Campaigns using them will pause.")) return;
