@@ -430,7 +430,7 @@ export default function CampaignPreparationPanel({ campaignId, channel, campaign
               <span className="badge">{latestRun.pass_count}/{latestRun.total_count} passed</span>
             </div>
             <p className="faint" style={{ fontSize: 12, marginTop: 5 }}>
-              {data.simulation.repairs?.length ?? 0} targeted improvement{(data.simulation.repairs?.length ?? 0) === 1 ? "" : "s"} applied · Status: {simulationStatus.replace(/_/g, " ")}
+              Status: {simulationStatus.replace(/_/g, " ")}
             </p>
             {simulation.failedScenario ? (
               <p style={{ fontSize: 12, marginTop: 7, color: "var(--warning)", lineHeight: 1.45 }}>
