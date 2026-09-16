@@ -102,17 +102,13 @@ export default function LandingPage() {
   ];
 
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-  const handleSignIn = () => {
-    const dest = localStorage.getItem('returning_user') ? '/login' : '/signup';
-    router.push(dest);
-  };
 
   return (
     <div className="screen landing-screen">
       <div className="landing-scroll">
         <section className="landing-hero">
           <Aurora />
-          <PublicNav variant="dark" scrollTo={scrollTo} onSignIn={handleSignIn} />
+          <PublicNav variant="dark" scrollTo={scrollTo} />
 
           <div id="landing-top" className="landing-hero-inner">
             <div className="landing-hero-copy">

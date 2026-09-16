@@ -7,8 +7,7 @@ import Icon from "../ui/Icon";
 
 // variant: "light" (default, white pages) or "dark" (homepage hero over Aurora background)
 // scrollTo: pass on the homepage so the logo scrolls to top instead of navigating
-// onSignIn: pass on the homepage for the smart returning-user redirect; otherwise Sign in links to /login
-export default function PublicNav({ variant = "light", scrollTo, onSignIn }) {
+export default function PublicNav({ variant = "light", scrollTo }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, loading } = useAuth();
   const dark = variant === "dark";
@@ -46,11 +45,7 @@ export default function PublicNav({ variant = "light", scrollTo, onSignIn }) {
           </Link>
         ) : (
           <>
-            {onSignIn ? (
-              <button className="public-link" onClick={onSignIn}>Sign in</button>
-            ) : (
-              <Link className="public-link" href="/login">Sign in</Link>
-            )}
+            <Link className="public-link" href="/login">Sign in</Link>
             <Link className="btn btn-primary btn-sm" href="/signup">
               Choose a plan <Icon name="arrow" size={16} color="#06231a" />
             </Link>
@@ -83,11 +78,7 @@ export default function PublicNav({ variant = "light", scrollTo, onSignIn }) {
               </Link>
             ) : (
               <>
-                {onSignIn ? (
-                  <button className="btn btn-ghost btn-lg" onClick={() => { onSignIn(); setMobileOpen(false); }}>Sign in</button>
-                ) : (
-                  <Link className="btn btn-ghost btn-lg" href="/login" onClick={() => setMobileOpen(false)}>Sign in</Link>
-                )}
+                <Link className="btn btn-ghost btn-lg" href="/login" onClick={() => setMobileOpen(false)}>Sign in</Link>
                 <Link className="btn btn-primary btn-lg" href="/signup" onClick={() => setMobileOpen(false)}>Choose a plan</Link>
               </>
             )}
