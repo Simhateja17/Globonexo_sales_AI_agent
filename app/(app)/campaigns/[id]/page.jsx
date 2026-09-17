@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SenderPicker from "@/components/campaigns/SenderPicker";
+import CampaignSettingsForm from "@/components/campaigns/CampaignSettingsForm";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import api from "../../../../lib/api";
 import { canSee } from "../../../../lib/access";
@@ -366,10 +367,10 @@ export default function CampaignDetailPage() {
 
   // The tab lives in the URL so a reload and a shared link both land on the
   // section the customer was reading.
-  const activeTab = searchParams.get("tab") === "leads" ? "leads" : "emails";
+  const requestedTab = searchParams.get("tab");
   const selectTab = useCallback(tab => {
     const params = new URLSearchParams(searchParams.toString());
-    if (tab === "leads") params.set("tab", "leads");
+    if (tab !== "emails") params.set("tab", tab);
     else params.delete("tab");
     const query = params.toString();
     router.push(query ? `/campaigns/${id}?${query}` : `/campaigns/${id}`, { scroll: false });
@@ -415,6 +416,7 @@ export default function CampaignDetailPage() {
   if (!campaign) return null;
 
   const emailEnabled = usesEmail(campaign.channel);
+  const activeTab = ["leads", "settings"].includes(requestedTab) ? requestedTab : emailEnabled ? "emails" : "leads";
   const voiceEnabled = usesVoice(campaign.channel);
   const dualChannel = emailEnabled && voiceEnabled;
   const isAiVoice = voiceEnabled && (campaign.voiceMode ?? "ai") === "ai";
@@ -476,10 +478,6 @@ export default function CampaignDetailPage() {
 
       <div className="scroll grow app-page">
         <div className="col" style={{ gap: 16 }}>
-          <SenderPicker campaignId={campaign.id} channel={campaign.channel} value={campaign.channel === "email" ? campaign.emailAccountId : campaign.phoneNumberId} disabled={!canOperate} onSaved={id => setCampaign(current => ({ ...current, [current.channel === "email" ? "emailAccountId" : "phoneNumberId"]: id }))} />
-
-          {canAssign && team?.members?.length > 0 && <div className="card" style={{ padding: 14, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}><span style={{ fontSize: 12, fontWeight: 800, color: "var(--muted)" }}>Campaign owner</span><select className="input" aria-label="Campaign assignee" value={campaign.assignedUserId || ""} onChange={handleAssignment} disabled={assignmentBusy} style={{ width: "min(100%, 280px)", height: 34 }}><option value="" disabled>Unassigned</option>{team.members.filter(member => member.membership_status === "active").map(member => <option key={member.id} value={member.id}>{[member.first_name, member.last_name].filter(Boolean).join(" ") || member.email} · {member.role}</option>)}</select>{assignmentBusy && <span className="faint" style={{ fontSize: 12 }}>Saving…</span>}</div>}
-
           {canOperate ? <CampaignPreparationPanel campaignId={campaign.id} channel={campaign.channel} campaignStatus={campaign.status} onChanged={handlePreparationChanged} /> : <div className="card" style={{ padding: 16, color: "var(--muted)", fontSize: 13 }}>This campaign is assigned to another teammate. You can review its status and history, but operational controls are read-only.</div>}
 
           <div className="metric-grid">
@@ -494,52 +492,19 @@ export default function CampaignDetailPage() {
             ))}
           </div>
 
-          <div className="card" style={{ padding: 20 }}>
-            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 14 }}>
-              {dualChannel ? "Email + voice configuration" : voiceEnabled ? "Voice configuration" : "Email configuration"}
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 16 }}>
-              {emailEnabled && (
-                <>
-                  <div className="col" style={{ gap: 2 }}><span className="faint" style={{ fontSize: 11 }}>Daily send cap</span><span style={{ fontSize: 14, fontWeight: 700 }}>{campaign.dailySendCap ?? 100} emails</span></div>
-                  <div className="col" style={{ gap: 2 }}><span className="faint" style={{ fontSize: 11 }}>Max leads</span><span style={{ fontSize: 14, fontWeight: 700 }}>{campaign.maxLeads ?? 25}</span></div>
-                </>
-              )}
-              {voiceEnabled && (
-                <>
-                  <div className="col" style={{ gap: 2 }}><span className="faint" style={{ fontSize: 11 }}>Voice mode</span><span style={{ fontSize: 14, fontWeight: 700, textTransform: "capitalize" }}>{campaign.voiceMode ?? "ai"}</span></div>
-                  <div className="col" style={{ gap: 2 }}><span className="faint" style={{ fontSize: 11 }}>Calls / hour</span><span style={{ fontSize: 14, fontWeight: 700 }}>{campaign.callCadencePerHour ?? 5}</span></div>
-                </>
-              )}
-              <div className="col" style={{ gap: 2 }}><span className="faint" style={{ fontSize: 11 }}>Lead-local hours</span><span style={{ fontSize: 14, fontWeight: 700 }}>{campaign.businessHoursStart} - {campaign.businessHoursEnd}</span></div>
-              <div className="col" style={{ gap: 2 }}><span className="faint" style={{ fontSize: 11 }}>Your display timezone</span><span style={{ fontSize: 14, fontWeight: 700 }}>{displayTimezone}</span></div>
-              <div className="col" style={{ gap: 2 }}><span className="faint" style={{ fontSize: 11 }}>Campaign schedule timezone</span><span style={{ fontSize: 14, fontWeight: 700 }}>{campaign.timezone}</span></div>
-              <div className="col" style={{ gap: 2 }}><span className="faint" style={{ fontSize: 11 }}>Contact days</span><span style={{ fontSize: 14, fontWeight: 700 }}>{(campaign.allowedWeekdays ?? [1,2,3,4,5]).map(day => ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][day]).join(", ")}</span></div>
-            </div>
+          <div className="segmented-control prospects-source-tabs" role="tablist" aria-label="Campaign sections">
+            {[...(emailEnabled ? [["emails", "Emails"]] : []), ["leads", "Leads"], ["settings", "Settings"]].map(([key, label]) => (
+              <button key={key} type="button" role="tab" aria-selected={activeTab === key} className={activeTab === key ? "is-active" : ""} onClick={() => selectTab(key)}>
+                {label}
+              </button>
+            ))}
           </div>
 
-          {/* A voice-only campaign has no drafts to review, so it keeps the
-              single leads view rather than showing a lone dead tab. */}
-          {emailEnabled && (
-            <div className="segmented-control prospects-source-tabs" role="tablist" aria-label="Campaign sections">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === "emails"}
-                className={activeTab === "emails" ? "is-active" : ""}
-                onClick={() => selectTab("emails")}
-              >
-                Emails
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === "leads"}
-                className={activeTab === "leads" ? "is-active" : ""}
-                onClick={() => selectTab("leads")}
-              >
-                Leads
-              </button>
+          {activeTab === "settings" && (
+            <div className="col" style={{ gap: 16 }}>
+              <SenderPicker campaignId={campaign.id} channel={campaign.channel} value={campaign.channel === "email" ? campaign.emailAccountId : campaign.phoneNumberId} disabled={!canOperate} onSaved={id => setCampaign(current => ({ ...current, [current.channel === "email" ? "emailAccountId" : "phoneNumberId"]: id }))} />
+              {canAssign && team?.members?.length > 0 && <div className="card" style={{ padding: 14, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}><span style={{ fontSize: 12, fontWeight: 800, color: "var(--muted)" }}>Campaign owner</span><select className="input" aria-label="Campaign assignee" value={campaign.assignedUserId || ""} onChange={handleAssignment} disabled={assignmentBusy} style={{ width: "min(100%, 280px)", height: 34 }}><option value="" disabled>Unassigned</option>{team.members.filter(member => member.membership_status === "active").map(member => <option key={member.id} value={member.id}>{[member.first_name, member.last_name].filter(Boolean).join(" ") || member.email} · {member.role}</option>)}</select>{assignmentBusy && <span className="faint" style={{ fontSize: 12 }}>Saving…</span>}</div>}
+              <CampaignSettingsForm campaign={campaign} disabled={!canOperate} onSaved={() => load()} />
             </div>
           )}
 
@@ -547,7 +512,7 @@ export default function CampaignDetailPage() {
             canOperate ? <DraftReview campaignId={campaign.id} displayTimezone={displayTimezone} onChanged={load} /> : <div className="card" style={{ padding: 20, color: "var(--muted)", fontSize: 13 }}>Message drafts are read-only for campaigns assigned to another teammate.</div>
           )}
 
-          {(!emailEnabled || activeTab === "leads") && (
+          {activeTab === "leads" && (
           <div className="card table-shell" data-tour="campaign-leads">
             <div className="filter-bar">
               <div>
