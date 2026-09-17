@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 
-export default function SenderPicker({ channel, campaignId, value, onChange, onSaved, disabled = false }) {
+export default function SenderPicker({ channel, campaignId, value, onChange, onSaved, disabled = false, bare = false }) {
   const [items, setItems] = useState([]);
   const [selected, setSelected] = useState(value || "");
   const [mode, setMode] = useState("new_leads_only");
@@ -32,7 +32,7 @@ export default function SenderPicker({ channel, campaignId, value, onChange, onS
     } catch (err) { setError(err.response?.data?.error || "Could not change sender"); }
     finally { setBusy(false); }
   }
-  return <div style={{ padding: 16, border: "1px solid var(--line)", borderRadius: 10, margin: "12px 0" }}>
+  return <div className={bare ? "" : "card"} style={bare ? { marginTop: -4 } : { padding: 16 }}>
     <label className="label" htmlFor="campaign-sender">{channel === "email" ? "Sending inbox" : "Calling number"}</label>
     <select id="campaign-sender" className="input" disabled={disabled || busy || !loaded} value={selected} onChange={event => { setSelected(event.target.value); onChange?.(event.target.value); }}>
       <option value="">{loaded ? "Choose a sender" : "Loading senders…"}</option>

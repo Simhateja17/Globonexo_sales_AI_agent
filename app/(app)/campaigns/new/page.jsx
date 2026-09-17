@@ -588,7 +588,6 @@ export default function NewCampaignPage() {
 
   return (
     <form className="col campaign-new-form" onSubmit={submit} style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-      <SenderPicker channel={form.channel} value={form.channel === "email" ? form.emailAccountId : form.phoneNumberId} onChange={id => setForm(current => ({ ...current, emailAccountId: current.channel === "email" ? id : null, phoneNumberId: current.channel === "voice" ? id : null }))} />
       <div className="row spread campaign-new-topbar" style={{ padding: "16px 24px", borderBottom: "1px solid var(--line)", flex: "none", background: "#fff", gap: 16 }}>
         <div className="row" style={{ gap: 12, minWidth: 0 }}>
           <button type="button" className="btn btn-ghost btn-sm" style={{ width: 40, padding: 0 }} onClick={() => router.push("/campaigns")} aria-label="Back to campaigns">
@@ -734,6 +733,8 @@ export default function NewCampaignPage() {
                     })}
                   </div>
                 </Field>
+
+                <SenderPicker bare channel={form.channel} value={form.channel === "email" ? form.emailAccountId : form.phoneNumberId} onChange={id => setForm(current => ({ ...current, emailAccountId: current.channel === "email" ? id : null, phoneNumberId: current.channel === "voice" ? id : null }))} />
 
                 <Field label="Prompt notes" hint="Everything the sales agent should know about this campaign, including who you're targeting. Optional at draft stage. You can add this before launch.">
                   <textarea

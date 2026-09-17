@@ -436,7 +436,6 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="col" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-      <SenderPicker campaignId={campaign.id} channel={campaign.channel} value={campaign.channel === "email" ? campaign.emailAccountId : campaign.phoneNumberId} disabled={!canOperate} onSaved={id => setCampaign(current => ({ ...current, [current.channel === "email" ? "emailAccountId" : "phoneNumberId"]: id }))} />
       {toast && (
         <div style={{ position: "fixed", bottom: 24, right: 24, background: "var(--fg)", color: "var(--bg)", padding: "12px 20px", borderRadius: 10, fontSize: 13, fontWeight: 500, zIndex: 9999, maxWidth: 360, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
           {toast}
@@ -474,6 +473,8 @@ export default function CampaignDetailPage() {
       </div>
 
       {error ? <div className="notice-warn">{error}</div> : null}
+
+      <SenderPicker campaignId={campaign.id} channel={campaign.channel} value={campaign.channel === "email" ? campaign.emailAccountId : campaign.phoneNumberId} disabled={!canOperate} onSaved={id => setCampaign(current => ({ ...current, [current.channel === "email" ? "emailAccountId" : "phoneNumberId"]: id }))} />
 
       {canAssign && team?.members?.length > 0 && <div className="card" style={{ padding: 14, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}><span style={{ fontSize: 12, fontWeight: 800, color: "var(--muted)" }}>Campaign owner</span><select className="input" aria-label="Campaign assignee" value={campaign.assignedUserId || ""} onChange={handleAssignment} disabled={assignmentBusy} style={{ width: "min(100%, 280px)", height: 34 }}><option value="" disabled>Unassigned</option>{team.members.filter(member => member.membership_status === "active").map(member => <option key={member.id} value={member.id}>{[member.first_name, member.last_name].filter(Boolean).join(" ") || member.email} · {member.role}</option>)}</select>{assignmentBusy && <span className="faint" style={{ fontSize: 12 }}>Saving…</span>}</div>}
 
