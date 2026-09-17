@@ -474,12 +474,12 @@ export default function CampaignDetailPage() {
 
       {error ? <div className="notice-warn">{error}</div> : null}
 
-      <SenderPicker campaignId={campaign.id} channel={campaign.channel} value={campaign.channel === "email" ? campaign.emailAccountId : campaign.phoneNumberId} disabled={!canOperate} onSaved={id => setCampaign(current => ({ ...current, [current.channel === "email" ? "emailAccountId" : "phoneNumberId"]: id }))} />
-
-      {canAssign && team?.members?.length > 0 && <div className="card" style={{ padding: 14, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}><span style={{ fontSize: 12, fontWeight: 800, color: "var(--muted)" }}>Campaign owner</span><select className="input" aria-label="Campaign assignee" value={campaign.assignedUserId || ""} onChange={handleAssignment} disabled={assignmentBusy} style={{ width: "min(100%, 280px)", height: 34 }}><option value="" disabled>Unassigned</option>{team.members.filter(member => member.membership_status === "active").map(member => <option key={member.id} value={member.id}>{[member.first_name, member.last_name].filter(Boolean).join(" ") || member.email} · {member.role}</option>)}</select>{assignmentBusy && <span className="faint" style={{ fontSize: 12 }}>Saving…</span>}</div>}
-
       <div className="scroll grow app-page">
         <div className="col" style={{ gap: 16 }}>
+          <SenderPicker campaignId={campaign.id} channel={campaign.channel} value={campaign.channel === "email" ? campaign.emailAccountId : campaign.phoneNumberId} disabled={!canOperate} onSaved={id => setCampaign(current => ({ ...current, [current.channel === "email" ? "emailAccountId" : "phoneNumberId"]: id }))} />
+
+          {canAssign && team?.members?.length > 0 && <div className="card" style={{ padding: 14, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}><span style={{ fontSize: 12, fontWeight: 800, color: "var(--muted)" }}>Campaign owner</span><select className="input" aria-label="Campaign assignee" value={campaign.assignedUserId || ""} onChange={handleAssignment} disabled={assignmentBusy} style={{ width: "min(100%, 280px)", height: 34 }}><option value="" disabled>Unassigned</option>{team.members.filter(member => member.membership_status === "active").map(member => <option key={member.id} value={member.id}>{[member.first_name, member.last_name].filter(Boolean).join(" ") || member.email} · {member.role}</option>)}</select>{assignmentBusy && <span className="faint" style={{ fontSize: 12 }}>Saving…</span>}</div>}
+
           {canOperate ? <CampaignPreparationPanel campaignId={campaign.id} channel={campaign.channel} campaignStatus={campaign.status} onChanged={handlePreparationChanged} /> : <div className="card" style={{ padding: 16, color: "var(--muted)", fontSize: 13 }}>This campaign is assigned to another teammate. You can review its status and history, but operational controls are read-only.</div>}
 
           <div className="metric-grid">
