@@ -171,7 +171,7 @@ export default function LandingPage() {
               <div className="landing-product-main">
                 <div className="landing-product-topbar">
                   <div><Icon name="search" size={13} /> Search leads, accounts, replies...</div>
-                  <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--g-200)' }} />
+                  <span className="landing-preview-avatar" style={{ width: 24, height: 24, background: 'var(--g-400)', color: '#06231a' }}>YS</span>
                 </div>
                 <div className="landing-product-body">
                   <div className="landing-product-title">
@@ -181,7 +181,7 @@ export default function LandingPage() {
                   <div className="landing-today">
                     <span>Today</span>
                     <div>
-                      <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--g-200)', flex: 'none' }} />
+                      <span className="landing-preview-avatar" style={{ width: 28, height: 28, background: '#70c98c' }}>PC</span>
                       <p><strong>Discovery call</strong><small>Prospect · Company · 2:30 PM</small></p>
                       <button>Join call</button>
                     </div>
