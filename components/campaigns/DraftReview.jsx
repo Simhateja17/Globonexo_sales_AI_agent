@@ -352,7 +352,11 @@ export default function DraftReview({ campaignId, displayTimezone, onChanged }) 
   const thinWaiting = counts.thinWaiting ?? 0;
   // Drafts autopilot or Approve all can still clear on the customer's behalf.
   const ordinaryDrafts = Math.max(0, counts.draft - thinWaiting);
-  const generating = generation && !generation.isTerminal;
+  // "not_started" has no run behind it, so it must not read as "writing".
+  const generating = generation && generation.status !== "not_started" && !generation.isTerminal;
+  const generationPercent = generating && generation.totalLeads > 0
+    ? Math.round(((generation.processedLeads ?? 0) / generation.totalLeads) * 100)
+    : 0;
   const failedLeads = generation?.failedLeads ?? 0;
   const messageGroups = useMemo(() => {
     const stepByNumber = new Map(sequenceSteps.map(step => [Number(step.stepNumber), step]));
@@ -384,7 +388,9 @@ export default function DraftReview({ campaignId, displayTimezone, onChanged }) 
             <strong style={{ fontSize: 14 }}>Generated emails · {messages.length} ready</strong>
             <span className="faint" style={{ fontSize: 12.5 }}>
               {generating
-                ? `Writing emails… ${generation.processedLeads ?? 0} of ${generation.totalLeads ?? 0} leads done.`
+                ? `Writing emails… ${generationPercent}% (${generation.processedLeads ?? 0} of ${generation.totalLeads ?? 0} leads done)`
+                : generation?.status === "not_started"
+                ? "Email writing hasn't started yet."
                 : `${ordinaryDrafts} awaiting approval, ${counts.approved} approved, ${counts.sent} sent`
                   + (thinWaiting > 0 ? `, ${thinWaiting} needing your OK.` : ".")}
             </span>
