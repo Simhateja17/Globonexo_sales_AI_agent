@@ -1,9 +1,10 @@
 "use client";
 import React from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Logo from "../ui/Logo";
 import Aurora from "../ui/Aurora";
+import Logo from "../ui/Logo";
 import Icon from "../ui/Icon";
 import PublicNav from "../layout/PublicNav";
 import PublicFooter from "../layout/PublicFooter";
@@ -11,9 +12,16 @@ import { useAuth } from "../../hooks/useAuth";
 import { PLAN_CONFIG, marketingCeilingsFor } from "../../lib/plans";
 import QualifyDemo from "./QualifyDemo";
 import VoiceTestDemo from "./VoiceTestDemo";
+import HeroDemo from "./hero-demo/HeroDemo";
 import FaqSection from "../marketing/FaqSection";
 
 const CALENDLY_URL = "https://calendly.com/gnxsales-support/30min";
+const INTRO_KEY = "gnx-hero-intro-seen";
+
+// Runs before first paint so the heading never flashes before the intro.
+// Skipped for return visitors, reduced motion, and crawlers, so the heading is
+// always there for anyone who is not watching the demo.
+const INTRO_SCRIPT = `try{var d=document.documentElement;if(!localStorage.getItem("${INTRO_KEY}")&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!navigator.webdriver&&!/bot|crawl|spider|slurp|lighthouse|headless/i.test(navigator.userAgent))d.classList.add("gnx-intro")}catch(e){}`;
 
 export default function LandingPage() {
   const router = useRouter();
@@ -103,8 +111,86 @@ export default function LandingPage() {
 
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
+  // First visit: the product demo plays one full loop on its own, a large logo
+  // flies into the nav, then the heading unfolds above the demo. A skip,
+  // scroll or key press jumps straight to the end.
+  const [intro, setIntro] = React.useState(false);
+  const [logoFly, setLogoFly] = React.useState(false);
+  const flyRef = React.useRef(null);
+
+  const endIntro = React.useCallback(() => {
+    const root = document.documentElement;
+    if (!root.classList.contains('gnx-intro')) return;
+    try { localStorage.setItem(INTRO_KEY, '1'); } catch {}
+    root.classList.add('gnx-intro-reveal');
+    root.classList.remove('gnx-intro', 'gnx-intro-logo');
+    setIntro(false);
+    setLogoFly(false);
+    setTimeout(() => root.classList.remove('gnx-intro-reveal'), 1400);
+  }, []);
+
+  const handleLoopEnd = React.useCallback(() => {
+    const root = document.documentElement;
+    if (!root.classList.contains('gnx-intro')) return;
+    root.classList.add('gnx-intro-logo');
+    setLogoFly(true);
+  }, []);
+
+  React.useEffect(() => {
+    const root = document.documentElement;
+    if (!root.classList.contains('gnx-intro')) return undefined;
+    setIntro(true);
+    const events = ['wheel', 'touchmove', 'keydown'];
+    events.forEach((name) => window.addEventListener(name, endIntro, { passive: true }));
+    return () => {
+      events.forEach((name) => window.removeEventListener(name, endIntro));
+      root.classList.remove('gnx-intro', 'gnx-intro-reveal', 'gnx-intro-logo');
+    };
+  }, [endIntro]);
+
+  // The big logo is drawn at 3x the nav logo, centred on the demo, then shrinks
+  // onto the (hidden) nav logo so the two line up exactly when it is swapped.
+  React.useEffect(() => {
+    if (!logoFly) return undefined;
+    const el = flyRef.current;
+    const target = document.querySelector('.site-nav-logo');
+    const shell = document.getElementById('product');
+    if (!el || !target || !shell || !el.animate) {
+      endIntro();
+      return undefined;
+    }
+    const t = target.getBoundingClientRect();
+    const s = shell.getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    const cx = s.left + s.width / 2;
+    const cy = s.top + s.height / 2;
+    el.style.left = `${cx - box.width / 2}px`;
+    el.style.top = `${cy - box.height / 2}px`;
+    const dx = t.left + t.width / 2 - cx;
+    const dy = t.top + t.height / 2 - cy;
+
+    let cancelled = false;
+    const appear = el.animate(
+      [{ opacity: 0, transform: 'scale(.9)' }, { opacity: 1, transform: 'none' }],
+      { duration: 600, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'forwards' },
+    );
+    const hold = setTimeout(() => {
+      const fly = el.animate(
+        [{ opacity: 1, transform: 'none' }, { opacity: 1, transform: `translate(${dx}px, ${dy}px) scale(${1 / 3})` }],
+        { duration: 1000, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards' },
+      );
+      fly.finished.then(() => { if (!cancelled) endIntro(); }).catch(() => {});
+    }, 1500);
+    return () => {
+      cancelled = true;
+      clearTimeout(hold);
+      appear.cancel();
+    };
+  }, [logoFly, endIntro]);
+
   return (
     <div className="screen landing-screen">
+      <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
       <div className="landing-scroll">
         <section className="landing-hero">
           <Aurora />
@@ -149,61 +235,11 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div id="product" className="landing-product-shell">
-              <div className="landing-product-sidebar">
-                <Logo size={25} />
-                <button className="landing-mini-campaign"><Icon name="plus" size={12} /> New campaign</button>
-                {[
-                  ['grid', 'Dashboard'],
-                  ['spark', 'AI Agent'],
-                  ['users', 'Prospects'],
-                  ['funnel', 'Pipeline'],
-                  ['send', 'Campaigns'],
-                  ['inbox', 'Inbox'],
-                  ['calendar', 'Meetings'],
-                  ['trend', 'Analytics'],
-                ].map(([icon, label]) => (
-                  <div key={label} className={'landing-mini-nav ' + (label === 'Meetings' ? 'active' : '')}>
-                    <Icon name={icon} size={13} /> <span>{label}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="landing-product-main">
-                <div className="landing-product-topbar">
-                  <div><Icon name="search" size={13} /> Search leads, accounts, replies...</div>
-                  <span className="landing-preview-avatar" style={{ width: 24, height: 24, background: 'var(--g-400)', color: '#06231a' }}>YS</span>
-                </div>
-                <div className="landing-product-body">
-                  <div className="landing-product-title">
-                    <div><strong>Meetings</strong><span>Booked this week</span></div>
-                    <button><Icon name="plus" size={12} /> Schedule meeting</button>
-                  </div>
-                  <div className="landing-today">
-                    <span>Today</span>
-                    <div>
-                      <span className="landing-preview-avatar" style={{ width: 28, height: 28, background: '#70c98c' }}>PC</span>
-                      <p><strong>Discovery call</strong><small>Prospect · Company · 2:30 PM</small></p>
-                      <button>Join call</button>
-                    </div>
-                  </div>
-                  <span className="landing-list-label">Upcoming</span>
-                  <div className="landing-upcoming">
-                    {[
-                      { day: 'Tomorrow', date: '10', initials: 'DC', type: 'Product demo', color: '#e5aa43' },
-                      { day: 'Wed', date: '11', initials: 'AH', type: 'Follow-up call', color: '#70c98c' },
-                      { day: 'Thu', date: '12', initials: 'LP', type: 'Technical review', color: '#69c2c0' },
-                    ].map((meeting) => (
-                      <div key={meeting.type}>
-                        <time><b>{meeting.day}</b><strong>{meeting.date}</strong></time>
-                        <span className="landing-preview-avatar" style={{ background: meeting.color }}>{meeting.initials}</span>
-                        <p><strong>{meeting.type}</strong><small>30 min</small></p>
-                        <em>Upcoming</em>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <HeroDemo intro={intro} onSkip={endIntro} onLoopEnd={handleLoopEnd} />
+            {logoFly && createPortal(
+              <div ref={flyRef} className="hd-logo-fly" aria-hidden="true"><Logo size={102} light /></div>,
+              document.body,
+            )}
           </div>
         </section>
 

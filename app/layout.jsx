@@ -64,7 +64,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${manrope.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" className={`${manrope.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
       <body>
         <PostHogProvider>
           <AuthProvider>{children}</AuthProvider>
