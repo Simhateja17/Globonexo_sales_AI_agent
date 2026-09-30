@@ -9,10 +9,10 @@
 
 ## 1. App Router Structure
 
-**Physical route files have been created as placeholders in `frontend/app/`.** Poojitha migrates the prototype code into these files.
+**Physical route files have been created as placeholders in `frontend/app/`.** Poojitha migrates the prototype code into these    files.
 
 ```
-globonexo-frontend/
+ globonexo-frontend/
 ├── app/
 │   ├── (marketing)/
 │   │   ├── layout.jsx              # Public layout (no auth required)
