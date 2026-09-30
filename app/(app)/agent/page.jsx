@@ -4,6 +4,7 @@ import Icon from "../../../components/ui/Icon";
 import Avatar from "../../../components/ui/Avatar";
 import Typing from "../../../components/ui/Typing";
 import api from "../../../lib/api";
+import ImportMappingCard, { ImportResultCard } from "../../../components/agent/ImportMappingCard";
 
 const QUICK = ['Draft follow-ups for no-replies', 'Give me 50 ICP leads', 'Summarize hottest leads', 'Pause weekend sending'];
 
@@ -32,6 +33,8 @@ function apiMessageToMsg(m) {
     leadSearchPreview: m.metadata?.leadSearchPreview,
     exactFilters: m.metadata?.exactFilters,
     relaxations: m.metadata?.relaxations,
+    importPreview: m.metadata?.importPreview,
+    importResult: m.metadata?.importResult,
   };
 }
 
@@ -451,6 +454,12 @@ function Bubble({ m, onResolved, onPrepare }) {
   if (m.kind === 'credit_summary') {
     return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><CreditSummaryCard usage={m.usage} providerFailures={m.providerFailures} /></div></div>;
   }
+  if (m.importPreview) {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><ImportMappingCard preview={m.importPreview} onImported={onResolved} /></div></div>;
+  }
+  if (m.importResult) {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div className="col" style={{ gap: 10, marginLeft: 41 }}><ImportResultCard result={m.importResult} />{m.campaign && <CampaignDraftCard campaign={m.campaign} onPrepare={onPrepare} />}</div></div>;
+  }
   if (m.campaign) {
     return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><CampaignDraftCard campaign={m.campaign} onPrepare={onPrepare} /></div></div>;
   }
@@ -481,6 +490,8 @@ export default function AgentPage() {
   const [initialLoaded, setInitialLoaded] = useState(false);
   const [name, setName] = useState('GNX sales');
   const scrollRef = useRef(null);
+  const fileRef = useRef(null);
+  const [attachment, setAttachment] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -590,8 +601,46 @@ export default function AgentPage() {
     }
   };
 
+  const pickFile = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!/\.(xlsx|xls|csv)$/i.test(file.name)) {
+      setMsgs(m => [...m, { who: 'agent', kind: 'text', text: 'I can read Excel (.xlsx, .xls) and CSV files. Please attach one of those.' }]);
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setMsgs(m => [...m, { who: 'agent', kind: 'text', text: 'That file is bigger than 10 MB. Please split it into smaller files.' }]);
+      return;
+    }
+    setAttachment(file);
+  };
+
+  const sendAttachment = async (file, t) => {
+    setMsgs(m => [...m, { who: 'user', kind: 'text', text: `${t || `Attached ${file.name}`}\n📎 ${file.name}` }]);
+    setInput('');
+    setAttachment(null);
+    setTyping(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (t) formData.append('message', t);
+      if (activeConversationId) formData.append('conversationId', activeConversationId);
+      const { data } = await api.post('/agent/attachments', formData, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 90000 });
+      const nextMessage = apiMessageToMsg(data);
+      if (nextMessage.conversationId && nextMessage.conversationId !== activeConversationId) setActiveConversationId(nextMessage.conversationId);
+      setMsgs(m => [...m, nextMessage]);
+      await reloadConversations().catch(() => undefined);
+    } catch (err) {
+      setMsgs(m => [...m, { who: 'agent', kind: 'text', text: err?.response?.data?.error || "I couldn't read that file. Please check it and try again." }]);
+    } finally {
+      setTyping(false);
+    }
+  };
+
   const send = async (text) => {
     const t = (text || input).trim();
+    if (attachment && !text) return sendAttachment(attachment, t);
     if (!t) return;
     setMsgs(m => [...m, { who: 'user', kind: 'text', text: t }]);
     setInput('');
@@ -665,10 +714,26 @@ export default function AgentPage() {
               </button>
             ))}
           </div>
+          {attachment && (
+            <div className="row" style={{ gap: 7, maxWidth: 700, margin: '0 auto 8px' }}>
+              <span className="chip" style={{ height: 30, fontSize: 12.5, maxWidth: '100%' }}>
+                <Icon name="paperclip" size={12} color="var(--g-600)" />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachment.name}</span>
+                <button type="button" aria-label="Remove attachment" onClick={() => setAttachment(null)} style={{ border: 0, background: 'transparent', cursor: 'pointer', padding: 0, display: 'grid' }}>
+                  <Icon name="close" size={12} />
+                </button>
+              </span>
+              <span className="faint" style={{ fontSize: 11.5 }}>Say what to do, e.g. "add as leads" or "make a campaign for these".</span>
+            </div>
+          )}
           <div className="row agent-input-row" style={{ gap: 10, maxWidth: 700, margin: '0 auto' }}>
+            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" hidden onChange={pickFile} />
+            <button type="button" className="btn btn-ghost" title="Attach an Excel or CSV file" aria-label="Attach an Excel or CSV file" style={{ width: 50, height: 50, padding: 0, borderRadius: 14, flex: 'none' }} onClick={() => fileRef.current?.click()} disabled={typing}>
+              <Icon name="paperclip" size={19} />
+            </button>
             <div className="input-wrap grow">
               <span className="lead-ico"><Icon name="spark" size={16} /></span>
-              <input className="input has-ico" style={{ height: 50 }} placeholder={`Ask ${name} to prospect, draft, or follow up…`} value={input}
+              <input className="input has-ico" style={{ height: 50 }} placeholder={attachment ? 'What should I do with this file?' : `Ask ${name} to prospect, draft, or follow up…`} value={input}
                 onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} disabled={typing} />
             </div>
             <button className="btn btn-primary agent-send-btn" style={{ width: 50, height: 50, padding: 0, borderRadius: 14, flex: 'none' }} onClick={() => send()} disabled={typing}>
