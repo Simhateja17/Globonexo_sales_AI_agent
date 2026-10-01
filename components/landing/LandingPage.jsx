@@ -149,7 +149,7 @@ export default function LandingPage() {
   }, [endIntro]);
 
   // The big logo is drawn at 3x the nav logo, centred on the demo, then shrinks
-  // onto the (hidden) nav logo so the two line up exactly when it is swapped.
+  // onto the nav logo so the two line up exactly when the copy is removed.
   React.useEffect(() => {
     if (!logoFly) return undefined;
     const el = flyRef.current;
