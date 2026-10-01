@@ -21,9 +21,11 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import api from "../../lib/api";
 import Icon from "../ui/Icon";
 import Avatar from "../ui/Avatar";
+import Spinner from "../ui/Spinner";
 import { formatScheduledInTimezone } from "../../lib/campaign-display";
 
 const STEP_LABELS = { 1: "First touch", 2: "Follow-up", 3: "Final follow-up" };
@@ -80,11 +82,128 @@ function StatusChip({ status, approvedBy, thinContext }) {
   );
 }
 
+// Editing happens in a modal rather than inline: the inline box was cramped,
+// and Regenerate sits next to Save so the customer can ask for a fresh draft
+// without first closing the editor.
+function EditDraftModal({ message, onClose, onSave, onRegenerate, busy }) {
+  const [subject, setSubject] = useState(message.subject ?? "");
+  const [body, setBody] = useState(message.body ?? "");
+  const [pending, setPending] = useState(null);
+  const [error, setError] = useState("");
+  const lead = message.lead ?? {};
+  const dirty = subject !== (message.subject ?? "") || body !== (message.body ?? "");
+
+  // A regenerate swaps the draft underneath us. Take the new copy into the
+  // fields so the customer sees what they would be saving.
+  useEffect(() => {
+    setSubject(message.subject ?? "");
+    setBody(message.body ?? "");
+  }, [message.subject, message.body]);
+
+  useEffect(() => {
+    const onKey = event => { if (event.key === "Escape" && !pending) onClose(); };
+    window.addEventListener("keydown", onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose, pending]);
+
+  const save = async () => {
+    setPending("save");
+    setError("");
+    const failure = await onSave(message.id, { subject, body });
+    setPending(null);
+    if (failure) setError(failure);
+    else onClose();
+  };
+
+  const regenerate = async () => {
+    setPending("regenerate");
+    setError("");
+    const failure = await onRegenerate(message.id);
+    setPending(null);
+    if (failure) setError(failure);
+  };
+
+  const locked = busy || Boolean(pending);
+
+  return createPortal(
+    <div className="csv-modal-backdrop draft-edit-backdrop" role="dialog" aria-modal="true" aria-label={`Edit email to ${lead.name || "lead"}`}>
+      <div className="draft-edit-scrim" onClick={() => !pending && onClose()} />
+      <div className="csv-modal draft-edit-modal">
+        <div className="row spread draft-edit-head">
+          <div className="row" style={{ gap: 12, minWidth: 0 }}>
+            <Avatar name={lead.name || "Unnamed lead"} src={lead.photoUrl || undefined} size={40} />
+            <div className="col" style={{ minWidth: 0 }}>
+              <h2 className="ellip" style={{ fontSize: 17, fontWeight: 800 }}>Edit email</h2>
+              <span className="faint ellip" style={{ fontSize: 12.5 }}>
+                To {lead.name || "Unnamed lead"}{lead.company ? ` at ${lead.company}` : ""}{lead.email ? ` · ${lead.email}` : ""}
+              </span>
+            </div>
+          </div>
+          <button type="button" className="draft-edit-close" onClick={onClose} disabled={Boolean(pending)} title="Close">
+            <Icon name="plus" size={18} style={{ transform: "rotate(45deg)" }} />
+          </button>
+        </div>
+
+        <div className="scroll draft-edit-body">
+          <label className="draft-edit-label" htmlFor={`draft-subject-${message.id}`}>Subject</label>
+          <input
+            id={`draft-subject-${message.id}`}
+            className="input"
+            value={subject}
+            disabled={pending === "regenerate"}
+            onChange={event => setSubject(event.target.value)}
+            placeholder="Subject"
+          />
+          <label className="draft-edit-label" htmlFor={`draft-body-${message.id}`} style={{ marginTop: 14 }}>Message</label>
+          <textarea
+            id={`draft-body-${message.id}`}
+            className="input draft-edit-textarea"
+            value={body}
+            disabled={pending === "regenerate"}
+            onChange={event => setBody(event.target.value)}
+          />
+          {pending === "regenerate" && (
+            <div className="row" style={{ gap: 8, marginTop: 10 }}>
+              <Spinner size={14} />
+              <span className="faint" style={{ fontSize: 12.5 }}>Writing a fresh version for {lead.name || "this lead"}…</span>
+            </div>
+          )}
+          {error && <div className="draft-edit-error">{error}</div>}
+        </div>
+
+        <div className="row spread draft-edit-foot">
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            disabled={locked}
+            onClick={regenerate}
+            title={dirty ? "Write a new version. This replaces the changes you have made here." : "Write a new version of this email."}
+          >
+            <Icon name="refresh" size={14} /> {pending === "regenerate" ? "Regenerating…" : "Regenerate"}
+          </button>
+          <div className="row" style={{ gap: 8 }}>
+            <button type="button" className="btn btn-ghost btn-sm" disabled={Boolean(pending)} onClick={onClose}>
+              Cancel
+            </button>
+            <button type="button" className="btn btn-primary btn-sm" disabled={locked || !dirty || !body.trim()} onClick={save}>
+              {pending === "save" ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function DraftRow({ message, displayTimezone, onApprove, onSendThin, onSave, onRegenerate, busy }) {
   const [editing, setEditing] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [subject, setSubject] = useState(message.subject);
-  const [body, setBody] = useState(message.body);
   const lead = message.lead ?? {};
   const sent = message.status === "sent";
   const scheduledAt = message.schedule?.scheduledAt;
@@ -93,18 +212,24 @@ function DraftRow({ message, displayTimezone, onApprove, onSendThin, onSave, onR
     ? formatScheduledInTimezone(scheduledAt, message.schedule.leadTimezone)
     : null;
 
-  useEffect(() => {
-    setSubject(message.subject);
-    setBody(message.body);
-  }, [message.subject, message.body]);
+  const closeEditor = useCallback(() => setEditing(false), []);
 
   return (
     <div className="campaign-email-row">
+      {editing && (
+        <EditDraftModal
+          message={message}
+          busy={busy}
+          onClose={closeEditor}
+          onSave={onSave}
+          onRegenerate={onRegenerate}
+        />
+      )}
       <button
         type="button"
         className="campaign-email-summary"
-        aria-expanded={expanded || editing}
-        onClick={() => !editing && setExpanded(value => !value)}
+        aria-expanded={expanded}
+        onClick={() => setExpanded(value => !value)}
       >
         <Avatar name={lead.name || "Unnamed lead"} src={lead.photoUrl || undefined} size={40} />
         <span className="campaign-email-copy">
@@ -123,13 +248,13 @@ function DraftRow({ message, displayTimezone, onApprove, onSendThin, onSave, onR
             </span>
           )}
           <StatusChip status={message.status} approvedBy={message.approvedBy} thinContext={message.thinContext} />
-          <span className={expanded || editing ? "campaign-email-expand-icon is-open" : "campaign-email-expand-icon"}>
+          <span className={expanded ? "campaign-email-expand-icon is-open" : "campaign-email-expand-icon"}>
             <Icon name="arrow" size={15} />
           </span>
         </span>
       </button>
 
-      {(expanded || editing) && (
+      {expanded && (
         <div className="campaign-email-detail">
           <div className="row spread campaign-email-meta" style={{ gap: 12, flexWrap: "wrap" }}>
             <div className="col" style={{ gap: 2, minWidth: 0 }}>
@@ -169,55 +294,25 @@ function DraftRow({ message, displayTimezone, onApprove, onSendThin, onSave, onR
           </div>
 
           <div style={{ padding: "14px 16px" }}>
-            {editing ? (
-              <div className="col" style={{ gap: 10 }}>
-                <input className="input" value={subject} onChange={event => setSubject(event.target.value)} placeholder="Subject" />
-                <textarea
-                  className="input"
-                  rows={9}
-                  value={body}
-                  onChange={event => setBody(event.target.value)}
-                  style={{ resize: "vertical", fontFamily: "inherit", lineHeight: 1.55 }}
-                />
-              </div>
-            ) : (
-              <div className="col" style={{ gap: 8 }}>
-                <strong style={{ fontSize: 13.5 }}>{message.subject}</strong>
-                <p style={{ fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap", color: "var(--ink-2)", margin: 0 }}>
-                  {message.body}
-                </p>
-              </div>
-            )}
+            <div className="col" style={{ gap: 8 }}>
+              <strong style={{ fontSize: 13.5 }}>{message.subject}</strong>
+              <p style={{ fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap", color: "var(--ink-2)", margin: 0 }}>
+                {message.body}
+              </p>
+            </div>
           </div>
 
           {!sent && (
             <div className="row spread campaign-email-actions" style={{ gap: 8, flexWrap: "wrap" }}>
               <div className="row" style={{ gap: 8 }}>
-                {editing ? (
-                  <>
-                    <button
-                      className="btn btn-primary btn-sm"
-                      disabled={busy}
-                      onClick={async () => { await onSave(message.id, { subject, body }); setEditing(false); }}
-                    >
-                      Save changes
-                    </button>
-                    <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => { setEditing(false); setSubject(message.subject); setBody(message.body); }}>
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => setEditing(true)}>
-                      <Icon name="doc" size={14} /> Edit
-                    </button>
-                    <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => onRegenerate(message.id)}>
-                      <Icon name="refresh" size={14} /> Regenerate
-                    </button>
-                  </>
-                )}
+                <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => setEditing(true)}>
+                  <Icon name="doc" size={14} /> Edit
+                </button>
+                <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => onRegenerate(message.id)}>
+                  <Icon name="refresh" size={14} /> Regenerate
+                </button>
               </div>
-              {message.status === "draft" && !editing && (
+              {message.status === "draft" && (
                 message.thinContext ? (
                   <button
                     className="btn btn-primary btn-sm"
@@ -324,6 +419,8 @@ export default function DraftReview({ campaignId, displayTimezone, onChanged }) 
     return () => window.clearInterval(timer);
   }, [load]);
 
+  // Resolves to an error message, or null on success, so the edit modal can
+  // stay open and say what went wrong instead of closing on a failed save.
   const run = async (action) => {
     setBusy(true);
     setError("");
@@ -331,8 +428,11 @@ export default function DraftReview({ campaignId, displayTimezone, onChanged }) 
       await action();
       await load();
       onChanged?.();
+      return null;
     } catch (err) {
-      setError(err?.response?.data?.message || "That did not work. Please try again.");
+      const message = err?.response?.data?.message || "That did not work. Please try again.";
+      setError(message);
+      return message;
     } finally {
       setBusy(false);
     }
