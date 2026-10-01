@@ -43,6 +43,7 @@ const MIN_STEPS = 1;
 const MAX_STEPS = 10;
 const DEFAULT_FOLLOW_UP_DELAY_DAYS = 3;
 const VOICE_PERMISSION_ERROR = "Confirm your organization is permitted to make automated calls to these contacts.";
+const SENDER_REQUIRED_ERROR = "Choose a sending inbox before creating the draft. No inbox listed? Ask an Owner or Admin to connect one in Settings.";
 
 // A deterministic counter (rather than a random id) keeps the server and
 // client renders identical during hydration.
@@ -451,6 +452,10 @@ export default function NewCampaignPage() {
       errors.push("Campaign name must be at least 3 characters.");
     }
 
+    if (form.channel === "email" && !form.emailAccountId) {
+      errors.push(SENDER_REQUIRED_ERROR);
+    }
+
     if (Number(form.maxLeads) < 1) {
       errors.push("Maximum leads must be at least 1.");
     }
@@ -504,6 +509,12 @@ export default function NewCampaignPage() {
       setError("");
       const hasSetupError = errors.some(message => message.includes("Campaign name"));
       const hasVoicePermissionError = errors[0] === VOICE_PERMISSION_ERROR;
+      if (!hasSetupError && errors[0] === SENDER_REQUIRED_ERROR) {
+        const picker = document.getElementById("campaign-sender");
+        picker?.scrollIntoView({ behavior: "smooth", block: "center" });
+        window.setTimeout(() => picker?.focus({ preventScroll: true }), 350);
+        return;
+      }
       const target = hasSetupError ? setupRef : hasVoicePermissionError ? voicePermissionRef : controlsRef;
       target.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       if (hasVoicePermissionError) {
