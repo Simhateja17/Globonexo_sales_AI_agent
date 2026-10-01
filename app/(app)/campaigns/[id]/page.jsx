@@ -11,6 +11,7 @@ import Avatar from "../../../../components/ui/Avatar";
 import { isValidEmail } from "../../../../lib/validation";
 import { leadPhoto } from "../../../../lib/lead-photo";
 import DraftReview from "../../../../components/campaigns/DraftReview";
+import LeadDetailModal from "../../../../components/leads/LeadDetailModal";
 import CampaignPreparationPanel from "./CampaignPreparationPanel";
 import { browserTimezone, campaignReadyCount, canCallLeadImmediately, formatScheduledInTimezone, voiceLaunchGate } from "../../../../lib/campaign-display";
 import { immediateEmailBlockReason } from "../../../../lib/manual-outreach";
@@ -113,7 +114,7 @@ function campaignEligibility(lead) {
   };
 }
 
-function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showEmail, showPhone, isAiVoice, actionKey, onEmailNow, onCallNow, canOperate = true, callNowLimit = null }) {
+function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showEmail, showPhone, isAiVoice, actionKey, onEmailNow, onCallNow, onOpen, canOperate = true, callNowLimit = null }) {
   const status = lead.status || "new";
   const hasEmail = isValidEmail(lead.email || "");
   const hasPhone = Boolean(lead.phone?.trim());
@@ -136,7 +137,13 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
   const calling = actionKey === `call:${lead.id}`;
 
   return (
-    <tr className="data-row">
+    <tr
+      className="data-row row-clickable"
+      onClick={() => onOpen(lead.id)}
+      tabIndex={0}
+      title="Open lead details"
+      onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onOpen(lead.id); } }}
+    >
       <td>
         <div className="row" style={{ gap: 11, minWidth: 0 }}>
           <Avatar name={leadName(lead)} src={leadPhoto(lead) || undefined} size={34} />
@@ -163,7 +170,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
           </div>
         ) : <span className="faint" style={{ fontSize: 12 }}>Not scheduled</span>}
       </td>
-      <td>
+      <td onClick={event => event.stopPropagation()}>
         <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
           {showEmail && (
             <button
@@ -204,6 +211,8 @@ export default function CampaignDetailPage() {
   const [campaign, setCampaign] = useState(null);
   const [team, setTeam] = useState(null);
   const [leads, setLeads] = useState([]);
+  const [detailLeadId, setDetailLeadId] = useState("");
+  const [enrichingId, setEnrichingId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
@@ -376,6 +385,20 @@ export default function CampaignDetailPage() {
     }
   }, [canOperate, load, showToast]);
 
+  const enrichLead = useCallback(async leadId => {
+    setEnrichingId(leadId);
+    setError("");
+    try {
+      const { data } = await api.post("/leads/apollo-enrich", { leadId });
+      setLeads(current => current.map(lead => lead.id === leadId ? { ...lead, ...data } : lead));
+      showToast(data?.email ? "Email revealed for this lead." : "We found lead details, but no email was available on your plan.");
+    } catch (err) {
+      setError(err?.response?.data?.error || "Could not reveal this lead's email.");
+    } finally {
+      setEnrichingId("");
+    }
+  }, [showToast]);
+
   const callLeadNow = useCallback(async leadId => {
     if (!canOperate) return;
     setActionKey(`call:${leadId}`);
@@ -411,6 +434,8 @@ export default function CampaignDetailPage() {
     const query = params.toString();
     router.push(query ? `/campaigns/${id}?${query}` : `/campaigns/${id}`, { scroll: false });
   }, [id, router, searchParams]);
+
+  const detailLead = detailLeadId ? leads.find(lead => lead.id === detailLeadId) || null : null;
 
   const metrics = useMemo(() => {
     const stats = campaign?.stats || {};
@@ -569,7 +594,7 @@ export default function CampaignDetailPage() {
                   {leads.length === 0 ? (
                     <tr><td colSpan={leadColumns.length} className="table-empty">No leads are attached to this campaign.</td></tr>
                   ) : leads.map(lead => (
-                    <CampaignLeadRow key={lead.id} lead={lead} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} canOperate={canOperate} callNowLimit={callNowLimit} />
+                    <CampaignLeadRow key={lead.id} lead={lead} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} onOpen={setDetailLeadId} canOperate={canOperate} callNowLimit={callNowLimit} />
                   ))}
                 </tbody>
               </table>
@@ -578,6 +603,16 @@ export default function CampaignDetailPage() {
           )}
         </div>
       </div>
+      {detailLead ? (
+        <LeadDetailModal
+          lead={detailLead}
+          onClose={() => setDetailLeadId("")}
+          onEnrich={enrichLead}
+          enriching={enrichingId === detailLead.id}
+          onSendNow={sendLeadNow}
+          sending={actionKey === `email:${detailLead.id}`}
+        />
+      ) : null}
     </div>
   );
 }
