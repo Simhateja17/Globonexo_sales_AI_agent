@@ -106,7 +106,7 @@ function DraftRow({ message, displayTimezone, onApprove, onSendThin, onSave, onR
         aria-expanded={expanded || editing}
         onClick={() => !editing && setExpanded(value => !value)}
       >
-        <Avatar name={lead.name || "Unnamed lead"} size={40} />
+        <Avatar name={lead.name || "Unnamed lead"} src={lead.photoUrl || undefined} size={40} />
         <span className="campaign-email-copy">
           <strong>{message.subject || "No subject"}</strong>
           <span className="faint campaign-email-recipient">
