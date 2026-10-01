@@ -120,7 +120,8 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
   const eligibility = campaignEligibility(lead);
   const campaignBlocked = Boolean(eligibility?.blocked || (lead.campaignMembership && lead.campaignMembership.qualificationStatus !== "qualified"));
   const emailBlockReason = immediateEmailBlockReason({ hasEmail, campaignId: lead.campaignId, status, campaignBlocked });
-  const canEmailNow = canOperate && showEmail && !emailBlockReason;
+  const bounced = lead.emailStatus === "bounced";
+  const canEmailNow = canOperate && showEmail && !emailBlockReason && !bounced;
   const canCallNow = canOperate && canCallLeadImmediately({
     campaignStatus,
     showPhone,
@@ -149,6 +150,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
       <td>
         <div className="col" style={{ gap: 4, alignItems: "flex-start" }}>
           <span className="badge" style={leadStatusStyle(status)}>{LEAD_STATUS_LABELS[status] || status.replace(/_/g, " ")}</span>
+          {bounced && <span className="badge" style={{ background: "#fef2f2", color: "#b91c1c" }} title="This address could not receive email. No more emails go to it.">Email bounced</span>}
           {eligibility && <span className="faint" style={{ fontSize: 11.5 }}>{eligibility.label}</span>}
         </div>
       </td>
@@ -167,7 +169,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
               className="btn btn-ghost btn-sm"
               type="button"
               disabled={!canEmailNow || Boolean(actionKey)}
-              title={!hasEmail ? "Lead needs an email" : stopped ? "Sequence is stopped for this lead" : campaignBlocked ? eligibility?.label || "Lead is not ready" : "Email this lead immediately"}
+              title={!hasEmail ? "Lead needs an email" : bounced ? "This address bounced, so emails to it are stopped" : stopped ? "Sequence is stopped for this lead" : campaignBlocked ? eligibility?.label || "Lead is not ready" : "Email this lead immediately"}
               style={{ height: 32, padding: "0 10px", fontSize: 12, whiteSpace: "nowrap" }}
               onClick={() => onEmailNow(lead.id)}
             >
@@ -418,6 +420,7 @@ export default function CampaignDetailPage() {
       ["Missing email", stats.missingEmail ?? 0],
       ["Queued", stats.queued ?? 0],
       ["Sent", stats.sent ?? 0],
+      ["Bounced", stats.bounced ?? 0],
     ];
   }, [campaign, leads.length, preparationData]);
   const nextAttemptByLead = useMemo(() => {
