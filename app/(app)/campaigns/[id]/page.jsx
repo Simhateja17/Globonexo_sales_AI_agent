@@ -214,11 +214,7 @@ export default function CampaignDetailPage() {
   // Set when the server refuses "Call now" for being over a limit; greys out
   // every Call now button until `until` passes.
   const [callNowLimit, setCallNowLimit] = useState(null);
-  const handlePreparationChanged = useCallback(data => {
-    setPreparationData(data);
-    const status = data?.campaign?.status;
-    if (status) setCampaign(current => current ? { ...current, status } : current);
-  }, []);
+  const preparationSignatureRef = useRef(null);
 
   const showToast = useCallback((msg) => {
     setToast(msg);
@@ -252,6 +248,43 @@ export default function CampaignDetailPage() {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Leads join the campaign while preparation streams in, so a list loaded on
+  // first paint can show 1 lead under a card that already says 25 are done.
+  // Refresh the lead list and stats quietly whenever preparation moves.
+  const refreshLeads = useCallback(async () => {
+    if (!id) return;
+    try {
+      const [campaignRes, leadsRes, scheduleRes] = await Promise.all([
+        api.get(`/campaigns/${id}`),
+        api.get("/leads", { params: { campaignId: id, perPage: 500 } }),
+        api.get(`/campaigns/${id}/schedule`),
+      ]);
+      setCampaign(campaignRes.data);
+      setLeads(Array.isArray(leadsRes.data?.items) ? leadsRes.data.items : leadsRes.data ?? []);
+      setSchedule(Array.isArray(scheduleRes.data?.items) ? scheduleRes.data.items : []);
+    } catch {
+      // The next preparation update retries; keep what is already on screen.
+    }
+  }, [id]);
+
+  const handlePreparationChanged = useCallback(data => {
+    setPreparationData(data);
+    const status = data?.campaign?.status;
+    if (status) setCampaign(current => current ? { ...current, status } : current);
+    const signature = JSON.stringify([
+      data?.campaign?.preparation_status,
+      data?.campaign?.preparation_progress,
+      data?.campaign?.acquisition_status,
+      data?.readiness?.length ?? 0,
+      data?.readinessCounts,
+      data?.latestImport?.status,
+      data?.latestImport?.qualified,
+    ]);
+    const previous = preparationSignatureRef.current;
+    preparationSignatureRef.current = signature;
+    if (previous !== null && previous !== signature) refreshLeads();
+  }, [refreshLeads]);
 
   useEffect(() => {
     if (!callNowLimit) return undefined;
@@ -439,7 +472,7 @@ export default function CampaignDetailPage() {
   return (
     <div className="col" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
       {toast && (
-        <div style={{ position: "fixed", bottom: 24, right: 24, background: "var(--fg)", color: "var(--bg)", padding: "12px 20px", borderRadius: 10, fontSize: 13, fontWeight: 500, zIndex: 9999, maxWidth: 360, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+        <div style={{ position: "fixed", bottom: 24, right: 24, background: "var(--ink)", color: "var(--bg)", padding: "12px 20px", borderRadius: 10, fontSize: 13, fontWeight: 500, zIndex: 9999, maxWidth: 360, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
           {toast}
         </div>
       )}

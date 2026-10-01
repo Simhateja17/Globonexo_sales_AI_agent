@@ -190,7 +190,7 @@ export default function BillingPage() {
     <div className="scroll grow billing-page" style={{ minHeight: 0 }}>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       {toast && (
-        <div role="status" style={{ position: "fixed", bottom: 24, right: 24, background: "var(--fg)", color: "var(--bg)", padding: "12px 20px", borderRadius: 10, fontSize: 13, fontWeight: 500, zIndex: 9999, maxWidth: 380, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+        <div role="status" style={{ position: "fixed", bottom: 24, right: 24, background: "var(--ink)", color: "var(--bg)", padding: "12px 20px", borderRadius: 10, fontSize: 13, fontWeight: 500, zIndex: 9999, maxWidth: 380, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
           {toast}
         </div>
       )}
