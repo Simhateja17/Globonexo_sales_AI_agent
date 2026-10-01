@@ -9,6 +9,7 @@ import { canSee } from "../../../../lib/access";
 import Icon from "../../../../components/ui/Icon";
 import Avatar from "../../../../components/ui/Avatar";
 import { isValidEmail } from "../../../../lib/validation";
+import { leadPhoto } from "../../../../lib/lead-photo";
 import DraftReview from "../../../../components/campaigns/DraftReview";
 import CampaignPreparationPanel from "./CampaignPreparationPanel";
 import { browserTimezone, campaignReadyCount, canCallLeadImmediately, formatScheduledInTimezone, voiceLaunchGate } from "../../../../lib/campaign-display";
@@ -138,7 +139,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
     <tr className="data-row">
       <td>
         <div className="row" style={{ gap: 11, minWidth: 0 }}>
-          <Avatar name={leadName(lead)} size={34} />
+          <Avatar name={leadName(lead)} src={leadPhoto(lead) || undefined} size={34} />
           <div className="col" style={{ minWidth: 0 }}>
             <span className="ellip" style={{ fontWeight: 800, fontSize: 14 }}>{leadName(lead)}</span>
             <span className="faint ellip" style={{ fontSize: 12 }}>{lead.title || "No title"} - {lead.company || "No company"}</span>

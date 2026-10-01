@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../../lib/api";
+import { leadPhoto } from "../../../lib/lead-photo";
 import Icon from "../../../components/ui/Icon";
 import Avatar from "../../../components/ui/Avatar";
 import Segmented from "../../../components/ui/Segmented";
@@ -195,14 +196,6 @@ function csvToLeads(text) {
       ])),
     };
   }).filter(lead => lead.name || lead.firstName || lead.lastName || lead.email || lead.company);
-}
-
-function leadPhoto(lead) {
-  const raw = lead?.rawData;
-  const candidate = lead?.photoUrl
-    || (raw && typeof raw === "object" ? raw.photo_url || raw.photoUrl || raw["Photo Url"] : "");
-  const url = safeExternalUrl(candidate);
-  return url.startsWith("https://") ? url : "";
 }
 
 function leadName(lead) {

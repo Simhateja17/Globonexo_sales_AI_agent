@@ -6,6 +6,7 @@ import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import api from "../../../lib/api";
+import { leadPhoto } from "../../../lib/lead-photo";
 
 const STAGES = [
   { id: "new", label: "New leads", tint: "#9aa8a0" },
@@ -31,7 +32,7 @@ function LeadCard({ lead }) {
     <article className="pipeline-lead-card">
       <div className="pipeline-lead-card-head">
         <div className="pipeline-lead-person row">
-          <Avatar name={name} size={44} />
+          <Avatar name={name} src={leadPhoto(lead) || undefined} size={44} />
           <div className="col pipeline-lead-copy">
             <span className="pipeline-lead-name ellip">{name}</span>
             <span className="pipeline-lead-company ellip">{lead.title ? `${lead.title} · ` : ""}{lead.company || "No company"}</span>
