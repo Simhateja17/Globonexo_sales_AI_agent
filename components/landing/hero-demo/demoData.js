@@ -68,8 +68,8 @@ export const CAMPAIGN_STATUS = {
 
 export const CAMPAIGNS = [
   { id: "c1", name: "Series A SaaS founders", channel: "email", status: "active", created: "Aug 18, 2026", owner: "Maya Collins", stats: ["412", "386", "26", "48", "2,140", "18"] },
+  { id: "c3", name: "Agency owners call-down", channel: "voice", status: "active", created: "Sep 4, 2026", owner: "Maya Collins", stats: ["150", "142", "0", "20", "248", "9"] },
   { id: "c2", name: "RevOps leaders · US", channel: "both", status: "active", created: "Aug 29, 2026", owner: "Jordan Pike", stats: ["268", "251", "17", "32", "1,386", "11"] },
-  { id: "c3", name: "Agency owners call-down", channel: "voice", status: "active", created: "Sep 4, 2026", owner: "Maya Collins", stats: ["150", "142", "0", "20", "0", "6"] },
   { id: "c4", name: "Fintech CFOs", channel: "email", status: "paused", created: "Sep 9, 2026", owner: "Jordan Pike", stats: ["96", "90", "6", "0", "1,386", "3"] },
   { id: "c5", name: "Q4 webinar invite", channel: "email", status: "draft", created: "Sep 24, 2026", owner: "Unassigned", stats: ["0", "0", "0", "0", "0", "0"] },
 ];
@@ -130,9 +130,10 @@ export const WEEK = [
   ] },
   { short: "Thu", date: 1, meetings: [
     { id: "m5", name: "Grace Okoye", company: "Harborline", time: "10:30 AM", status: "scheduled", join: true },
+    { id: "m5b", name: "Owen Park", company: "Tidewell", time: "11:30 AM", status: "scheduled", join: true },
   ] },
   { short: "Fri", date: 2, meetings: [
-    { id: "m6", name: "Owen Park", company: "Tidewell", time: "9:00 AM", status: "scheduled", join: true },
+    { id: "m6", name: "Marcus Bell", company: "Quillstack", time: "9:00 AM", status: "scheduled", join: true },
     { id: "m7", name: "Nina Kowal", company: "Brightpath HR", time: "4:00 PM", status: "scheduled", join: true },
   ] },
   { short: "Sat", date: 3, meetings: [] },
@@ -165,3 +166,62 @@ export const AGENT_STEPS = [
   "Researched each company",
   "Wrote a 3-email series",
 ];
+
+export const CHANNEL_STYLES = {
+  email: { label: "Email", bg: "#e0f2fe", color: "#0369a1" },
+  voice: { label: "Voice", bg: "#f0fdf4", color: "#15803d" },
+  both: { label: "Email + Voice", bg: "#ede9fe", color: "#6d28d9" },
+};
+
+// Leads in the voice campaign. Owen is the one the cursor calls.
+export const VOICE_LEADS = [
+  { id: "v1", name: "Owen Park", title: "CRO", company: "Tidewell", phone: "+1 646 555 0103", status: "queued", next: "Oct 1, 11:00 AM", nextNote: "Scheduled · America/New_York", location: "New York, US" },
+  { id: "v2", name: "Grace Okoye", title: "VP Revenue", company: "Harborline", phone: "+1 617 555 0129", status: "contacted", next: "Oct 2, 1:30 PM", nextNote: "Scheduled · America/New_York", location: "Boston, US" },
+  { id: "v3", name: "Aaron Dutta", title: "Founder", company: "Parcelo", phone: "+1 408 555 0136", status: "queued", next: "Oct 1, 4:00 PM", nextNote: "Scheduled · America/Los_Angeles", location: "San Jose, US" },
+  { id: "v4", name: "Nina Kowal", title: "Sales Director", company: "Brightpath HR", phone: "+1 303 555 0171", status: "meeting_booked", next: "Not scheduled", nextNote: "", location: "Denver, US" },
+  { id: "v5", name: "Marcus Bell", title: "Head of Sales", company: "Quillstack", phone: "+1 312 555 0118", status: "contacted", next: "Oct 2, 10:15 AM", nextNote: "Scheduled · America/Chicago", location: "Chicago, US" },
+  { id: "v6", name: "Hannah Lee", title: "RevOps Lead", company: "Cobaltly", phone: "+1 206 555 0187", status: "new", next: "Oct 3, 9:00 AM", nextNote: "Planned · America/Los_Angeles", location: "Seattle, US" },
+];
+
+export const CALL_STATUS = {
+  in_progress: { label: "In Progress", bg: "#e0f2fe", color: "#0369a1", dot: "#0ea5e9" },
+  completed: { label: "Completed", bg: "var(--g-50)", color: "var(--g-700)", dot: "var(--g-500)" },
+  voicemail: { label: "Voicemail", bg: "#f3f4f6", color: "#374151", dot: "#9ca3af" },
+  no_answer: { label: "No Answer", bg: "#fff7ed", color: "#9a3412", dot: "#f97316" },
+  busy: { label: "Busy", bg: "#fff7ed", color: "#9a3412", dot: "#f97316" },
+};
+
+export const CALL_OUTCOME = {
+  meeting_booked: { label: "Meeting Booked", bg: "var(--g-50)", color: "var(--g-700)" },
+  interested: { label: "Interested", bg: "#e0f2fe", color: "#0369a1" },
+  callback: { label: "Callback", bg: "#fff7ed", color: "#9a3412" },
+  voicemail: { label: "Voicemail", bg: "#f3f4f6", color: "#374151" },
+  no_answer: { label: "No Answer", bg: "#f3f4f6", color: "#374151" },
+  busy: { label: "Busy", bg: "#fff7ed", color: "#9a3412" },
+};
+
+// Owen's call is first; its status and outcome are driven by the scene.
+export const CALLS = [
+  { id: "k1", name: "Owen Park", company: "Tidewell", from: "+1 415 555 0190", campaign: "Agency owners call-down", duration: "2m 47s", date: "Sep 30, 10:58 AM" },
+  { id: "k2", name: "Grace Okoye", company: "Harborline", from: "+1 415 555 0190", campaign: "Agency owners call-down", status: "completed", outcome: "interested", duration: "3m 12s", date: "Sep 30, 10:21 AM" },
+  { id: "k3", name: "Nina Kowal", company: "Brightpath HR", from: "+1 415 555 0190", campaign: "RevOps leaders · US", status: "completed", outcome: "meeting_booked", duration: "4m 05s", date: "Sep 30, 9:47 AM" },
+  { id: "k4", name: "Marcus Bell", company: "Quillstack", from: "+1 415 555 0190", campaign: "Agency owners call-down", status: "no_answer", outcome: "no_answer", duration: "0s", date: "Sep 30, 9:30 AM" },
+  { id: "k5", name: "Aaron Dutta", company: "Parcelo", from: "+1 415 555 0190", campaign: "RevOps leaders · US", status: "completed", outcome: "callback", duration: "1m 38s", date: "Sep 29, 4:12 PM" },
+  { id: "k6", name: "Leo Fischer", company: "Stackmint", from: "+1 415 555 0190", campaign: "Agency owners call-down", status: "voicemail", outcome: "voicemail", duration: "32s", date: "Sep 29, 3:40 PM" },
+  { id: "k7", name: "Sofia Marin", company: "Fernhill Analytics", from: "+1 415 555 0190", campaign: "RevOps leaders · US", status: "busy", outcome: "busy", duration: "0s", date: "Sep 29, 2:05 PM" },
+];
+
+export const OWEN_CALL = {
+  summary: "Owen Park (CRO, Tidewell) first asked for an email instead. The agent offered a short walkthrough tied to Tidewell's mid-market launch, checked the calendar, and booked Thursday at 11:30 AM. Owen wants to see how follow-ups work for a 4-rep team.",
+  rows: [["Direction", "outbound"], ["Connection", "Agent Hangup"], ["Sentiment", "Positive"], ["Call success", "Yes"]],
+  analysis: [["Meeting Booked", "Yes"], ["Interest Level", "High"], ["Objection", "Wanted an email first"], ["Next Step", "Walkthrough Thu 11:30 AM"]],
+  transcript: [
+    ["Agent", "Hi Owen, this is Ava, an AI assistant calling for Northwind Labs. Did I catch you at an okay time?"],
+    ["User", "I've got a minute. What's this about?"],
+    ["Agent", "Tidewell is moving into mid-market. We help teams like yours book more first meetings without adding reps."],
+    ["User", "Honestly, just send me an email."],
+    ["Agent", "Happy to. Would a 20-minute walkthrough also help? I have Thursday at 11:30 or Friday at 2."],
+    ["User", "Thursday at 11:30 works."],
+    ["Agent", "Booked. The invite is on its way to owen@tidewell.io. Thanks, Owen!"],
+  ],
+};

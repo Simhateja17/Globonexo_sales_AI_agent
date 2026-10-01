@@ -3,8 +3,8 @@ import React from "react";
 import Logo from "../../ui/Logo";
 import Icon from "../../ui/Icon";
 import Avatar from "../../ui/Avatar";
-import { WORKSPACE_USER, DRAFTS, AGENT_STEPS } from "./demoData";
-import { ProspectsScreen, LeadModal, CampaignsScreen, InboxScreen, CalendarScreen, AgentScreen } from "./screens";
+import { WORKSPACE_USER, DRAFTS, AGENT_STEPS, OWEN_CALL } from "./demoData";
+import { ProspectsScreen, LeadModal, CampaignsScreen, CallsScreen, CallModal, InboxScreen, CalendarScreen, AgentScreen } from "./screens";
 
 // Hero product demo: a cursor walks through copies of the real app screens
 // while a camera zooms in on the moment that matters in each one.
@@ -25,6 +25,7 @@ const NAV = [
 ];
 
 const approveSteps = (at) => DRAFTS.map((_, i) => ({ at: at + i * 120, set: { approvedN: i + 1 } }));
+const transcriptSteps = (at) => OWEN_CALL.transcript.map((_, i) => ({ at: at + i * 560, set: { lines: i + 1 } }));
 const agentSteps = (at) => AGENT_STEPS.map((_, i) => ({ at: at + i * 520, set: { steps: i + 1 } }));
 
 const SCENES = [
@@ -52,7 +53,7 @@ const SCENES = [
     nav: "campaigns",
     label: "Campaigns",
     Screen: CampaignsScreen,
-    final: { view: "detail", approvedN: DRAFTS.length },
+    final: { view: "voice", calling: true },
     steps: [
       { at: 300, cursor: "camp-top" },
       { at: 900, click: true, set: { view: "detail" } },
@@ -64,8 +65,38 @@ const SCENES = [
       { at: 4900, cursor: "approve-all" },
       { at: 5500, click: true, set: { pressApprove: true } },
       ...approveSteps(5700),
-      { at: 7000, cursor: "nav-inbox" },
-      { at: 7600, click: true, next: true },
+      // Back to the list, into the voice campaign, and call a lead right now.
+      { at: 6900, cursor: "camp-back" },
+      { at: 7400, click: true, set: { view: "list" } },
+      { at: 8000, cursor: "camp-voice" },
+      { at: 8600, click: true, set: { view: "voice" } },
+      { at: 9300, cursor: "call-now" },
+      { at: 9900, click: true, set: { pressCall: true } },
+      { at: 10100, set: { pressCall: false, calling: true, toast: true } },
+      { at: 11400, cursor: "nav-calls" },
+      { at: 12000, click: true, next: true },
+    ],
+  },
+  {
+    nav: "calls",
+    label: "Call History",
+    Screen: CallsScreen,
+    final: { done: true, outcome: true },
+    steps: [
+      { at: 300, cursor: "call-owen" },
+      { at: 1600, set: { done: true } },
+      { at: 2400, set: { outcome: true } },
+      { at: 2900, cursor: "call-details" },
+      { at: 3400, click: true, set: { pressDetails: true } },
+      { at: 3600, set: { pressDetails: false, open: true } },
+      { at: 3900, zoom: "call-summary", scale: 1.3 },
+      { at: 5400, set: { callScroll: 430 }, zoom: "call-transcript", scale: 1.25 },
+      ...transcriptSteps(5800),
+      { at: 9800, zoom: null },
+      { at: 10000, cursor: "call-close" },
+      { at: 10500, click: true, set: { open: false } },
+      { at: 10900, cursor: "nav-inbox" },
+      { at: 11500, click: true, next: true },
     ],
   },
   {
@@ -369,6 +400,7 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
             </div>
 
             {def.nav === "prospects" && <LeadModal open={Boolean(flags.open)} />}
+            {def.nav === "calls" && <CallModal open={Boolean(flags.open)} scroll={flags.callScroll || 0} lines={flags.lines || 0} />}
 
             {!reduced && <Cursor cursorRef={cursorRef} clicking={clicking} />}
             {click.n > 0 && !reduced && (

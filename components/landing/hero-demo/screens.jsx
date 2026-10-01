@@ -9,6 +9,7 @@ import {
   THREADS, OPEN_THREAD,
   WEEK, NEW_MEETING, MEETING_STATUS,
   AGENT_HISTORY, AGENT_KPIS, AGENT_QUICK, AGENT_FILE, AGENT_PROMPT, AGENT_STEPS,
+  CHANNEL_STYLES, VOICE_LEADS, CALLS, CALL_STATUS, CALL_OUTCOME, OWEN_CALL,
 } from "./demoData";
 
 // Static copies of the real app screens (app/(app)/*), using the same class
@@ -286,7 +287,7 @@ function CampaignList() {
           {CAMPAIGNS.map((c, i) => {
             const s = CAMPAIGN_STATUS[c.status];
             return (
-              <div key={c.id} className="card campaigns-card" data-hd={i === 0 ? "camp-top" : undefined} style={{ padding: 18, borderRadius: 8 }}>
+              <div key={c.id} className="card campaigns-card" data-hd={i === 0 ? "camp-top" : c.channel === "voice" ? "camp-voice" : undefined} style={{ padding: 18, borderRadius: 8 }}>
                 <div className="row spread campaigns-card-head" style={{ gap: 16, alignItems: "flex-start" }}>
                   <div className="row" style={{ gap: 12, minWidth: 0 }}>
                     <ChannelIcon channel={c.channel} />
@@ -339,7 +340,7 @@ function CampaignDetail({ f }) {
     <div className="col" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
       <div className="row spread page-toolbar campaign-detail-toolbar">
         <div className="row" style={{ gap: 12, minWidth: 0 }}>
-          <span className="btn btn-ghost btn-sm" style={{ width: 40, padding: 0 }}><Icon name="arrowLeft" size={16} /></span>
+          <span data-hd="camp-back" className="btn btn-ghost btn-sm" style={{ width: 40, padding: 0 }}><Icon name="arrowLeft" size={16} /></span>
           <div style={{ minWidth: 0 }}>
             <h1 className="display page-title ellip">{c.name}</h1>
             <div className="row" style={{ gap: 8, marginTop: 6 }}>
@@ -460,10 +461,331 @@ function CampaignDetail({ f }) {
   );
 }
 
+const LEAD_STATUS = {
+  new: ["New", "#9aa8a0"],
+  queued: ["Queued", "#7c8bf0"],
+  contacted: ["Contacted", "#15c4c0"],
+  meeting_booked: ["Meeting set", "#00c27a"],
+};
+
+function badgeTone(color) {
+  return { background: `${color}1f`, color, border: `1px solid ${color}45` };
+}
+
+// The voice campaign's Leads tab, with the real "Call immediately" button.
+function VoiceCampaignDetail({ f }) {
+  const c = CAMPAIGNS.find(item => item.channel === "voice");
+  const voice = CHANNEL_STYLES.voice;
+  return (
+    <div className="col" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <div className="row spread page-toolbar campaign-detail-toolbar">
+        <div className="row" style={{ gap: 12, minWidth: 0 }}>
+          <span className="btn btn-ghost btn-sm" style={{ width: 40, padding: 0 }}><Icon name="arrowLeft" size={16} /></span>
+          <div style={{ minWidth: 0 }}>
+            <h1 className="display page-title ellip">{c.name}</h1>
+            <div className="row" style={{ gap: 8, marginTop: 6 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 99, background: "var(--g-50)", color: "var(--g-700)", fontSize: 12, fontWeight: 600 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--g-500)" }} />Active
+              </span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 99, background: voice.bg, color: voice.color, fontSize: 12, fontWeight: 600 }}>
+                <Icon name="phone" size={12} />{voice.label}
+              </span>
+              <span className="faint" style={{ fontSize: 12 }}>Created {c.created}</span>
+              <span className="faint" style={{ fontSize: 12 }}>Assigned to {c.owner}</span>
+            </div>
+          </div>
+        </div>
+        <span className="btn btn-ghost btn-sm">Pause</span>
+      </div>
+
+      <div className="grow app-page hd-noscroll">
+        <div className="col" style={{ gap: 16 }}>
+          <div className="metric-grid">
+            {[["Enrolled", "150"], ["Ready", "142"], ["Queued", "20"], ["Sent", "248"]].map(([label, value]) => (
+              <div key={label} className="metric-card">
+                <span className="metric-icon"><Icon name={label === "Sent" ? "phone" : "users"} size={16} /></span>
+                <div><strong>{value}</strong><span>{label}</span></div>
+              </div>
+            ))}
+          </div>
+
+          <div className="segmented-control prospects-source-tabs">
+            {["Leads", "Settings"].map((label, i) => (
+              <button key={label} type="button" tabIndex={-1} className={i === 0 ? "is-active" : ""}>{label}</button>
+            ))}
+          </div>
+
+          <div className="card table-shell">
+            <div className="filter-bar">
+              <div>
+                <strong style={{ fontSize: 14 }}>Campaign leads</strong>
+                <p className="faint" style={{ fontSize: 12, marginTop: 2 }}>150 leads attached to this campaign.</p>
+              </div>
+            </div>
+            <div className="table-scroll hd-noscroll">
+              <table className="data-table" style={{ minWidth: 980, tableLayout: "fixed" }}>
+                <colgroup>
+                  {["30%", "16%", "12%", "18%", "14%", "10%"].map((w, i) => <col key={i} style={{ width: w }} />)}
+                </colgroup>
+                <thead>
+                  <tr>{["Lead", "Phone", "Status", "Next outreach", "Action", "Location"].map(h => <th key={h}>{h}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {VOICE_LEADS.map((lead, i) => {
+                    const [label, color] = LEAD_STATUS[lead.status];
+                    const calling = i === 0 && f.calling;
+                    return (
+                      <tr key={lead.id} className="data-row">
+                        <td>
+                          <div className="row" style={{ gap: 11, minWidth: 0 }}>
+                            <Avatar name={lead.name} size={34} />
+                            <div className="col" style={{ minWidth: 0 }}>
+                              <span className="ellip" style={{ fontWeight: 800, fontSize: 14 }}>{lead.name}</span>
+                              <span className="faint ellip" style={{ fontSize: 12 }}>{lead.title} - {lead.company}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span style={{ fontWeight: 700, fontSize: 13 }}>{lead.phone}</span></td>
+                        <td><span className="badge" style={badgeTone(color)}>{label}</span></td>
+                        <td>
+                          {lead.nextNote ? (
+                            <div className="col" style={{ gap: 2 }}>
+                              <strong style={{ fontSize: 12.5 }}>{lead.next}</strong>
+                              <span className="faint ellip" style={{ fontSize: 11.5 }}>{lead.nextNote}</span>
+                            </div>
+                          ) : <span className="faint" style={{ fontSize: 12 }}>Not scheduled</span>}
+                        </td>
+                        <td>
+                          <span
+                            data-hd={i === 0 ? "call-now" : undefined}
+                            className={`btn btn-ghost btn-sm ${i === 0 && f.pressCall ? "is-pressed" : ""}`}
+                            style={{ height: 32, padding: "0 10px", fontSize: 12, whiteSpace: "nowrap", opacity: lead.status === "meeting_booked" || (f.calling && i > 0) ? 0.5 : 1 }}
+                          >
+                            <Icon name="phone" size={13} /> {calling ? "Calling..." : "Call immediately"}
+                          </span>
+                        </td>
+                        <td><span className="faint" style={{ fontSize: 13 }}>{lead.location}</span></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      {f.toast && (
+        <div className="row hd-toast hd-pop">
+          <Icon name="checkCircle" size={15} color="var(--g-300)" /> Calling this lead now.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CampaignsScreen({ f }) {
+  if (f.view === "voice") return <div key="voice" className="hd-swap"><VoiceCampaignDetail f={f} /></div>;
   return f.view === "detail"
     ? <div key="detail" className="hd-swap"><CampaignDetail f={f} /></div>
     : <div key="list" className="hd-swap"><CampaignList /></div>;
+}
+
+/* ------------------------------------------------------------- Call History */
+
+function CallStatusBadge({ status }) {
+  const s = CALL_STATUS[status];
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 99, background: s.bg, color: s.color, fontSize: 11, fontWeight: 700 }}>
+      <span className={status === "in_progress" ? "hd-live-dot" : undefined} style={{ width: 5, height: 5, borderRadius: "50%", background: s.dot }} />
+      {s.label}
+    </span>
+  );
+}
+
+function CallOutcome({ outcome, status }) {
+  if (!outcome) {
+    return <span style={{ fontSize: 11, color: "var(--faint)" }}>{status === "completed" ? "Analyzing…" : "Not available"}</span>;
+  }
+  const d = CALL_OUTCOME[outcome];
+  return <span className="hd-pop" style={{ padding: "3px 9px", borderRadius: 99, background: d.bg, color: d.color, fontSize: 11, fontWeight: 600 }}>{d.label}</span>;
+}
+
+function owenState(f) {
+  return {
+    status: f.done ? "completed" : "in_progress",
+    outcome: f.outcome ? "meeting_booked" : null,
+  };
+}
+
+export function CallsScreen({ f }) {
+  const owen = owenState(f);
+  const kpis = [
+    ["total calls", "248", "phone"],
+    ["connected", f.done ? "172" : "171", "checkCircle"],
+    ["in progress", f.done ? "0" : "1", "clock", true],
+    ["not connected", "76", "alertCircle", true],
+  ];
+  return (
+    <div className="grow app-page hd-noscroll">
+      <div className="col" style={{ gap: 20 }}>
+        <div className="row spread" style={{ gap: 12 }}>
+          <div className="row" style={{ gap: 12 }}>
+            <span style={{ width: 42, height: 42, borderRadius: 13, background: "linear-gradient(140deg,#29d68f,#15c4c0)", display: "grid", placeItems: "center", boxShadow: "var(--sh-green)", flex: "none" }}>
+              <Icon name="phone" size={20} color="#06231a" />
+            </span>
+            <div>
+              <h1 className="display" style={{ fontSize: 20, margin: 0 }}>Call History</h1>
+              <p className="faint" style={{ fontSize: 13, marginTop: 4 }}>Inbound and outbound outcomes. Privacy-protected inbound calls do not retain transcripts or recordings.</p>
+            </div>
+          </div>
+          <span className="btn btn-ghost btn-sm"><Icon name="refresh" size={14} /> Refresh</span>
+        </div>
+
+        <div className="calls-kpi-grid">
+          {kpis.map(([label, value, icon, warn]) => (
+            <div key={label} className="card kpi-card-accent" data-tone={warn ? "warn" : undefined} style={{ padding: "15px 16px", borderRadius: 14 }}>
+              <div className="row spread">
+                <span className="faint nw" style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".04em" }}>{label}</span>
+                <span className="kpi-icon-badge" data-tone={warn ? "warn" : undefined}><Icon name={icon} size={15} /></span>
+              </div>
+              <strong className="display" style={{ display: "block", fontSize: 28, marginTop: 10, color: "var(--ink)" }}>{value}</strong>
+            </div>
+          ))}
+        </div>
+
+        <div className="row" style={{ gap: 8 }}>
+          {["All", "Completed", "In Progress", "No answer", "Busy", "Voicemail", "Failed", "Rejected"].map((label, i) => (
+            <span key={label} className="btn calls-filter-chip" style={{ height: 32, padding: "0 15px", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", flex: "none", border: i === 0 ? "none" : "1px solid var(--line)", background: i === 0 ? "linear-gradient(180deg,var(--g-400),var(--g-500))" : "#fff", color: i === 0 ? "#06231a" : "var(--ink-2)", boxShadow: i === 0 ? "var(--sh-green)" : "var(--sh-xs)" }}>{label}</span>
+          ))}
+        </div>
+
+        <div className="card" style={{ padding: 0, overflow: "hidden", borderRadius: 16 }}>
+          <table className="calls-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr>
+                {["Lead", "Direction", "Campaign", "Status", "Outcome", "Duration", "Date", ""].map((h, i) => (
+                  <th key={i} style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {CALLS.map((call, i) => {
+                const status = i === 0 ? owen.status : call.status;
+                const outcome = i === 0 ? owen.outcome : call.outcome;
+                return (
+                  <tr key={call.id} className={i === 0 ? "hd-call-new" : undefined} data-hd={i === 0 ? "call-owen" : undefined} style={{ borderTop: i === 0 ? "none" : "1px solid var(--line-2)" }}>
+                    <td style={{ padding: "10px 16px" }}>
+                      <div className="row" style={{ gap: 9 }}>
+                        <Avatar name={call.name} size={28} />
+                        <div className="col" style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 700 }}>{call.name}</div>
+                          <div style={{ fontSize: 11, color: "var(--muted)" }}>{call.company}</div>
+                          <div className="faint">From {call.from}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{ padding: "12px 16px", color: "var(--muted)" }}>
+                      <span className="row" style={{ gap: 5 }}>
+                        <Icon name="arrow" size={12} color="var(--faint)" style={{ transform: "rotate(-45deg)" }} /> outbound
+                      </span>
+                    </td>
+                    <td style={{ padding: "12px 16px", color: "var(--muted)" }}>{call.campaign}</td>
+                    <td style={{ padding: "12px 16px" }}><CallStatusBadge status={status} /></td>
+                    <td style={{ padding: "12px 16px" }}><CallOutcome key={outcome || status} outcome={outcome} status={status} /></td>
+                    <td style={{ padding: "12px 16px", color: "var(--muted)" }}>{i === 0 && !f.done ? <span className="hd-live-dot-text">Live</span> : call.duration}</td>
+                    <td style={{ padding: "12px 16px", color: "var(--muted)", whiteSpace: "nowrap" }}>{call.date}</td>
+                    <td style={{ padding: "12px 16px" }}>
+                      <span data-hd={i === 0 ? "call-details" : undefined} className={`btn btn-ghost btn-sm ${i === 0 && f.pressDetails ? "is-pressed" : ""}`} style={{ fontSize: 11 }}>Details</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CallDetailRow({ label, value }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "120px minmax(0, 1fr)", gap: 12, padding: "7px 0", borderBottom: "1px solid var(--line-2)" }}>
+      <span style={{ color: "var(--muted)", fontSize: 12 }}>{label}</span>
+      <span style={{ color: "var(--ink)", fontSize: 12 }}>{value}</span>
+    </div>
+  );
+}
+
+function formatClock(seconds) {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+// The real CallDetailsModal, drawn over the whole stage like the lead modal.
+// `lines` reveals the transcript one line at a time while the recording plays.
+export function CallModal({ open, scroll = 0, lines = 0 }) {
+  const call = CALLS[0];
+  const total = OWEN_CALL.transcript.length;
+  return (
+    <div className={`hd-modal ${open ? "is-open" : ""}`} aria-hidden="true">
+      <div className="hd-modal-backdrop" style={{ background: "rgba(10,23,18,0.55)" }} />
+      <div className="hd-modal-card hd-call-card">
+        <div className="hd-scroller" style={{ padding: 26, transform: scroll ? `translateY(${-scroll}px)` : undefined }} data-hd-dy={scroll ? -scroll : undefined}>
+          <div className="row spread" style={{ marginBottom: 18 }}>
+            <div className="row" style={{ gap: 12 }}>
+              <Avatar name={call.name} size={38} />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 15.5 }}>{call.name}</div>
+                <div style={{ fontSize: 12, color: "var(--muted)" }}>{call.company}</div>
+              </div>
+            </div>
+            <span data-hd="call-close" className="btn btn-ghost btn-sm" style={{ width: 34, height: 34, padding: 0, fontSize: 18, lineHeight: 1, borderRadius: "50%" }}>×</span>
+          </div>
+          <div className="row" style={{ gap: 8, marginBottom: 20 }}>
+            <CallStatusBadge status="completed" />
+            <CallOutcome outcome="meeting_booked" status="completed" />
+            <span className="chip" style={{ fontSize: 11.5, height: 24 }}>{call.duration}</span>
+          </div>
+
+          <section data-hd="call-summary" style={{ marginBottom: 18, padding: 14, background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 12 }}>
+            <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 6 }}>Call summary</div>
+            <div style={{ fontSize: 13, lineHeight: 1.55 }}>{OWEN_CALL.summary}</div>
+          </section>
+
+          <section style={{ marginBottom: 18 }}>
+            {OWEN_CALL.rows.map(([label, value]) => <CallDetailRow key={label} label={label} value={value} />)}
+          </section>
+
+          <section style={{ marginBottom: 18 }}>
+            <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 6 }}>Sales analysis</div>
+            <div style={{ borderTop: "1px solid var(--line-2)" }}>
+              {OWEN_CALL.analysis.map(([label, value]) => <CallDetailRow key={label} label={label} value={value} />)}
+            </div>
+          </section>
+
+          <section style={{ marginBottom: 18 }}>
+            <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 6 }}>Recording</div>
+            <div className="hd-audio">
+              <span className="hd-audio-play"><Icon name={lines > 0 && lines < total ? "pause" : "play"} size={14} /></span>
+              <span className="hd-audio-time">{formatClock(Math.round((lines / total) * 167))} / 2:47</span>
+              <span className="hd-audio-track"><span style={{ width: `${(lines / total) * 100}%` }} /></span>
+            </div>
+          </section>
+
+          <section data-hd="call-transcript">
+            <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 6 }}>Transcript</div>
+            <div className="hd-transcript">
+              {OWEN_CALL.transcript.map(([who, text], i) => (
+                <div key={i} className={`hd-transcript-line ${i < lines ? "is-shown" : ""} ${who === "Agent" ? "is-agent" : ""}`}>
+                  <strong>{who}:</strong> {text}
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /* -------------------------------------------------------------------- Inbox */
@@ -608,7 +930,7 @@ function MeetingCard({ m, isNew }) {
 }
 
 export function CalendarScreen({ f }) {
-  const total = 7 + (f.newMeeting ? 1 : 0);
+  const total = WEEK.reduce((sum, day) => sum + day.meetings.length, 0) + (f.newMeeting ? 1 : 0);
   return (
     <div className="grow app-page hd-noscroll">
       <div className="row spread page-head">

@@ -150,24 +150,30 @@ export default function LandingPage() {
 
   // The big logo is drawn at 3x the nav logo, centred on the demo, then shrinks
   // onto the nav logo so the two line up exactly when the copy is removed.
+  // It aims at the logo itself, not the nav button: the button stretches across
+  // the nav's first grid column, so its centre sits well right of the logo.
   React.useEffect(() => {
     if (!logoFly) return undefined;
     const el = flyRef.current;
-    const target = document.querySelector('.site-nav-logo');
+    const navLogo = document.querySelector('.site-nav-logo');
+    const target = navLogo?.firstElementChild || navLogo;
+    const flying = el?.firstElementChild;
     const shell = document.getElementById('product');
-    if (!el || !target || !shell || !el.animate) {
+    if (!el || !flying || !target || !shell || !el.animate) {
       endIntro();
       return undefined;
     }
-    const t = target.getBoundingClientRect();
     const s = shell.getBoundingClientRect();
     const box = el.getBoundingClientRect();
-    const cx = s.left + s.width / 2;
-    const cy = s.top + s.height / 2;
-    el.style.left = `${cx - box.width / 2}px`;
-    el.style.top = `${cy - box.height / 2}px`;
-    const dx = t.left + t.width / 2 - cx;
-    const dy = t.top + t.height / 2 - cy;
+    el.style.left = `${s.left + s.width / 2 - box.width / 2}px`;
+    el.style.top = `${s.top + s.height / 2 - box.height / 2}px`;
+    // Measure after placing it, then move its top-left corner onto the nav
+    // logo's top-left corner at the exact size ratio.
+    const from = flying.getBoundingClientRect();
+    const t = target.getBoundingClientRect();
+    const scale = t.width / from.width;
+    const dx = t.left - from.left;
+    const dy = t.top - from.top;
 
     let cancelled = false;
     const appear = el.animate(
@@ -176,7 +182,7 @@ export default function LandingPage() {
     );
     const hold = setTimeout(() => {
       const fly = el.animate(
-        [{ opacity: 1, transform: 'none' }, { opacity: 1, transform: `translate(${dx}px, ${dy}px) scale(${1 / 3})` }],
+        [{ opacity: 1, transform: 'none' }, { opacity: 1, transform: `translate(${dx}px, ${dy}px) scale(${scale})` }],
         { duration: 1000, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards' },
       );
       fly.finished.then(() => { if (!cancelled) endIntro(); }).catch(() => {});
