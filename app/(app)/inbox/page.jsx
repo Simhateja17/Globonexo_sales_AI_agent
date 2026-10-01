@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Icon from "../../../components/ui/Icon";
 import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
@@ -99,6 +99,16 @@ export default function InboxPage() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [senderFilter, setSenderFilter] = useState("");
   const showSkeleton = useFirstLoad(loading);
+
+  // Grow the reply box with what is typed (or drafted), up to the CSS
+  // max-height; past that it scrolls. Reset to "auto" first so it can also
+  // shrink when text is deleted.
+  useLayoutEffect(() => {
+    const box = composerRef.current;
+    if (!box) return;
+    box.style.height = "auto";
+    box.style.height = `${box.scrollHeight}px`;
+  }, [composerBody, selectedId]);
 
   useEffect(() => {
     let cancelled = false;
