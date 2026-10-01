@@ -183,7 +183,7 @@ export default function LeadDetailModal({ lead, onClose, onEnrich, enriching, on
               <DetailField label="Email status" value={lead.emailStatus ? titleCase(lead.emailStatus) : null} />
               <DetailField label="Email confidence" value={lead.emailConfidence != null ? `${lead.emailConfidence}%` : null} />
               <DetailField label="Phone" value={lead.phone} />
-              <DetailField label="LinkedIn" value={safeLinkedIn ? <a href={safeLinkedIn} target="_blank" rel="noreferrer">View profile</a> : null} />
+              <DetailField label="LinkedIn" value={safeLinkedIn ? <a href={safeLinkedIn} target="_blank" rel="noreferrer" style={{ color: "var(--g-700)", fontWeight: 800 }}>View profile</a> : null} />
             </div>
             {phoneNumbers.length ? (
               <div className="lead-detail-list">
