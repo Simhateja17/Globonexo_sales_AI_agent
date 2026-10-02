@@ -3,7 +3,7 @@ import React from "react";
 import Logo from "../../ui/Logo";
 import Icon from "../../ui/Icon";
 import Avatar from "../../ui/Avatar";
-import { WORKSPACE_USER, DRAFTS, AGENT_STEPS, OWEN_CALL } from "./demoData";
+import { WORKSPACE_USER, DRAFTS, AGENT_STEPS, OWEN_CALL, photoFor } from "./demoData";
 import { ProspectsScreen, LeadModal, CampaignsScreen, CallsScreen, CallModal, InboxScreen, CalendarScreen, AgentScreen } from "./screens";
 
 // Hero product demo: a cursor walks through copies of the real app screens
@@ -384,7 +384,7 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
                     <span className="hd-bell-count">7</span>
                   </span>
                   <div className="row" style={{ gap: 9 }}>
-                    <Avatar name={WORKSPACE_USER.name} size={34} />
+                    <Avatar name={WORKSPACE_USER.name} src={photoFor(WORKSPACE_USER.name)} size={34} />
                     {!frame.compact && (
                       <div className="col" style={{ lineHeight: 1.2 }}>
                         <span style={{ fontWeight: 800, fontSize: 13.5 }}>{WORKSPACE_USER.name}</span>

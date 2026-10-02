@@ -225,3 +225,14 @@ export const OWEN_CALL = {
     ["Agent", "Booked. The invite is on its way to owen@tidewell.io. Thanks, Owen!"],
   ],
 };
+
+// Portraits for the made-up people, like the prospect photos the real app
+// shows. Stock mock-data portraits (randomuser.me) stored in public/demo-people.
+const PEOPLE_WITH_PHOTOS = new Set([
+  "Aaron Dutta", "Ava Chen", "Daniel Okafor", "Grace Okoye", "Hannah Lee", "Leo Fischer", "Marcus Bell",
+  "Maya Collins", "Nina Kowal", "Owen Park", "Priya Raman", "Ravi Shah", "Sofia Marin", "Tom Alvarez",
+]);
+
+export function photoFor(name) {
+  return PEOPLE_WITH_PHOTOS.has(name) ? `/demo-people/${name.toLowerCase().replace(/\s+/g, "-")}.jpg` : undefined;
+}

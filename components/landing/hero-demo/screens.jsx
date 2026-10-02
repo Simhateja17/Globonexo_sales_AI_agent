@@ -9,7 +9,7 @@ import {
   THREADS, OPEN_THREAD,
   WEEK, NEW_MEETING, MEETING_STATUS,
   AGENT_HISTORY, AGENT_KPIS, AGENT_QUICK, AGENT_FILE, AGENT_PROMPT, AGENT_STEPS,
-  CHANNEL_STYLES, VOICE_LEADS, CALLS, CALL_STATUS, CALL_OUTCOME, OWEN_CALL,
+  CHANNEL_STYLES, VOICE_LEADS, CALLS, CALL_STATUS, CALL_OUTCOME, OWEN_CALL, photoFor,
 } from "./demoData";
 
 // Static copies of the real app screens (app/(app)/*), using the same class
@@ -123,7 +123,7 @@ export function ProspectsScreen({ f }) {
                       >
                         <td>
                           <div className="row" style={{ gap: 11, minWidth: 0 }}>
-                            <Avatar name={lead.name} size={34} />
+                            <Avatar name={lead.name} src={photoFor(lead.name)} size={34} />
                             <div className="col" style={{ minWidth: 0 }}>
                               <span style={{ fontWeight: 800, fontSize: 14 }} className="ellip">{lead.name}</span>
                               <span className="faint ellip" style={{ fontSize: 12 }}>{lead.title} · {lead.company}</span>
@@ -191,7 +191,7 @@ export function LeadModal({ open }) {
       <div className="csv-modal lead-detail-modal hd-modal-card" data-hd="lead-modal">
         <div className="row spread lead-detail-head" style={{ padding: "18px 24px", borderBottom: "1px solid var(--line)", flex: "none", gap: 12 }}>
           <div className="row" style={{ gap: 12, minWidth: 0 }}>
-            <Avatar name={lead.name} size={44} />
+            <Avatar name={lead.name} src={photoFor(lead.name)} size={44} />
             <div className="col" style={{ minWidth: 0 }}>
               <h2 className="ellip" style={{ fontSize: 18, fontWeight: 800 }}>{lead.name}</h2>
               <span className="faint ellip" style={{ fontSize: 12.5 }}>{lead.title} · {lead.company}</span>
@@ -409,7 +409,7 @@ function CampaignDetail({ f }) {
                   return (
                     <div key={d.id} className="campaign-email-row" data-hd={i === 0 ? "draft-top" : undefined}>
                       <div className="campaign-email-summary">
-                        <Avatar name={d.lead} size={40} />
+                        <Avatar name={d.lead} src={photoFor(d.lead)} size={40} />
                         <span className="campaign-email-copy">
                           <strong>{d.subject}</strong>
                           <span className="faint campaign-email-recipient">{d.lead} at {d.company}</span>
@@ -538,7 +538,7 @@ function VoiceCampaignDetail({ f }) {
                       <tr key={lead.id} className="data-row">
                         <td>
                           <div className="row" style={{ gap: 11, minWidth: 0 }}>
-                            <Avatar name={lead.name} size={34} />
+                            <Avatar name={lead.name} src={photoFor(lead.name)} size={34} />
                             <div className="col" style={{ minWidth: 0 }}>
                               <span className="ellip" style={{ fontWeight: 800, fontSize: 14 }}>{lead.name}</span>
                               <span className="faint ellip" style={{ fontSize: 12 }}>{lead.title} - {lead.company}</span>
@@ -676,7 +676,7 @@ export function CallsScreen({ f }) {
                   <tr key={call.id} className={i === 0 ? "hd-call-new" : undefined} data-hd={i === 0 ? "call-owen" : undefined} style={{ borderTop: i === 0 ? "none" : "1px solid var(--line-2)" }}>
                     <td style={{ padding: "10px 16px" }}>
                       <div className="row" style={{ gap: 9 }}>
-                        <Avatar name={call.name} size={28} />
+                        <Avatar name={call.name} src={photoFor(call.name)} size={28} />
                         <div className="col" style={{ minWidth: 0 }}>
                           <div style={{ fontWeight: 700 }}>{call.name}</div>
                           <div style={{ fontSize: 11, color: "var(--muted)" }}>{call.company}</div>
@@ -733,7 +733,7 @@ export function CallModal({ open, scroll = 0, lines = 0 }) {
         <div className="hd-scroller" style={{ padding: 26, transform: scroll ? `translateY(${-scroll}px)` : undefined }} data-hd-dy={scroll ? -scroll : undefined}>
           <div className="row spread" style={{ marginBottom: 18 }}>
             <div className="row" style={{ gap: 12 }}>
-              <Avatar name={call.name} size={38} />
+              <Avatar name={call.name} src={photoFor(call.name)} size={38} />
               <div>
                 <div style={{ fontWeight: 700, fontSize: 15.5 }}>{call.name}</div>
                 <div style={{ fontSize: 12, color: "var(--muted)" }}>{call.company}</div>
@@ -825,7 +825,7 @@ export function InboxScreen({ f }) {
         <div className="email-thread-scroll hd-noscroll">
           {list.map((item, i) => (
             <div key={item.id} className={`email-thread-item hd-thread-in ${i === 0 ? "is-active" : ""}`}>
-              <Avatar name={item.name} size={42} />
+              <Avatar name={item.name} src={photoFor(item.name)} size={42} />
               <div className="email-thread-copy">
                 <div className="row spread" style={{ gap: 8 }}>
                   <strong className="ellip">{item.name}</strong>
@@ -848,7 +848,7 @@ export function InboxScreen({ f }) {
       <section className="email-chat-panel">
         <header className="email-chat-head">
           <div className="row" style={{ gap: 12, minWidth: 0 }}>
-            <Avatar name={t.name} size={42} />
+            <Avatar name={t.name} src={photoFor(t.name)} size={42} />
             <div className="col" style={{ minWidth: 0 }}>
               <strong className="ellip">{t.name}</strong>
               <span className="ellip">{t.email}</span>
@@ -909,7 +909,7 @@ function MeetingCard({ m, isNew }) {
     <div className={`cal-meeting-card ${isNew ? "hd-new-meeting" : ""}`} data-hd={isNew ? "new-meeting" : undefined}>
       <div className="row spread" style={{ gap: 8, alignItems: "flex-start" }}>
         <div className="row" style={{ gap: 8, minWidth: 0 }}>
-          <Avatar name={m.name} size={28} />
+          <Avatar name={m.name} src={photoFor(m.name)} size={28} />
           <div className="col" style={{ minWidth: 0 }}>
             <span style={{ fontWeight: 800, fontSize: 13 }} className="ellip">{m.name}</span>
             <span className="muted ellip" style={{ fontSize: 11.5 }}>{m.company}</span>
