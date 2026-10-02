@@ -2701,6 +2701,69 @@ a { color: inherit; text-decoration: none; }
 .hd-transcript-line + .hd-transcript-line { margin-top: 4px; }
 .hd-transcript-line.is-shown { opacity: 1; }
 .hd-transcript-line.is-agent strong { color: var(--g-700); }
+/* Phone mode (.is-compact): the app's own phone layout at real size. Screens
+   take their natural height like a phone page and the camera scrolls instead
+   of zooming. Windows that open on top are placed in the visible part, which
+   HeroDemo publishes as --hd-view-top / --hd-view-h. */
+.hd-stage.is-compact .hd-camera { display: block; bottom: auto; min-height: 100%; background: var(--bg); }
+.hd-stage.is-compact .hd-main,
+.hd-stage.is-compact .hd-screen { display: block; }
+.hd-stage.is-compact .hd-phone-bar { background: #fff; }
+.hd-stage.is-compact .hd-header { padding: 0 12px; }
+.hd-stage.is-compact .agent-page { position: static !important; }
+.hd-stage.is-compact .hd-modal,
+.hd-stage.is-compact .hd-picker { inset: auto 0; top: var(--hd-view-top, 0); height: var(--hd-view-h, 100%); }
+/* Closed windows shrink to nothing (after fading out) so they never make the
+   page look taller than it is and let it scroll past its end. */
+.hd-stage.is-compact .hd-modal:not(.is-open),
+.hd-stage.is-compact .hd-picker:not(.is-open) { top: 0; height: 0; overflow: hidden; transition: opacity .25s, top 0s .25s, height 0s .25s; }
+.hd-stage.is-compact .hd-modal-card,
+.hd-stage.is-compact .hd-call-card,
+.hd-stage.is-compact .hd-picker-window { width: calc(100% - 20px) !important; max-height: calc(100% - 24px); }
+.hd-stage.is-compact .hd-picker-body { grid-template-columns: 1fr; min-height: 0; }
+.hd-stage.is-compact .hd-picker-side { display: none; }
+.hd-stage.is-compact .hd-picker-row { grid-template-columns: 1fr; }
+.hd-stage.is-compact .hd-picker-row > span:not(:first-child) { display: none; }
+.hd-stage.is-compact .hd-toast { top: calc(var(--hd-view-top, 0px) + var(--hd-view-h, 600px) - 72px); bottom: auto; left: 12px; right: 12px; }
+.hd-stage.is-compact .hd-cursor svg { display: none; }
+.hd-stage.is-compact .hd-cursor::before {
+  content: "";
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 2px solid rgba(255,255,255,.95);
+  border-radius: 50%;
+  background: rgba(10,23,18,.22);
+  box-shadow: 0 2px 10px rgba(0,0,0,.25);
+  transition: transform .12s;
+}
+.hd-stage.is-compact .hd-cursor.is-clicking::before { transform: scale(.75); }
+/* Phone fixes: two stat boxes per row so they don't fill the screen; a short
+   inbox list so the open conversation is close below it; no chat history /
+   overview column under the AI Agent chat; a menu that fits the frame. */
+.hd-stage.is-compact .metric-grid,
+.hd-stage.is-compact .calls-kpi-grid,
+.hd-stage.is-compact .campaigns-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+.hd-stage.is-compact .metric-card { padding: 10px 12px !important; }
+.hd-stage.is-compact .calls-kpi-grid .card { padding: 10px 12px !important; }
+.hd-stage.is-compact .calls-kpi-grid .display { font-size: 22px !important; margin-top: 4px !important; }
+.hd-stage.is-compact .email-list-panel { max-height: none !important; }
+.hd-stage.is-compact .email-thread-scroll { max-height: none !important; overflow: hidden !important; }
+.hd-stage.is-compact .email-thread-item:nth-child(n+4) { display: none; }
+.hd-stage.is-compact .agent-overview-panel { display: none !important; }
+/* The agent prompt wraps onto more lines as it types instead of running off the side. */
+.hd-stage.is-compact .agent-input-row { align-items: flex-end; }
+.hd-stage.is-compact .agent-input-row .input-wrap { min-width: 0; }
+.hd-stage.is-compact .agent-input-row .lead-ico { top: 17px; }
+.hd-stage.is-compact .agent-fake-input { display: block; height: auto !important; min-height: 50px; padding-top: 13px; padding-bottom: 13px; line-height: 21px; text-overflow: ellipsis; }
+.hd-stage.is-compact .agent-fake-input.is-typing { white-space: normal; }
+.hd-stage.is-compact .app-shell-mobile-drawer { max-height: calc(var(--hd-view-h, 600px) - 90px); overflow: hidden; }
+.hd-stage.is-compact .app-shell-mobile-item { height: 36px; }
+.hd-stage.is-compact .app-shell-mobile-label { padding: 6px 10px 2px; }
+@media (max-width: 900px) {
+  .landing-product-shell.hd-shell { height: min(72vh, 640px); }
+}
 .hd-cursor { position: absolute; top: 0; left: 0; z-index: 40; pointer-events: none; transform: translate(700px, 320px); transition: transform .75s cubic-bezier(.45,.05,.25,1); filter: drop-shadow(0 2px 3px rgba(0,0,0,.28)); }
 .hd-cursor svg { display: block; margin: -3px 0 0 -4px; transition: transform .12s; transform-origin: 4px 3px; }
 .hd-cursor.is-clicking svg { transform: scale(.8); }
@@ -4952,7 +5015,9 @@ canvas {
     border-radius: 8px;
     background: var(--bg);
   }
-  .prospect-mobile-meta span {
+  /* Only the small label above each value; the badge or chip inside the value
+     keeps its own pill styling. */
+  .prospect-mobile-meta div > span {
     display: block;
     color: var(--faint);
     font-size: 11px;
@@ -4961,7 +5026,9 @@ canvas {
     letter-spacing: .04em;
   }
   .prospect-mobile-meta strong {
-    display: block;
+    display: flex;
+    align-items: center;
+    min-height: 24px;
     margin-top: 6px;
     color: var(--ink);
     font-size: 13px;

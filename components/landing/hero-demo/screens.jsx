@@ -12,6 +12,10 @@ import {
   CHANNEL_STYLES, VOICE_LEADS, CALLS, CALL_STATUS, CALL_OUTCOME, OWEN_CALL, photoFor,
 } from "./demoData";
 
+// True on phones: the stage shows the app's phone layout at real size, and a
+// few wide tables show only the columns that fit, like a phone user would see.
+export const CompactContext = React.createContext(false);
+
 // Static copies of the real app screens (app/(app)/*), using the same class
 // names so they inherit the product's styles. Everything that moves is driven
 // by the flags object `f` from HeroDemo; `data-hd` marks what the cursor and
@@ -152,6 +156,35 @@ export function ProspectsScreen({ f }) {
                   })}
                 </tbody>
               </table>
+            </div>
+            {/* The real page shows these cards instead of the table on phones. */}
+            <div className="prospects-mobile-list">
+              {(f.sorted ? SORTED : LEADS).map(lead => {
+                const stopped = lead.stage === "engaged" || lead.stage === "meeting_booked";
+                return (
+                  <article
+                    key={`${lead.id}-${f.sorted ? "s" : "u"}`}
+                    className={`prospect-mobile-card card hd-pop ${f.open && lead.id === TOP_LEAD.id ? "is-pressed" : ""}`}
+                    data-hd={lead.id === TOP_LEAD.id ? "lead-top" : undefined}
+                  >
+                    <div className="row" style={{ gap: 11, minWidth: 0 }}>
+                      <Avatar name={lead.name} src={photoFor(lead.name)} size={36} />
+                      <div className="col" style={{ minWidth: 0 }}>
+                        <span style={{ fontWeight: 800, fontSize: 14 }} className="ellip">{lead.name}</span>
+                        <span className="faint ellip" style={{ fontSize: 12 }}>{lead.title} · {lead.company}</span>
+                      </div>
+                    </div>
+                    <div className="prospect-mobile-meta">
+                      <div><span>Stage</span><strong><span className="badge" style={stageStyle(lead.stage)}>{STAGE_LABELS[lead.stage]}</span></strong></div>
+                      <div><span>Send ready</span><strong><span className={`chip ${stopped ? "chip-blocked" : "chip-ready"}`}>{stopped ? "Stopped" : "Ready"}</span></strong></div>
+                      <div><span>Score</span><strong>{lead.score}</strong></div>
+                      <div><span>Location</span><strong>-</strong></div>
+                    </div>
+                    <div className="prospect-mobile-email">Email: {lead.email} · Phone: {lead.phone}</div>
+                    <div className="faint" style={{ fontSize: 12 }}>Next outreach: {lead.next}</div>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -474,6 +507,7 @@ function badgeTone(color) {
 
 // The voice campaign's Leads tab, with the real "Call immediately" button.
 function VoiceCampaignDetail({ f }) {
+  const compact = React.useContext(CompactContext);
   const c = CAMPAIGNS.find(item => item.channel === "voice");
   const voice = CHANNEL_STYLES.voice;
   return (
@@ -523,12 +557,15 @@ function VoiceCampaignDetail({ f }) {
               </div>
             </div>
             <div className="table-scroll hd-noscroll">
-              <table className="data-table" style={{ minWidth: 980, tableLayout: "fixed" }}>
-                <colgroup>
-                  {["30%", "16%", "12%", "18%", "14%", "10%"].map((w, i) => <col key={i} style={{ width: w }} />)}
-                </colgroup>
+              <table className="data-table" style={compact ? { width: "100%", minWidth: 0, tableLayout: "fixed" } : { minWidth: 980, tableLayout: "fixed" }}>
+                {compact && <colgroup><col /><col style={{ width: 150 }} /></colgroup>}
+                {!compact && (
+                  <colgroup>
+                    {["30%", "16%", "12%", "18%", "14%", "10%"].map((w, i) => <col key={i} style={{ width: w }} />)}
+                  </colgroup>
+                )}
                 <thead>
-                  <tr>{["Lead", "Phone", "Status", "Next outreach", "Action", "Location"].map(h => <th key={h}>{h}</th>)}</tr>
+                  <tr>{(compact ? ["Lead", "Action"] : ["Lead", "Phone", "Status", "Next outreach", "Action", "Location"]).map(h => <th key={h}>{h}</th>)}</tr>
                 </thead>
                 <tbody>
                   {VOICE_LEADS.map((lead, i) => {
@@ -545,16 +582,16 @@ function VoiceCampaignDetail({ f }) {
                             </div>
                           </div>
                         </td>
-                        <td><span style={{ fontWeight: 700, fontSize: 13 }}>{lead.phone}</span></td>
-                        <td><span className="badge" style={badgeTone(color)}>{label}</span></td>
-                        <td>
+                        {!compact && <td><span style={{ fontWeight: 700, fontSize: 13 }}>{lead.phone}</span></td>}
+                        {!compact && <td><span className="badge" style={badgeTone(color)}>{label}</span></td>}
+                        {!compact && <td>
                           {lead.nextNote ? (
                             <div className="col" style={{ gap: 2 }}>
                               <strong style={{ fontSize: 12.5 }}>{lead.next}</strong>
                               <span className="faint ellip" style={{ fontSize: 11.5 }}>{lead.nextNote}</span>
                             </div>
                           ) : <span className="faint" style={{ fontSize: 12 }}>Not scheduled</span>}
-                        </td>
+                        </td>}
                         <td>
                           <span
                             data-hd={i === 0 ? "call-now" : undefined}
@@ -564,7 +601,7 @@ function VoiceCampaignDetail({ f }) {
                             <Icon name="phone" size={13} /> {calling ? "Calling..." : "Call immediately"}
                           </span>
                         </td>
-                        <td><span className="faint" style={{ fontSize: 13 }}>{lead.location}</span></td>
+                        {!compact && <td><span className="faint" style={{ fontSize: 13 }}>{lead.location}</span></td>}
                       </tr>
                     );
                   })}
@@ -618,6 +655,8 @@ function owenState(f) {
 }
 
 export function CallsScreen({ f }) {
+  const compact = React.useContext(CompactContext);
+  const pad = compact ? "10px 8px" : "12px 16px";
   const owen = owenState(f);
   const kpis = [
     ["total calls", "248", "phone"],
@@ -663,8 +702,8 @@ export function CallsScreen({ f }) {
           <table className="calls-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr>
-                {["Lead", "Direction", "Campaign", "Status", "Outcome", "Duration", "Date", ""].map((h, i) => (
-                  <th key={i} style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
+                {(compact ? ["Lead", "Status", ""] : ["Lead", "Direction", "Campaign", "Status", "Outcome", "Duration", "Date", ""]).map((h, i) => (
+                  <th key={i} style={{ padding: pad, textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -674,16 +713,25 @@ export function CallsScreen({ f }) {
                 const outcome = i === 0 ? owen.outcome : call.outcome;
                 return (
                   <tr key={call.id} className={i === 0 ? "hd-call-new" : undefined} data-hd={i === 0 ? "call-owen" : undefined} style={{ borderTop: i === 0 ? "none" : "1px solid var(--line-2)" }}>
-                    <td style={{ padding: "10px 16px" }}>
+                    <td style={{ padding: compact ? pad : "10px 16px" }}>
                       <div className="row" style={{ gap: 9 }}>
                         <Avatar name={call.name} src={photoFor(call.name)} size={28} />
                         <div className="col" style={{ minWidth: 0 }}>
                           <div style={{ fontWeight: 700 }}>{call.name}</div>
                           <div style={{ fontSize: 11, color: "var(--muted)" }}>{call.company}</div>
-                          <div className="faint">From {call.from}</div>
+                          {!compact && <div className="faint">From {call.from}</div>}
                         </div>
                       </div>
                     </td>
+                    {compact && (
+                      <td style={{ padding: pad }}>
+                        <div className="col" style={{ gap: 5, alignItems: "flex-start" }}>
+                          <CallStatusBadge status={status} />
+                          <CallOutcome key={outcome || status} outcome={outcome} status={status} />
+                        </div>
+                      </td>
+                    )}
+                    {!compact && <>
                     <td style={{ padding: "12px 16px", color: "var(--muted)" }}>
                       <span className="row" style={{ gap: 5 }}>
                         <Icon name="arrow" size={12} color="var(--faint)" style={{ transform: "rotate(-45deg)" }} /> outbound
@@ -694,7 +742,8 @@ export function CallsScreen({ f }) {
                     <td style={{ padding: "12px 16px" }}><CallOutcome key={outcome || status} outcome={outcome} status={status} /></td>
                     <td style={{ padding: "12px 16px", color: "var(--muted)" }}>{i === 0 && !f.done ? <span className="hd-live-dot-text">Live</span> : call.duration}</td>
                     <td style={{ padding: "12px 16px", color: "var(--muted)", whiteSpace: "nowrap" }}>{call.date}</td>
-                    <td style={{ padding: "12px 16px" }}>
+                    </>}
+                    <td style={{ padding: pad }}>
                       <span data-hd={i === 0 ? "call-details" : undefined} className={`btn btn-ghost btn-sm ${i === 0 && f.pressDetails ? "is-pressed" : ""}`} style={{ fontSize: 11 }}>Details</span>
                     </td>
                   </tr>
@@ -1169,7 +1218,7 @@ export function AgentScreen({ f }) {
             </span>
             <div className="input-wrap grow" data-hd="agent-input">
               <span className="lead-ico"><Icon name="spark" size={16} /></span>
-              <div className="input has-ico hd-fake-input" style={{ height: 50, color: f.typing && !f.sent ? "var(--ink)" : undefined }}>
+              <div className={`input has-ico hd-fake-input agent-fake-input ${f.typing && !f.sent ? "is-typing" : ""}`} style={{ height: 50, color: f.typing && !f.sent ? "var(--ink)" : undefined }}>
                 {f.typing && !f.sent
                   ? <><TypeText text={AGENT_PROMPT} active={f.typing} done={f.typed} cps={45} /><span className="hd-caret" /></>
                   : f.attached && !f.sent ? "What should I do with this file?" : "Ask GNX sales to prospect, draft, or follow up…"}

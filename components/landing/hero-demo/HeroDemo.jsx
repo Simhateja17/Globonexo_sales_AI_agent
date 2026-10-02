@@ -4,7 +4,7 @@ import Logo from "../../ui/Logo";
 import Icon from "../../ui/Icon";
 import Avatar from "../../ui/Avatar";
 import { WORKSPACE_USER, DRAFTS, AGENT_STEPS, OWEN_CALL, photoFor } from "./demoData";
-import { ProspectsScreen, LeadModal, CampaignsScreen, CallsScreen, CallModal, InboxScreen, CalendarScreen, AgentScreen } from "./screens";
+import { ProspectsScreen, LeadModal, CampaignsScreen, CallsScreen, CallModal, InboxScreen, CalendarScreen, AgentScreen, CompactContext } from "./screens";
 
 // Hero product demo: a cursor walks through copies of the real app screens
 // while a camera zooms in on the moment that matters in each one.
@@ -50,31 +50,20 @@ const SCENES = [
     ],
   },
   {
+    // Calls come first: open the voice campaign and call a lead right now.
     nav: "campaigns",
     label: "Campaigns",
     Screen: CampaignsScreen,
     final: { view: "voice", calling: true },
     steps: [
-      { at: 300, cursor: "camp-top" },
-      { at: 900, click: true, set: { view: "detail" } },
-      { at: 1600, cursor: "draft-top" },
-      { at: 2100, click: true, set: { expanded: true } },
-      { at: 2350, set: { scroll: 250 } },
-      { at: 2600, zoom: "draft-body", scale: 1.15 },
-      { at: 4700, zoom: null, set: { scroll: 0 } },
-      { at: 4900, cursor: "approve-all" },
-      { at: 5500, click: true, set: { pressApprove: true } },
-      ...approveSteps(5700),
-      // Back to the list, into the voice campaign, and call a lead right now.
-      { at: 6900, cursor: "camp-back" },
-      { at: 7400, click: true, set: { view: "list" } },
-      { at: 8000, cursor: "camp-voice" },
-      { at: 8600, click: true, set: { view: "voice" } },
-      { at: 9300, cursor: "call-now" },
-      { at: 9900, click: true, set: { pressCall: true } },
-      { at: 10100, set: { pressCall: false, calling: true, toast: true } },
-      { at: 11400, cursor: "nav-calls" },
-      { at: 12000, click: true, next: true },
+      { at: 300, cursor: "camp-voice" },
+      { at: 900, click: true, set: { view: "voice" } },
+      { at: 1600, cursor: "call-now" },
+      { at: 2200, click: true, set: { pressCall: true } },
+      { at: 2400, set: { pressCall: false, calling: true, toast: true } },
+      { at: 4000, set: { toast: false } },
+      { at: 4300, cursor: "nav-calls" },
+      { at: 4900, click: true, next: true },
     ],
   },
   {
@@ -95,8 +84,29 @@ const SCENES = [
       { at: 9800, zoom: null },
       { at: 10000, cursor: "call-close" },
       { at: 10500, click: true, set: { open: false } },
-      { at: 10900, cursor: "nav-inbox" },
+      { at: 10900, cursor: "nav-campaigns" },
       { at: 11500, click: true, next: true },
+    ],
+  },
+  {
+    // Then email: open the email campaign, read a draft, approve them all.
+    nav: "campaigns",
+    label: "Campaigns",
+    Screen: CampaignsScreen,
+    final: { view: "detail", approvedN: DRAFTS.length },
+    steps: [
+      { at: 300, cursor: "camp-top" },
+      { at: 900, click: true, set: { view: "detail" } },
+      { at: 1600, cursor: "draft-top" },
+      { at: 2100, click: true, set: { expanded: true } },
+      { at: 2350, set: { scroll: 250 } },
+      { at: 2600, zoom: "draft-body", scale: 1.15 },
+      { at: 4700, zoom: null, set: { scroll: 0 } },
+      { at: 4900, cursor: "approve-all" },
+      { at: 5500, click: true, set: { pressApprove: true } },
+      ...approveSteps(5700),
+      { at: 7000, cursor: "nav-inbox" },
+      { at: 7600, click: true, next: true },
     ],
   },
   {
@@ -109,8 +119,7 @@ const SCENES = [
       { at: 900, click: true, set: { filter: "replies" } },
       { at: 1500, cursor: "reply-in" },
       { at: 2300, cursor: "draft-btn" },
-      { at: 2800, click: true, set: { drafting: true } },
-      { at: 3000, zoom: "composer", scale: 1.4 },
+      { at: 2800, click: true, set: { drafting: true }, zoom: "composer", scale: 1.4, pinBottom: true },
       { at: 3500, set: { typing: true } },
       { at: 5900, set: { typed: true } },
       { at: 6200, cursor: "send" },
@@ -170,12 +179,43 @@ const SCENES = [
   },
 ];
 
+// On phones there is no sidebar: every page change opens the real ☰ menu
+// first, then taps the page in it. The added taps push later steps back.
+// Moving to a target can also scroll the page, so a tap waits until that
+// scroll has settled instead of landing while the page is still moving.
+const PHONE_SETTLE = 1000;
+function phoneSteps(steps) {
+  let shift = 0;
+  let lastMove = -Infinity;
+  return steps.flatMap(step => {
+    let at = step.at + shift;
+    if (step.click && at - lastMove < PHONE_SETTLE) {
+      shift += PHONE_SETTLE - (at - lastMove);
+      at = lastMove + PHONE_SETTLE;
+    }
+    if (step.cursor) lastMove = at;
+    if (step.cursor?.startsWith("nav-")) {
+      // The ☰ button is at the top, so reaching it can scroll the page up.
+      shift += 1500;
+      lastMove = at + 1500;
+      return [
+        { ...step, cursor: "menu-btn", at },
+        { at: at + 950, click: true, menu: true },
+        { ...step, at: at + 1500 },
+      ];
+    }
+    return [{ ...step, at }];
+  });
+}
+
 // Position of a data-hd target in stage coordinates. offsetLeft/Top ignore
 // CSS transforms, so the camera zoom does not disturb the measurement; the
 // few elements the demo moves with transforms say by how much in data-hd-dy.
 function measure(camera, key) {
-  const el = camera?.querySelector(`[data-hd="${key}"]`);
-  if (!el || !el.offsetParent) return null;
+  // The same target can exist twice (desktop table row and phone card); use
+  // the one that is actually showing.
+  const el = [...(camera?.querySelectorAll(`[data-hd="${key}"]`) || [])].find(node => node.offsetParent);
+  if (!el) return null;
   let x = 0;
   let y = 0;
   let node = el;
@@ -219,6 +259,10 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
   const [clicking, setClicking] = React.useState(false);
   const [reduced, setReduced] = React.useState(false);
   const [frame, setFrame] = React.useState({ scale: 1, width: 1400, height: 640, compact: false });
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const compactRef = React.useRef(false);
+  const scrollRef = React.useRef(0);
+  const pageRef = React.useRef(null);
 
   const clearTimers = () => {
     timers.current.forEach(clearTimeout);
@@ -233,12 +277,14 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
     setRun(r => r + 1);
     setFlags({});
     setZoom({ key: null, scale: 1 });
+    setMenuOpen(false);
 
-    def.steps.forEach(step => {
+    (compactRef.current ? phoneSteps(def.steps) : def.steps).forEach(step => {
       timers.current.push(setTimeout(() => {
         if (step.set) setFlags(prev => ({ ...prev, ...step.set }));
+        if (step.menu) setMenuOpen(true);
         if (step.cursor) setCursorKey(step.cursor);
-        if ("zoom" in step) setZoom({ key: step.zoom, scale: step.scale || 1 });
+        if ("zoom" in step) setZoom({ key: step.zoom, scale: step.scale || 1, pinBottom: Boolean(step.pinBottom) });
         if (step.click) {
           setClicking(true);
           timers.current.push(setTimeout(() => setClicking(false), 160));
@@ -293,10 +339,13 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
     const fit = () => {
       const w = shell.clientWidth;
       const h = shell.clientHeight;
-      const compact = w < 600;
-      const width = compact ? 760 : 1400;
+      // Phones and small tablets see the app's own phone layout at real size;
+      // the app's CSS switches to it at the same 900px breakpoint.
+      const compact = window.innerWidth <= 900;
+      compactRef.current = compact;
+      const width = compact ? w : 1400;
       const scale = w / width;
-      setFrame({ scale, width, height: Math.ceil(h / scale), compact });
+      setFrame({ scale, width, height: compact ? h : Math.ceil(h / scale), compact });
     };
     fit();
     const observer = new ResizeObserver(fit);
@@ -304,12 +353,74 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
     return () => observer.disconnect();
   }, []);
 
+  // On phones, content that grows on its own (a reply typing itself) changes
+  // the page height without a step; re-aim the camera when that happens.
+  const [, setGrowth] = React.useState(0);
+  React.useEffect(() => {
+    const camera = cameraRef.current;
+    if (!frame.compact || !camera || typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(() => setGrowth(n => n + 1));
+    observer.observe(camera);
+    return () => observer.disconnect();
+  }, [frame.compact]);
+
   // Aim the cursor and the camera after every render, so targets that moved
   // (a row that sorted, an email that expanded) are followed.
   React.useLayoutEffect(() => {
     const camera = cameraRef.current;
     const cursor = cursorRef.current;
     if (!camera) return;
+
+    // Phones: no zoom. The page scrolls so whatever matters stays in view;
+    // windows that open on top (lead, call, file picker) sit in that view.
+    if (frame.compact) {
+      const modalOpen = Boolean(flags.open || flags.pickerOpen);
+      const focus = zoom.key || cursorKey;
+      const box = focus ? measure(camera, focus) : null;
+      // A new page (next scene, or a campaign opening) starts at the top at
+      // once, like a phone, instead of visibly scrolling up over the old one.
+      const page = `${run}-${flags.view || ""}`;
+      const newPage = page !== pageRef.current;
+      pageRef.current = page;
+      if (newPage) scrollRef.current = 0;
+      if (!modalOpen) {
+        const H = frame.height;
+        const content = camera.scrollHeight;
+        let y = scrollRef.current;
+        if (!box) {
+          // The target is gone (a menu closed): stay where we are.
+        } else if (zoom.pinBottom) {
+          // Some moments (a reply being drafted) pin the page to its bottom.
+          y = H - content;
+        } else {
+          // Scroll only as far as needed to bring the focus into view, keeping
+          // its bottom visible (a reply that grows while it types) and, when it
+          // fits, its top too.
+          const bottom = box.y + box.h + y;
+          if (bottom > H * 0.9) y -= bottom - H * 0.9;
+          if (box.h < H * 0.8 && box.y + y < H * 0.08) y = H * 0.08 - box.y;
+        }
+        scrollRef.current = Math.min(0, Math.max(Math.min(0, H - content), y));
+      }
+      if (newPage) {
+        camera.style.transition = "none";
+        camera.style.transform = `translateY(${scrollRef.current}px)`;
+        void camera.offsetHeight;
+        camera.style.transition = "";
+      }
+      camera.style.transform = `translateY(${scrollRef.current}px)`;
+      camera.style.setProperty("--hd-view-top", `${-scrollRef.current}px`);
+      camera.style.setProperty("--hd-view-h", `${frame.height}px`);
+      const tap = cursorKey ? measure(camera, cursorKey) : null;
+      if (cursor && tap) {
+        const x = tap.x + Math.min(tap.w / 2, 80);
+        const y = tap.y + tap.h / 2;
+        cursor._x = x;
+        cursor._y = y;
+        cursor.style.transform = `translate(${x}px, ${y}px)`;
+      }
+      return;
+    }
 
     if (cursor && cursorKey) {
       const box = measure(camera, cursorKey);
@@ -340,10 +451,10 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
   const Screen = def.Screen;
 
   return (
-    <>
+    <CompactContext.Provider value={frame.compact}>
       <div id="product" ref={shellRef} className="landing-product-shell hd-shell" aria-label="GNX Sales product tour" role="group">
         <div
-          className="hd-stage"
+          className={`hd-stage ${frame.compact ? "is-compact" : ""}`}
           style={{ width: frame.width, height: frame.height, transform: `scale(${frame.scale})` }}
           aria-hidden="true"
           inert
@@ -369,6 +480,26 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
                     })}
                   </div>
                 ))}
+              </aside>
+            )}
+
+            {frame.compact && (
+              <aside className="app-shell-sidebar hd-phone-bar">
+                <div className="app-shell-brand"><Logo size={28} /></div>
+                <span data-hd="menu-btn" className="app-shell-menu-btn"><Icon name={menuOpen ? "close" : "menu"} size={22} /></span>
+                <div className={`app-shell-mobile-drawer ${menuOpen ? "is-open" : ""}`}>
+                  {NAV.map((group, gi) => (
+                    <div key={gi} className="app-shell-mobile-group">
+                      {group.label && <div className="app-shell-mobile-label">{group.label}</div>}
+                      {group.items.map(([id, label, ico]) => (
+                        <span key={id} data-hd={`nav-${id}`} className={`app-shell-mobile-item ${id === def.nav ? "is-active" : ""}`}>
+                          <Icon name={ico} size={18} color={id === def.nav ? "var(--g-600)" : "var(--muted)"} />
+                          <span>{label}</span>
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </aside>
             )}
 
@@ -414,6 +545,6 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
           </button>
         )}
       </div>
-    </>
+    </CompactContext.Provider>
   );
 }
