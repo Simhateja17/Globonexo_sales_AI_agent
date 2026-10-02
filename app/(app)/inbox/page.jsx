@@ -319,7 +319,7 @@ export default function InboxPage() {
                 className={`email-thread-item ${selectedId === item.id ? "is-active" : ""}`}
                 onClick={() => setSelectedId(item.id)}
               >
-                <Avatar name={item.name} size={42} />
+                <Avatar name={item.name} src={item.photoUrl || undefined} size={42} />
                 <div className="email-thread-copy">
                   <div className="row spread" style={{ gap: 8 }}>
                     <strong className="ellip">{item.name}</strong>
@@ -352,7 +352,7 @@ export default function InboxPage() {
           {thread ? (
             <>
               <div className="row" style={{ gap: 12, minWidth: 0 }}>
-                <Avatar name={displayName} size={42} />
+                <Avatar name={displayName} src={lead.photo_url || thread?.photoUrl || undefined} size={42} />
                 <div className="col" style={{ minWidth: 0 }}>
                   <strong className="ellip">{displayName}</strong>
                   <span className="ellip">{lead.email || thread.email || thread.company || "Lead email"}</span>
