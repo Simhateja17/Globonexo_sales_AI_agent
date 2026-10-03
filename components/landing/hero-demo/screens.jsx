@@ -410,7 +410,7 @@ function CampaignDetail({ f }) {
 
           <div className="col" style={{ gap: 12 }}>
             <div className="card" style={{ padding: 16 }}>
-              <div className="row spread" style={{ gap: 12, alignItems: "flex-start" }}>
+              <div className="row spread hd-email-head" style={{ gap: 12, alignItems: "flex-start" }}>
                 <div className="col" style={{ gap: 3 }}>
                   <strong style={{ fontSize: 14 }}>Generated emails · {DRAFTS.length} ready</strong>
                   <span className="faint" style={{ fontSize: 12.5 }}>

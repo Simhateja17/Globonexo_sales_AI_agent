@@ -2752,6 +2752,8 @@ a { color: inherit; text-decoration: none; }
 .hd-stage.is-compact .email-thread-scroll { max-height: none !important; overflow: hidden !important; }
 .hd-stage.is-compact .email-thread-item:nth-child(n+4) { display: none; }
 .hd-stage.is-compact .agent-overview-panel { display: none !important; }
+/* Approve buttons go under the email count instead of off the right edge. */
+.hd-stage.is-compact .hd-email-head { flex-direction: column; align-items: stretch !important; }
 /* The agent prompt wraps onto more lines as it types instead of running off the side. */
 .hd-stage.is-compact .agent-input-row { align-items: flex-end; }
 .hd-stage.is-compact .agent-input-row .input-wrap { min-width: 0; }
@@ -2763,7 +2765,10 @@ a { color: inherit; text-decoration: none; }
 .hd-stage.is-compact .app-shell-mobile-label { padding: 6px 10px 2px; }
 @media (max-width: 900px) {
   .landing-product-shell.hd-shell { height: min(72vh, 640px); }
+  /* Leave room under the intro frame for the Skip button. */
+  .gnx-intro .landing-product-shell.hd-shell { height: min(720px, calc(100vh - 172px), calc(100dvh - 172px)); }
 }
+.hd-skip.is-below { position: relative; right: auto; bottom: auto; margin: 12px auto 0; display: flex; width: fit-content; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); }
 .hd-cursor { position: absolute; top: 0; left: 0; z-index: 40; pointer-events: none; transform: translate(700px, 320px); transition: transform .75s cubic-bezier(.45,.05,.25,1); filter: drop-shadow(0 2px 3px rgba(0,0,0,.28)); }
 .hd-cursor svg { display: block; margin: -3px 0 0 -4px; transition: transform .12s; transform-origin: 4px 3px; }
 .hd-cursor.is-clicking svg { transform: scale(.8); }

@@ -184,6 +184,7 @@ const SCENES = [
 // Moving to a target can also scroll the page, so a tap waits until that
 // scroll has settled instead of landing while the page is still moving.
 const PHONE_SETTLE = 1000;
+const PHONE_WIDTH = 390;
 function phoneSteps(steps) {
   let shift = 0;
   let lastMove = -Infinity;
@@ -341,11 +342,13 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
       const h = shell.clientHeight;
       // Phones and small tablets see the app's own phone layout at real size;
       // the app's CSS switches to it at the same 900px breakpoint.
+      // A frame narrower than a real phone (the intro frame on a phone is
+      // ~330px) still gets a 390px page, scaled down, so nothing is squeezed.
       const compact = window.innerWidth <= 900;
       compactRef.current = compact;
-      const width = compact ? w : 1400;
+      const width = compact ? Math.max(w, PHONE_WIDTH) : 1400;
       const scale = w / width;
-      setFrame({ scale, width, height: compact ? h : Math.ceil(h / scale), compact });
+      setFrame({ scale, width, height: Math.ceil(h / scale), compact });
     };
     fit();
     const observer = new ResizeObserver(fit);
@@ -449,6 +452,11 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
 
   const def = SCENES[scene];
   const Screen = def.Screen;
+  const skip = (
+    <button type="button" className={`hd-skip ${frame.compact ? "is-below" : ""}`} onClick={onSkip}>
+      Skip intro <Icon name="arrow" size={13} />
+    </button>
+  );
 
   return (
     <CompactContext.Provider value={frame.compact}>
@@ -539,12 +547,10 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
             )}
           </div>
         </div>
-        {intro && (
-          <button type="button" className="hd-skip" onClick={onSkip}>
-            Skip intro <Icon name="arrow" size={13} />
-          </button>
-        )}
+        {intro && !frame.compact && skip}
       </div>
+      {/* Phones: below the frame, where it does not cover the small screen. */}
+      {intro && frame.compact && skip}
     </CompactContext.Provider>
   );
 }
