@@ -452,11 +452,6 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
 
   const def = SCENES[scene];
   const Screen = def.Screen;
-  const skip = (
-    <button type="button" className={`hd-skip ${frame.compact ? "is-below" : ""}`} onClick={onSkip}>
-      Skip intro <Icon name="arrow" size={13} />
-    </button>
-  );
 
   return (
     <CompactContext.Provider value={frame.compact}>
@@ -547,10 +542,12 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
             )}
           </div>
         </div>
-        {intro && !frame.compact && skip}
+        {intro && (
+          <button type="button" className="hd-skip" onClick={onSkip}>
+            Skip intro <Icon name="arrow" size={13} />
+          </button>
+        )}
       </div>
-      {/* Phones: below the frame, where it does not cover the small screen. */}
-      {intro && frame.compact && skip}
     </CompactContext.Provider>
   );
 }

@@ -19,9 +19,10 @@ const CALENDLY_URL = "https://calendly.com/gnxsales-support/30min";
 const INTRO_KEY = "gnx-hero-intro-seen";
 
 // Runs before first paint so the heading never flashes before the intro.
-// Skipped for return visitors, reduced motion, and crawlers, so the heading is
-// always there for anyone who is not watching the demo.
-const INTRO_SCRIPT = `try{var d=document.documentElement;if(!localStorage.getItem("${INTRO_KEY}")&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!navigator.webdriver&&!/bot|crawl|spider|slurp|lighthouse|headless/i.test(navigator.userAgent))d.classList.add("gnx-intro")}catch(e){}`;
+// Skipped for return visitors, phones and small tablets (they always get the
+// heading with the demo below it), reduced motion, and crawlers, so the heading
+// is always there for anyone who is not watching the demo.
+const INTRO_SCRIPT = `try{var d=document.documentElement;if(innerWidth>900&&!localStorage.getItem("${INTRO_KEY}")&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!navigator.webdriver&&!/bot|crawl|spider|slurp|lighthouse|headless/i.test(navigator.userAgent))d.classList.add("gnx-intro")}catch(e){}`;
 
 export default function LandingPage() {
   const router = useRouter();
