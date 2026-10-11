@@ -23,7 +23,7 @@ export const metadata = {
         url: SOCIAL_IMAGE,
         width: 1200,
         height: 630,
-        alt: "What is a sales automation platform - GNX Sales",
+        alt: "What is a sales automation platform, GNX Sales",
       },
     ],
   },

@@ -129,7 +129,7 @@ export function ArticleSchema({
 }
 
 // The blog index itself, plus the posts it lists. Posts that are not written
-// yet are deliberately absent - listing an unpublished URL is a broken promise
+// yet are deliberately absent, listing an unpublished URL is a broken promise
 // to a crawler.
 export function BlogSchema({ name, description, posts = [] }) {
   const schema = {

@@ -340,7 +340,7 @@ function MeetingProposalCard({ proposal }) {
       <div style={{ fontSize: 13, fontWeight: 700, marginTop: 10 }}>{name}{lead.company ? ` · ${lead.company}` : ''}</div>
       {proposal?.text && <p className="faint" style={{ fontSize: 12, lineHeight: 1.5, margin: '8px 0 10px' }}>{proposal.text}</p>}
       {slots.length > 0 ? <div className="row wrap" style={{ gap: 7 }}>{slots.map(slot => <span key={slot.startAt} className="chip" style={{ fontSize: 11.5 }}>{slot.label}</span>)}</div> : <p className="faint" style={{ fontSize: 12 }}>No real calendar slots were available for this proposal.</p>}
-      <p className="faint" style={{ fontSize: 10.5, marginTop: 10 }}>Draft only - nothing was sent or booked.</p>
+      <p className="faint" style={{ fontSize: 10.5, marginTop: 10 }}>Draft only, nothing was sent or booked.</p>
     </div>
   );
 }
@@ -659,7 +659,7 @@ export default function AgentPage() {
       const isTimeout = err?.code === 'ECONNABORTED';
       const reason = err?.response?.data?.error
         || (isTimeout
-          ? "That took too long to finish. It may still be running - check the relevant page, or try again."
+          ? "That took too long to finish. It may still be running, check the relevant page, or try again."
           : "Something went wrong reaching the agent. Please try again.");
       setMsgs(m => [...m, { who: 'agent', kind: 'text', text: reason }]);
     } finally {

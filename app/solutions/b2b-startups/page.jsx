@@ -1,7 +1,7 @@
 export const metadata = {
   title: "AI Sales Agent for B2B Startups Building Outbound",
   description:
-    "Build an in-house outbound motion before you hire an SDR. Lead discovery, enrichment, personalized email, follow-ups, replies, and AI voice calls running in parallel across segments - from one subscription.",
+    "Build an in-house outbound motion before you hire an SDR. Lead discovery, enrichment, personalized email, follow-ups, replies, and AI voice calls running in parallel across segments, from one subscription.",
   alternates: { canonical: "/solutions/b2b-startups" },
   openGraph: {
     url: "/solutions/b2b-startups",
@@ -20,7 +20,7 @@ const workflow = [
   {
     icon: "target",
     title: "Lead discovery across segments",
-    body: "Before product-market fit is settled you are usually testing three guesses about who buys. Run a separate campaign per guess - its own ideal customer profile, its own qualification rubric - in parallel rather than one after another, so you learn in weeks instead of quarters.",
+    body: "Before product-market fit is settled you are usually testing three guesses about who buys. Run a separate campaign per guess, its own ideal customer profile, its own qualification rubric, in parallel rather than one after another, so you learn in weeks instead of quarters.",
   },
   {
     icon: "users",
@@ -30,7 +30,7 @@ const workflow = [
   {
     icon: "mail",
     title: "Personalized email without a copywriter",
-    body: "Each campaign holds its own product description, value proposition, pain points, objection handling, and tone. Messages are written from what is actually known about the person - and when the essential facts are missing, nothing is drafted at all.",
+    body: "Each campaign holds its own product description, value proposition, pain points, objection handling, and tone. Messages are written from what is actually known about the person, and when the essential facts are missing, nothing is drafted at all.",
   },
   {
     icon: "send",
@@ -55,7 +55,7 @@ const workflow = [
   {
     icon: "trend",
     title: "Evidence for the next board update",
-    body: "Emails sent, reply rate by campaign, meetings booked, call outcomes, and per-lead rejection reasons - enough to say which segment is responding and which one you should stop paying for.",
+    body: "Emails sent, reply rate by campaign, meetings booked, call outcomes, and per-lead rejection reasons, enough to say which segment is responding and which one you should stop paying for.",
   },
 ];
 
@@ -64,7 +64,7 @@ const beforeHiring = [
   "Three segments can be tested at once instead of sequentially through one person's week",
   "The ideal customer profile is written down and editable rather than living in somebody's head",
   "When you do hire, the new rep inherits a working motion and a record of what has already been tried",
-  "Nothing about the setup has to be unwound - the agent keeps running alongside the team",
+  "Nothing about the setup has to be unwound, the agent keeps running alongside the team",
 ];
 
 const faqs = [
@@ -78,7 +78,7 @@ const faqs = [
   },
   {
     q: "How many campaigns can I run at once?",
-    a: "That is what scales with the plan. Every tier includes the full capability set - email sequences, enrichment, and AI voice calling - and the tier decides how many email and voice campaigns run concurrently and how much monthly volume you get. The numbers are on the pricing page.",
+    a: "That is what scales with the plan. Every tier includes the full capability set, email sequences, enrichment, and AI voice calling, and the tier decides how many email and voice campaigns run concurrently and how much monthly volume you get. The numbers are on the pricing page.",
   },
   {
     q: "Do I need a lead list to start?",
@@ -100,7 +100,7 @@ export default function B2bStartupsPage() {
       breadcrumb={[{ name: "Solutions", path: "/solutions" }, { name: "For B2B startups", path: "/solutions/b2b-startups" }]}
       eyebrow="For B2B startups"
       title="Build an outbound motion before you hire for it."
-      intro="Lead discovery, enrichment, personalized email, follow-ups, replies, and AI voice calls - running across several segments at once, from one subscription, so a small team can find out who actually buys without spending a quarter on it."
+      intro="Lead discovery, enrichment, personalized email, follow-ups, replies, and AI voice calls, running across several segments at once, from one subscription, so a small team can find out who actually buys without spending a quarter on it."
       secondaryCta={{ href: "/pricing", label: "View pricing" }}
       cta={{
         heading: "Test three segments this month.",
@@ -133,7 +133,7 @@ export default function B2bStartupsPage() {
         <div className="guide-callout">
           <p>
             The honest limit: none of this substitutes for knowing what you sell and to whom. An agent makes a
-            good offer reach more of the right people. It will not rescue a weak one - it will just show you, more
+            good offer reach more of the right people. It will not rescue a weak one, it will just show you, more
             quickly and more cheaply, that the market is not responding.
           </p>
         </div>

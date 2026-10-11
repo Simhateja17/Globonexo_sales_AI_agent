@@ -1,13 +1,13 @@
 export const metadata = {
   title: "B2B Lead Generation with an AI SDR Tool",
   description:
-    "B2B lead generation run by an AI SDR tool - sourcing, qualification, email sequences, and voice calls. See how it fits an individual seller, an agency running outbound for clients, or a startup building outbound in-house.",
+    "B2B lead generation run by an AI SDR tool: sourcing, qualification, email sequences, and voice calls. See how it fits an individual seller, an agency running outbound for clients, or a startup building outbound in-house.",
   alternates: { canonical: "/solutions" },
   openGraph: {
     url: "/solutions",
     title: "B2B Lead Generation with an AI SDR Tool",
     description:
-      "Sales engagement software that sources, qualifies, writes, sends, and calls - framed for individuals, agencies, and startups.",
+      "Sales engagement software that sources, qualifies, writes, sends, and calls, framed for individuals, agencies, and startups.",
   },
 };
 
@@ -85,7 +85,7 @@ const faqs = [
   },
   {
     q: "How does it decide who is worth contacting?",
-    a: "You define an ideal customer profile once - industries, titles, seniority, geography, company size. Every candidate is checked against that explicit, editable rubric before any enrichment is paid for, and rejections are shown with reasons rather than disappearing silently.",
+    a: "You define an ideal customer profile once, industries, titles, seniority, geography, company size. Every candidate is checked against that explicit, editable rubric before any enrichment is paid for, and rejections are shown with reasons rather than disappearing silently.",
   },
   {
     q: "Is voice calling available on every plan?",
@@ -103,7 +103,7 @@ export default function SolutionsPage() {
           <h1 className="display">B2B lead generation, built for how you actually sell.</h1>
           <p>
             The same AI SDR tool, framed three ways. Every plan includes the full sales engagement software
-            capability set - email sequences, lead sourcing and enrichment, and AI voice calling. What changes is
+            capability set, email sequences, lead sourcing and enrichment, and AI voice calling. What changes is
             volume, not access.
           </p>
           <div className="content-hero-actions">

@@ -3,7 +3,7 @@ import React from "react";
 
 // Ported from the Claude Design export (tested_panel_literal.html). Four
 // scenes play in sequence on a fixed schedule (not a continuous clock like
-// QualifyDemo - this design is a discrete setTimeout chain per scene, so it's
+// QualifyDemo, this design is a discrete setTimeout chain per scene, so it's
 // ported the same way: a flags object updated on a matching schedule).
 // Scene 0 runs longer than the rest: it has to show a scenario fail, get
 // corrected, and re-run before it passes, and that arc needs room to read.
@@ -16,7 +16,7 @@ const REAL_SLOT_INDEX = 3;
 // that arc is illustrative, not a replay of a specific logged failure.
 export const RUNS = [
   { name: "Busy prospect" },
-  { name: "Skeptical prospect", reason: "Too pushy - adjusting tone" },
+  { name: "Skeptical prospect", reason: "Too pushy, adjusting tone" },
   { name: "Wrong person" },
 ];
 
@@ -73,7 +73,7 @@ export default function VoiceTestDemo() {
 
     const playScene0 = () => {
       // Rows resolve one at a time, then row 1 fails, gets corrected and is
-      // re-run before it passes - the whole point of the scene.
+      // re-run before it passes, the whole point of the scene.
       schedule(() => setRun(0, "running"), 500);
       schedule(() => setRun(0, "passed"), 1100);
       schedule(() => setRun(1, "running"), 1300);
@@ -171,7 +171,7 @@ export default function VoiceTestDemo() {
         </div>
 
         <div className="vd-scenes">
-          {/* Scene 1 - scored scenarios */}
+          {/* Scene 1, scored scenarios */}
           <div className={cx("vd-scene", f.scene === 0 && "is-active")}>
             <div className="vd-scene-head">
               <div className="vd-scene-icon"><Search /></div>
@@ -202,7 +202,7 @@ export default function VoiceTestDemo() {
             </div>
           </div>
 
-          {/* Scene 2 - refuses to invent an answer */}
+          {/* Scene 2, refuses to invent an answer */}
           <div className={cx("vd-scene", f.scene === 1 && "is-active")}>
             <div className="vd-scene-head">
               <div className="vd-scene-icon"><Lines /></div>
@@ -226,7 +226,7 @@ export default function VoiceTestDemo() {
             </div>
           </div>
 
-          {/* Scene 3 - ends on a real DNC request */}
+          {/* Scene 3, ends on a real DNC request */}
           <div className={cx("vd-scene", f.scene === 2 && "is-active")}>
             <div className="vd-scene-head">
               <div className="vd-scene-icon"><PhoneOff /></div>
@@ -249,7 +249,7 @@ export default function VoiceTestDemo() {
             </div>
           </div>
 
-          {/* Scene 4 - books only what's actually open */}
+          {/* Scene 4, books only what's actually open */}
           <div className={cx("vd-scene", f.scene === 3 && "is-active")}>
             <div className="vd-scene-head">
               <div className="vd-scene-icon"><Calendar /></div>
@@ -286,7 +286,7 @@ export default function VoiceTestDemo() {
                 <CheckIcon />
                 <div>
                   <div className="vd-confirm-time">Tue, 10:20 AM</div>
-                  <div className="vd-confirm-tag">CONFIRMED - REAL OPEN SLOT</div>
+                  <div className="vd-confirm-tag">CONFIRMED, REAL OPEN SLOT</div>
                 </div>
               </div>
               <div className={cx("vd-caption", f.caption3 && "is-show")}>Books only real calendar slots, never an invented time</div>

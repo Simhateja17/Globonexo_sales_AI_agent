@@ -1,7 +1,7 @@
 export const metadata = {
   title: "AI SDR Tools: Buyer's Guide and Comparison",
   description:
-    "A buyer's guide to AI SDR tools - the categories on the market, what each one actually automates, the questions to ask before you buy, and how to tell a real AI SDR from a sequencer with an AI label.",
+    "A buyer's guide to AI SDR tools, the categories on the market, what each one actually automates, the questions to ask before you buy, and how to tell a real AI SDR from a sequencer with an AI label.",
   alternates: { canonical: "/ai-sdr-tools" },
   openGraph: {
     url: "/ai-sdr-tools",
@@ -21,7 +21,7 @@ import GuideLayout, { ComparisonTable } from "../../components/marketing/GuideLa
 const categories = [
   {
     name: "Lead databases",
-    does: "Sell you access to contact records - companies, people, emails, phone numbers, firmographics.",
+    does: "Sell you access to contact records, companies, people, emails, phone numbers, firmographics.",
     gap: "Finding a person is not the same as knowing they should be contacted. The list arrives; the deciding, writing, sending, and following up are still yours.",
   },
   {
@@ -49,7 +49,7 @@ const categories = [
 const questions = [
   {
     q: "Does it decide who to contact, or only how to reach them?",
-    a: "A real AI SDR checks each account against your ideal customer profile before it spends anything on enrichment. A sequencer takes whatever list you hand it. Ask to see the qualification rules - and ask whether you can read and edit them, or whether they are a hidden score.",
+    a: "A real AI SDR checks each account against your ideal customer profile before it spends anything on enrichment. A sequencer takes whatever list you hand it. Ask to see the qualification rules, and ask whether you can read and edit them, or whether they are a hidden score.",
   },
   {
     q: "What does it do when it does not know enough?",
@@ -65,11 +65,11 @@ const questions = [
   },
   {
     q: "Does a reply actually stop the follow-ups?",
-    a: "It should happen automatically, on every terminal state - engaged, meeting booked, not interested, unsubscribed. Ask specifically, because the follow-up that arrives after someone already replied is the one that costs you the deal.",
+    a: "It should happen automatically, on every terminal state, engaged, meeting booked, not interested, unsubscribed. Ask specifically, because the follow-up that arrives after someone already replied is the one that costs you the deal.",
   },
   {
     q: "How is it priced, and what is metered?",
-    a: "Per seat, per contact, per enriched record, per email, per call minute - the axis matters more than the headline number. A single credit pool that flexes across enrichment, drafting, and calling is far easier to forecast than four separate meters.",
+    a: "Per seat, per contact, per enriched record, per email, per call minute, the axis matters more than the headline number. A single credit pool that flexes across enrichment, drafting, and calling is far easier to forecast than four separate meters.",
   },
   {
     q: "Can it book the meeting itself?",

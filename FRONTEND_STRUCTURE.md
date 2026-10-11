@@ -1,4 +1,4 @@
-# Globonexo Sales AI - Frontend Structure Guide
+# Globonexo Sales AI: Frontend Structure Guide
 
 **Goal:** Ensure every page is properly structured in the Next.js App Router, with clear component boundaries and API wiring.
 
@@ -179,7 +179,7 @@
 
 ## 3. Component Extraction Plan
 
-### Phase 1 - Layout + Auth (Week 1)
+### Phase 1: Layout + Auth (Week 1)
 
 Extract from `GlobonexoPrototype.jsx`:
 
@@ -196,7 +196,7 @@ Extract from `GlobonexoPrototype.jsx`:
 11. `Sidebar` → `components/layout/Sidebar.jsx`
 12. `TopBar` → `components/layout/TopBar.jsx`
 
-### Phase 2 - Onboarding (Week 1)
+### Phase 2: Onboarding (Week 1)
 
 1. `OnboardingWizard` → `components/onboarding/OnboardingLayout.jsx`
 2. `Step0` → `components/onboarding/Step1About.jsx`
@@ -205,7 +205,7 @@ Extract from `GlobonexoPrototype.jsx`:
 5. `Step3` + `Step4` → `components/onboarding/Step3Agent.jsx`
 6. `CelebrationScreen` → `app/(app)/onboarding/celebration/page.jsx`
 
-### Phase 3 - Dashboard (Week 4)
+### Phase 3: Dashboard (Week 4)
 
 1. `Dashboard` → `app/(app)/dashboard/page.jsx`
 2. KPI cards → `components/dashboard/KPICard.jsx`
@@ -214,7 +214,7 @@ Extract from `GlobonexoPrototype.jsx`:
 5. Weekly goal → `components/dashboard/WeeklyGoal.jsx`
 6. Next meeting → `components/dashboard/NextMeeting.jsx`
 
-### Phase 4 - Campaigns + Leads (Week 2)
+### Phase 4: Campaigns + Leads (Week 2)
 
 1. `Campaigns` → `app/(app)/campaigns/page.jsx`
 2. Campaign cards → `components/campaigns/CampaignCard.jsx`
@@ -225,7 +225,7 @@ Extract from `GlobonexoPrototype.jsx`:
 7. Apollo search UI → `components/leads/ApolloSearch.jsx`
 8. CSV upload → `components/leads/CSVUpload.jsx`
 
-### Phase 5 - Inbox (Week 2)
+### Phase 5: Inbox (Week 2)
 
 1. `Inbox` → `app/(app)/inbox/page.jsx`
 2. Thread list → `components/inbox/ThreadList.jsx`
@@ -233,7 +233,7 @@ Extract from `GlobonexoPrototype.jsx`:
 4. Message bubble → `components/inbox/MessageBubble.jsx`
 5. AI draft actions → `components/inbox/AIDraftActions.jsx`
 
-### Phase 6 - Voice + Analytics + Billing + Settings (Weeks 3-4)
+### Phase 6: Voice + Analytics + Billing + Settings (Weeks 3-4)
 
 1. `AgentWorkspace` → `app/(app)/agent/page.jsx`
 2. `Pipeline` → `app/(app)/pipeline/page.jsx`

@@ -22,7 +22,7 @@ async function loadFonts() {
 }
 
 export const alt =
-  "What Is a Sales Automation Platform? And What It Actually Replaces - GNX Sales";
+  "What Is a Sales Automation Platform? And What It Actually Replaces, GNX Sales";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

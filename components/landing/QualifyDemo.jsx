@@ -3,7 +3,7 @@ import React from "react";
 import Icon from "../ui/Icon";
 
 // Ported from the Claude Design export (Qualify Panel.dc.html). A single
-// continuous clock `t` drives everything - a sweeping glow line reveals each
+// continuous clock `t` drives everything, a sweeping glow line reveals each
 // row (skeleton -> blurred text -> sharp text) as it passes, rather than the
 // old discrete-beat timeline. The left-hand check list stays in sync with
 // the same clock so both halves never drift apart.

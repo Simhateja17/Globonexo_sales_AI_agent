@@ -131,7 +131,7 @@ function CampaignApolloMultiSelect({ label, options, value, onChange, placeholde
 }
 
 // Curated shortlist covering the regions this tool's orgs actually operate
-// in - the full ~400-zone IANA list was overwhelming in a plain dropdown.
+// in. The full ~400-zone IANA list was overwhelming in a plain dropdown.
 const TIMEZONES = [
   "America/New_York",
   "America/Chicago",
@@ -258,7 +258,7 @@ export default function NewCampaignPage() {
   }, []);
 
   // Restore any in-progress draft first. Only fall back to the onboarding
-  // cadence defaults when there's no draft to restore - otherwise the async
+  // cadence defaults when there's no draft to restore, otherwise the async
   // onboarding fetch resolves after the restore and silently overwrites
   // whatever delay values the user had already customized.
   useEffect(() => {
@@ -679,7 +679,7 @@ export default function NewCampaignPage() {
                 <Field label="Campaign name" hint="Use a name your sales team can recognize in reports.">
                   <input
                     className="input"
-                    placeholder="Series B SaaS VP Sales - Q3"
+                    placeholder="Series B SaaS VP Sales, Q3"
                     value={form.name}
                     onChange={event => set("name", event.target.value)}
                     maxLength={120}
@@ -839,10 +839,10 @@ export default function NewCampaignPage() {
                         style={{ marginTop: 3, flex: "none" }}
                       />
                       <span className="campaign-new-prelaunch-text" style={{ fontSize: 12.5, lineHeight: 1.5 }}>
-                        <strong>Test the agent with simulated calls before launch - 100 credits.</strong>{" "}
+                        <strong>Test the agent with simulated calls before launch, 100 credits.</strong>{" "}
                         {form.simulationEnabled
                           ? "Runs the agent through scripted scenarios to check it holds up under different prospect behavior before any real call happens."
-                          : "You're skipping this. The agent will go live untested - its first real conversation will be with an actual prospect, not a scripted test, so any issue in how it responds shows up there first."}
+                          : "You're skipping this. The agent will go live untested, its first real conversation will be with an actual prospect, not a scripted test, so any issue in how it responds shows up there first."}
                       </span>
                     </label>
                   </div>

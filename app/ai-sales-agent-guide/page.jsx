@@ -22,7 +22,7 @@ const loop = [
   },
   {
     step: "Find the accounts",
-    body: "It searches for companies and people matching your ideal customer profile - industries, titles, seniority, geography, company size - or takes a list you already have.",
+    body: "It searches for companies and people matching your ideal customer profile, industries, titles, seniority, geography, company size, or takes a list you already have.",
   },
   {
     step: "Qualify before spending",
@@ -38,7 +38,7 @@ const loop = [
   },
   {
     step: "Send and follow up",
-    body: "Messages go out throttled and inside sending windows. Follow-ups run on schedule until something changes - and a reply stops them automatically.",
+    body: "Messages go out throttled and inside sending windows. Follow-ups run on schedule until something changes, and a reply stops them automatically.",
   },
   {
     step: "Handle replies",
@@ -66,7 +66,7 @@ const canDo = [
 ];
 
 const cannotDo = [
-  "Find product-market fit for you - faster outreach to the wrong market fails faster",
+  "Find product-market fit for you, faster outreach to the wrong market fails faster",
   "Run a discovery call that requires real judgment about a complex deal",
   "Negotiate pricing or terms",
   "Take responsibility for your compliance obligations around consent, opt-outs, and call disclosure",
@@ -75,7 +75,7 @@ const cannotDo = [
 ];
 
 const evaluate = [
-  "Ask what it does when the context is thin - a tool that always writes will sometimes write something false",
+  "Ask what it does when the context is thin, a tool that always writes will sometimes write something false",
   "Ask whether qualification happens before or after enrichment is billed",
   "Ask whether email and calling share one prospect record or live in two products",
   "Ask who approves a message by default, and how autopilot is turned on",
@@ -91,7 +91,7 @@ const faqs = [
   },
   {
     q: "How is an AI sales agent different from sales automation software?",
-    a: "Sales automation software automates execution - sending on a schedule, updating records, triggering tasks. An AI sales agent makes decisions too: who is worth contacting, what is true about them, what to say, and when to stop. The difference shows up in who writes the message and who decides it should be sent at all.",
+    a: "Sales automation software automates execution, sending on a schedule, updating records, triggering tasks. An AI sales agent makes decisions too: who is worth contacting, what is true about them, what to say, and when to stop. The difference shows up in who writes the message and who decides it should be sent at all.",
   },
   {
     q: "Is an AI sales agent the same as an AI writing assistant?",
@@ -99,7 +99,7 @@ const faqs = [
   },
   {
     q: "Do AI sales agents actually book meetings?",
-    a: "Yes, when booking is a real tool the agent can call rather than a link it pastes. The thing to check is whether it reads live calendar availability - an agent that proposes times it has not verified will eventually double-book someone.",
+    a: "Yes, when booking is a real tool the agent can call rather than a link it pastes. The thing to check is whether it reads live calendar availability, an agent that proposes times it has not verified will eventually double-book someone.",
   },
   {
     q: "Will prospects know they are talking to an AI?",
@@ -111,7 +111,7 @@ const faqs = [
   },
   {
     q: "How much does an AI sales agent cost?",
-    a: "Typically a monthly subscription in the low hundreds to low thousands, depending on volume. What matters more than the headline is the pricing axis - per seat, per contact, per enriched record, or per call minute - because at the same list size those produce very different bills.",
+    a: "Typically a monthly subscription in the low hundreds to low thousands, depending on volume. What matters more than the headline is the pricing axis, per seat, per contact, per enriched record, or per call minute, because at the same list size those produce very different bills.",
   },
 ];
 
@@ -121,7 +121,7 @@ export default function AiSalesAgentGuidePage() {
       breadcrumb={[{ name: "What is an AI sales agent?", path: "/ai-sales-agent-guide" }]}
       eyebrow="Category guide"
       title="What is an AI sales agent?"
-      intro="An AI sales agent runs the outbound motion end to end - finding buyers, researching them, writing, sending, following up, calling, and booking - instead of assisting with one step of it. This guide covers how the loop works, what it can and cannot do, and how to evaluate one honestly."
+      intro="An AI sales agent runs the outbound motion end to end, finding buyers, researching them, writing, sending, following up, calling, and booking, instead of assisting with one step of it. This guide covers how the loop works, what it can and cannot do, and how to evaluate one honestly."
       secondaryCta={{ href: "/platform", label: "See one running" }}
     >
       <section className="guide-body public-section">
@@ -184,7 +184,7 @@ export default function AiSalesAgentGuidePage() {
         <h2>The failure mode that matters</h2>
         <p>
           Almost every disappointing AI outreach story has the same shape: a message that sounded specific and was
-          not true. &ldquo;I know your team is struggling with X&rdquo; - written by a system that never knew that.
+          not true. &ldquo;I know your team is struggling with X&rdquo;, written by a system that never knew that.
           Readers have learned to spot it, and it does more damage than an obviously generic email, because it
           proves nobody looked.
         </p>

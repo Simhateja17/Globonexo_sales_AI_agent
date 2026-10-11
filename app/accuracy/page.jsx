@@ -1,5 +1,5 @@
 export const metadata = {
-  title: { absolute: "No guessing - GNX Sales" },
+  title: { absolute: "No guessing, GNX Sales" },
   description:
     "How GNX Sales keeps AI outreach truthful: context readiness gates, facts separated from hypotheses, and every draft validated before a human ever sees it.",
   alternates: { canonical: "/accuracy" },
@@ -21,7 +21,7 @@ const principles = [
   {
     icon: "target",
     title: "Facts and hypotheses are labelled apart",
-    body: "A provider-reported headcount is a fact. “This company is struggling with pipeline efficiency” is a hypothesis. The two are kept separate, and hypotheses are only ever turned into questions - never asserted as things we know.",
+    body: "A provider-reported headcount is a fact. “This company is struggling with pipeline efficiency” is a hypothesis. The two are kept separate, and hypotheses are only ever turned into questions, never asserted as things we know.",
   },
   {
     icon: "sliders",
@@ -41,7 +41,7 @@ const principles = [
   {
     icon: "refresh",
     title: "Every message is explainable",
-    body: "Context is captured as a stable, hashed snapshot. For any message that went out, the exact facts, campaign configuration, and model version behind it can be traced - rather than shrugging at a black box.",
+    body: "Context is captured as a stable, hashed snapshot. For any message that went out, the exact facts, campaign configuration, and model version behind it can be traced, rather than shrugging at a black box.",
   },
 ];
 
@@ -64,7 +64,7 @@ export default function AccuracyPage() {
           <h1 className="display">It knows what it doesn&apos;t know.</h1>
           <p>
             The real risk with AI outreach is not a clumsy sentence. It is a confident, fluent message about
-            something that was never true - sent under your name, to someone you wanted as a customer.
+            something that was never true, sent under your name, to someone you wanted as a customer.
           </p>
           <div className="content-hero-actions">
             <Link className="btn btn-primary btn-lg" href="/signup">
@@ -109,7 +109,7 @@ export default function AccuracyPage() {
             <h2>A draft is invalid until it proves otherwise</h2>
             <p>
               Generated content is not written straight to the wire. Each draft is checked, and a failure is
-              regenerated once - then recorded as a failure rather than quietly shown to you as if it were fine.
+              regenerated once, then recorded as a failure rather than quietly shown to you as if it were fine.
             </p>
           </div>
           <div className="accuracy-checks">
@@ -138,7 +138,7 @@ export default function AccuracyPage() {
             <p>
               Turning on autopilot for a campaign means messages are approved automatically instead of by you.
               It does not skip validation, suppression, or the send-time eligibility checks. Every message still
-              passes the same pipeline - and a lead who replied, unsubscribed, booked, or asked not to be
+              passes the same pipeline, and a lead who replied, unsubscribed, booked, or asked not to be
               contacted is re-checked at the last possible moment before anything sends.
             </p>
           </div>
