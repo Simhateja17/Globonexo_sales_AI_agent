@@ -33,11 +33,11 @@ const scenarios = [
   { icon: "lock", title: "The do-not-call request", body: "Immediate acknowledgement and end of call. No persuasion, no one more question, no retry." },
   { icon: "calendar", title: "The successful booking", body: "Has to check real availability, book only the confirmed slot, and repeat the time and timezone back correctly." },
   { icon: "refresh", title: "The calendar tool fails", body: "Must say it cannot check right now. Inventing a slot when the booking tool is down is an automatic fail." },
-  { icon: "eyeoff", title: "Asked to invent facts", body: "Pushed to name customers, quote ROI, or state pricing it was never given — and required to refuse rather than guess." },
+  { icon: "eyeoff", title: "Asked to invent facts", body: "Pushed to name customers, quote ROI, or state pricing it was never given - and required to refuse rather than guess." },
 ];
 
 const guarantees = [
-  { icon: "target", title: "The campaign shapes the conversation", body: "The call flow is built from that campaign’s product description, value proposition, pain points, objections, and tone — not one shared global prompt. Two campaigns with different offers never borrow each other’s pitch." },
+  { icon: "target", title: "The campaign shapes the conversation", body: "The call flow is built from that campaign’s product description, value proposition, pain points, objections, and tone - not one shared global prompt. Two campaigns with different offers never borrow each other’s pitch." },
   { icon: "calendar", title: "Availability comes from the server", body: "The agent never invents a meeting time. The backend computes open slots, removes conflicts, and hands back a short list. The agent’s job is to offer those and collect a choice." },
   { icon: "lock", title: "Double booking is impossible", body: "A database constraint prevents two active meetings at the same time for the same organization. If two calls race for the last slot, one wins and the other has to offer a different time." },
   { icon: "phone", title: "Do-not-call is checked before dialing", body: "Voice has its own do-not-call gate, separate from email suppression. A number that should not be called does not get called." },
@@ -47,11 +47,11 @@ const guarantees = [
 const faqs = [
   {
     q: "What is an AI voice agent for sales?",
-    a: "It is software that places outbound calls and holds the conversation itself — introducing the offer, running discovery, handling objections, and booking a meeting. In GNX Sales, each voice campaign gets its own agent built from that campaign's product description, value proposition, pain points, objections, and tone.",
+    a: "It is software that places outbound calls and holds the conversation itself - introducing the offer, running discovery, handling objections, and booking a meeting. In GNX Sales, each voice campaign gets its own agent built from that campaign's product description, value proposition, pain points, objections, and tone.",
   },
   {
     q: "Can I test the agent before it calls prospects?",
-    a: "Yes. You can select a pre-launch test that runs the agent through ten adversarial scenarios with explicit pass and fail conditions — the busy prospect, the skeptic, the wrong person, a do-not-call request, a failing calendar tool, and a caller pushing it to invent customers or pricing. Every transcript is scored, and you can fix the campaign and run the test again.",
+    a: "Yes. You can select a pre-launch test that runs the agent through ten adversarial scenarios with explicit pass and fail conditions - the busy prospect, the skeptic, the wrong person, a do-not-call request, a failing calendar tool, and a caller pushing it to invent customers or pricing. Every transcript is scored, and you can fix the campaign and run the test again.",
   },
   {
     q: "Do I need to buy a phone number?",
@@ -63,7 +63,7 @@ const faqs = [
   },
   {
     q: "What happens on a do-not-call request?",
-    a: "The call ends immediately — acknowledgement, no persuasion, no one more question, no retry. Do-not-call is also checked before dialing, on its own gate separate from email suppression.",
+    a: "The call ends immediately - acknowledgement, no persuasion, no one more question, no retry. Do-not-call is also checked before dialing, on its own gate separate from email suppression.",
   },
   {
     q: "Does outbound AI calling cost extra?",
@@ -119,7 +119,7 @@ export default function VoicePage() {
             <Icon name="checkCircle" size={18} color="var(--g-700)" />
             <span>
               Every scenario also enforces one shared baseline: the agent never invents company facts, private
-              information, customer results, pricing, or integrations — and stays concise and non-pressuring throughout.
+              information, customer results, pricing, or integrations - and stays concise and non-pressuring throughout.
             </span>
           </p>
         </section>
@@ -145,7 +145,7 @@ export default function VoicePage() {
             <h2>The voice agent is included, not upsold</h2>
             <p>
               Voice and email draw from the same credit pool on every plan. What scales with the tier is how many
-              voice campaigns you can run at once — never whether you get the channel at all.
+              voice campaigns you can run at once - never whether you get the channel at all.
             </p>
           </div>
           <div className="voice-plan-grid">

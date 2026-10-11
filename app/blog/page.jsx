@@ -11,13 +11,13 @@ export const metadata = {
     url: "/blog",
     title: TITLE,
     description:
-      "A four-part series on how automated outbound works — what a platform runs and what your team keeps.",
+      "A four-part series on how automated outbound works - what a platform runs and what your team keeps.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Outbound, explained — the GNX Sales blog",
+        alt: "Outbound, explained - the GNX Sales blog",
       },
     ],
   },
@@ -25,7 +25,7 @@ export const metadata = {
     card: "summary_large_image",
     title: TITLE,
     description:
-      "A four-part series on how automated outbound works — what a platform runs and what your team keeps.",
+      "A four-part series on how automated outbound works - what a platform runs and what your team keeps.",
     images: ["/og-image.png"],
   },
 };

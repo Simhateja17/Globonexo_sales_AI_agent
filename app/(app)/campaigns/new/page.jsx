@@ -839,10 +839,10 @@ export default function NewCampaignPage() {
                         style={{ marginTop: 3, flex: "none" }}
                       />
                       <span className="campaign-new-prelaunch-text" style={{ fontSize: 12.5, lineHeight: 1.5 }}>
-                        <strong>Test the agent with simulated calls before launch — 100 credits.</strong>{" "}
+                        <strong>Test the agent with simulated calls before launch - 100 credits.</strong>{" "}
                         {form.simulationEnabled
                           ? "Runs the agent through scripted scenarios to check it holds up under different prospect behavior before any real call happens."
-                          : "You're skipping this. The agent will go live untested — its first real conversation will be with an actual prospect, not a scripted test, so any issue in how it responds shows up there first."}
+                          : "You're skipping this. The agent will go live untested - its first real conversation will be with an actual prospect, not a scripted test, so any issue in how it responds shows up there first."}
                       </span>
                     </label>
                   </div>

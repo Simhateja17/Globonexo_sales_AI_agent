@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GNX Sales — Pricing comparison prototype</title>
+    <title>GNX Sales - Pricing comparison prototype</title>
     <meta name="description" content="Throwaway UI prototype for the GNX Sales pricing comparison section." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -304,7 +304,7 @@
         <div class="variant-lead">
           <div>
             <div class="overline">Variant C · Governed workflow</div>
-            <h2 id="variant-c-title">A prospect moves through five decisions—not one blast.</h2>
+            <h2 id="variant-c-title">A prospect moves through five decisions-not one blast.</h2>
             <p>This version explains GNX as a control system. It is strongest when the buyer wants to understand why the product is safer at every stage.</p>
           </div>
           <div class="lead-stat"><strong>01 → 05</strong><span>from fit to conversation</span></div>
@@ -369,22 +369,22 @@
         </div>
       </section>
 
-      <p class="prototype-footer">Prototype only — copy, row count, and visual direction are for approval before production implementation.</p>
+      <p class="prototype-footer">Prototype only - copy, row count, and visual direction are for approval before production implementation.</p>
     </main>
 
     <div class="prototype-bar" aria-label="Prototype variant switcher">
       <button type="button" data-direction="previous" aria-label="Previous variation">←</button>
-      <div class="prototype-current"><b id="variant-label">A — Guided proof path</b><span>Use ← / → or choose a variation</span></div>
+      <div class="prototype-current"><b id="variant-label">A - Guided proof path</b><span>Use ← / → or choose a variation</span></div>
       <button type="button" data-direction="next" aria-label="Next variation">→</button>
       <div class="variant-pips" aria-hidden="true"><i data-pip="a" class="active"></i><i data-pip="b"></i><i data-pip="c"></i><i data-pip="d"></i></div>
     </div>
 
     <script>
       const variants = [
-        { key: 'a', label: 'A — Guided proof path' },
-        { key: 'b', label: 'B — Premium comparison cards' },
-        { key: 'c', label: 'C — Governed workflow' },
-        { key: 'd', label: 'D — Structured table' },
+        { key: 'a', label: 'A - Guided proof path' },
+        { key: 'b', label: 'B - Premium comparison cards' },
+        { key: 'c', label: 'C - Governed workflow' },
+        { key: 'd', label: 'D - Structured table' },
       ];
       const getVariant = () => {
         const value = new URLSearchParams(window.location.search).get('variant')?.toLowerCase();

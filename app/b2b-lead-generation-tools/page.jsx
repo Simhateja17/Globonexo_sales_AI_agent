@@ -1,7 +1,7 @@
 export const metadata = {
   title: "B2B Lead Generation Tools: A Practical Guide",
   description:
-    "A practical guide to B2B lead generation tools — the stack most teams end up with, what each layer costs you in time and money, how to run the whole thing as one motion, and the metrics that tell you it is working.",
+    "A practical guide to B2B lead generation tools - the stack most teams end up with, what each layer costs you in time and money, how to run the whole thing as one motion, and the metrics that tell you it is working.",
   alternates: { canonical: "/b2b-lead-generation-tools" },
   openGraph: {
     url: "/b2b-lead-generation-tools",
@@ -17,53 +17,53 @@ import GuideLayout, { GuideList, ComparisonTable } from "../../components/market
 
 const layers = [
   {
-    name: "1. Sourcing — finding the accounts",
+    name: "1. Sourcing - finding the accounts",
     body: "A contact database or scraper turns your ideal customer profile into a list of companies and people. This is the cheapest layer to buy and the easiest to get wrong: a list is only as good as the profile behind it, and most teams write that profile once, loosely, and never revisit it.",
     watch: "Records existing in a database is not evidence anyone is contactable. Expect a meaningful share of any list to have no work email, an unverified address, or a shared inbox behind it.",
   },
   {
-    name: "2. Enrichment — filling in the gaps",
+    name: "2. Enrichment - filling in the gaps",
     body: "Enrichment adds the detail a message needs: verified email, role and seniority, company size, industry, technologies, funding. It is usually metered per record, which means you pay for the bad-fit accounts as well as the good ones.",
     watch: "Qualify before you enrich, not after. Ordering it the other way around is the single most common way lead generation budgets disappear.",
   },
   {
-    name: "3. Qualification — deciding who is worth it",
+    name: "3. Qualification - deciding who is worth it",
     body: "An explicit rubric that scores each account against your profile: right industries, right titles, right seniority, right geography, right size. Done well, it is readable and editable. Done badly, it is a hidden score you cannot argue with.",
     watch: "If a tool cannot show you why a lead was rejected, you cannot fix your targeting. Rejection reasons are more useful than accept rates.",
   },
   {
-    name: "4. Messaging — writing the outreach",
+    name: "4. Messaging - writing the outreach",
     body: "First touch, follow-up, and breakup. Generated as one coherent sequence, later steps build on earlier ones. Generated one at a time, you get the same pitch three times with different opening lines.",
     watch: "Personalization that is wrong is worse than none. A sentence about a problem the company does not have tells the reader nobody looked.",
   },
   {
-    name: "5. Sending — getting it delivered",
+    name: "5. Sending - getting it delivered",
     body: "Throttling, sending windows, domain warming, and reply tracking. This layer decides whether any of the previous four matter, because an undelivered message is an unread one.",
     watch: "Volume is the enemy of deliverability. Tight targeting lets you send less and land more.",
   },
   {
-    name: "6. Follow-up and replies — the part that gets dropped",
+    name: "6. Follow-up and replies - the part that gets dropped",
     body: "Most meetings come from the second and third touch, and most teams stop after the first. Reply handling matters just as much: the follow-up that lands after somebody already answered is the one that loses the deal.",
     watch: "A reply must stop the rest of the sequence automatically, on every terminal state, not when you remember to pause it.",
   },
   {
-    name: "7. Calling — the channel most teams skip",
-    body: "A phone call reaches people who never open email, and reaches them faster. It is skipped because it is the most expensive minute in the stack — unless an AI voice agent places the call.",
+    name: "7. Calling - the channel most teams skip",
+    body: "A phone call reaches people who never open email, and reaches them faster. It is skipped because it is the most expensive minute in the stack - unless an AI voice agent places the call.",
     watch: "If calling lives in a separate product, the voice agent has no idea what your emails already said to the same person.",
   },
   {
-    name: "8. Booking — turning interest into a meeting",
+    name: "8. Booking - turning interest into a meeting",
     body: "Real calendar availability, timezone handling, buffers, minimum notice, reschedules. Unglamorous and the place automation most often falls over.",
     watch: "An agent that proposes a time it has not checked will eventually double-book someone. That costs more goodwill than it saved effort.",
   },
 ];
 
 const metrics = [
-  "Reply rate per campaign, not per mailbox — a healthy campaign and a dead one average out to something meaningless",
+  "Reply rate per campaign, not per mailbox - a healthy campaign and a dead one average out to something meaningless",
   "Meetings booked per hundred qualified leads, which is the only number that survives contact with a CFO",
   "Rejection reasons by count, so a shortfall reads as a targeting problem rather than a mystery",
   "Cost per booked meeting across every meter you are paying, not just the subscription",
-  "Time from list build to first send — the stack tax you pay every single campaign",
+  "Time from list build to first send - the stack tax you pay every single campaign",
 ];
 
 const comparison = [
@@ -86,7 +86,7 @@ const faqs = [
   },
   {
     q: "How many lead generation tools do I actually need?",
-    a: "Fewer than most teams end up with. Each additional tool adds a bill, an integration, and a place where prospect context gets lost. The strongest argument for a single platform is not the price — it is that the agent writing the message already knows everything learned while finding the person.",
+    a: "Fewer than most teams end up with. Each additional tool adds a bill, an integration, and a place where prospect context gets lost. The strongest argument for a single platform is not the price - it is that the agent writing the message already knows everything learned while finding the person.",
   },
   {
     q: "Should I qualify leads before or after enrichment?",
@@ -122,7 +122,7 @@ export default function B2bLeadGenerationToolsPage() {
       <section id="layers" className="guide-body public-section">
         <h2>The eight layers of a lead generation stack</h2>
         <p>
-          You need every one of these to book a meeting. The question is not whether you have them — it is how
+          You need every one of these to book a meeting. The question is not whether you have them - it is how
           many separate products you are paying for, and how much context is dropped between them.
         </p>
         {layers.map((layer) => (

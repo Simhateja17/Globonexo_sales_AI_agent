@@ -96,7 +96,7 @@ export default function IndividualsPage() {
       breadcrumb={[{ name: "Solutions", path: "/solutions" }, { name: "For an individual", path: "/solutions/individuals" }]}
       eyebrow="For an individual"
       title="Run outbound yourself without making it your whole day."
-      intro="Find and qualify prospects, prepare personalized email sequences, follow up, handle replies, and add AI voice calls from one workflow — while keeping control of what goes live."
+      intro="Find and qualify prospects, prepare personalized email sequences, follow up, handle replies, and add AI voice calls from one workflow - while keeping control of what goes live."
       secondaryCta={{ href: "/pricing", label: "View pricing" }}
       cta={{
         heading: "Build an outbound workflow you can manage alone.",

@@ -23,7 +23,7 @@ const areas = [
     icon: "spark",
     eyebrow: "Getting started",
     title: "Setup copilot",
-    body: "A guided flow that builds your agent configuration — what you sell, who buys it, your value proposition, pain points, and tone — and can draft your first campaign for you to confirm.",
+    body: "A guided flow that builds your agent configuration - what you sell, who buys it, your value proposition, pain points, and tone - and can draft your first campaign for you to confirm.",
     points: [
       "Nothing is created without your explicit confirmation",
       "A campaign is only reported as launched if the launch actually succeeded",
@@ -34,7 +34,7 @@ const areas = [
     icon: "target",
     eyebrow: "Targeting",
     title: "Campaigns and qualification",
-    body: "You define an ideal customer profile once — industries, titles, seniority, geography, company size. Candidates are then checked against an explicit, editable rubric before anything is spent on them.",
+    body: "You define an ideal customer profile once - industries, titles, seniority, geography, company size. Candidates are then checked against an explicit, editable rubric before anything is spent on them.",
     points: [
       "Qualification runs before enrichment is paid for",
       "Rules are readable and editable, not a hidden score",
@@ -48,7 +48,7 @@ const areas = [
     body: "Find companies and people through a lead sourcing and enrichment provider, upload a CSV, or add leads by hand. Enrichment runs in batches with retry and backoff so one rate limit does not sink an import.",
     points: [
       "A person existing in a database is not treated as proof they are contactable",
-      "Rejections are shown with reasons — no email, unverified address, shared inbox, duplicate, suppressed, do-not-call",
+      "Rejections are shown with reasons - no email, unverified address, shared inbox, duplicate, suppressed, do-not-call",
       "A shortfall is reported as a targeting insight instead of a silent gap",
     ],
   },
@@ -92,7 +92,7 @@ const areas = [
     title: "Meetings",
     body: "Set your timezone, working days, hours, meeting length, buffer, and minimum notice. The agent books against real availability computed on the server.",
     points: [
-      "The model never invents a time — it offers server-computed slots and collects a choice",
+      "The model never invents a time - it offers server-computed slots and collects a choice",
       "A database constraint makes double booking impossible",
       "Reschedule and cancel are supported as first-class actions",
     ],
@@ -101,7 +101,7 @@ const areas = [
     icon: "trend",
     eyebrow: "Visibility",
     title: "Dashboard and analytics",
-    body: "Emails sent, replies and reply rate, meetings booked, leads needing attention, an activity feed, and a weekly meeting goal — plus campaign and voice-call performance breakdowns.",
+    body: "Emails sent, replies and reply rate, meetings booked, leads needing attention, an activity feed, and a weekly meeting goal - plus campaign and voice-call performance breakdowns.",
     points: [
       "Per-campaign and per-call performance",
       "Credit usage metered per provider and reconciled against actual reported cost",
@@ -156,7 +156,7 @@ export default function PlatformPage() {
           <h1 className="display">The AI sales tool that runs the whole outbound motion.</h1>
           <p>
             Not a sending tool with an AI label bolted on. This is lead generation software, an email sequencer, an
-            AI voice agent, and a reply inbox in one sales automation platform — targeting, research, writing,
+            AI voice agent, and a reply inbox in one sales automation platform - targeting, research, writing,
             sending, calling, replies, and meetings running as one system with one shared understanding of every
             prospect.
           </p>

@@ -68,7 +68,7 @@ export default function SiteSchema() {
   );
 }
 
-// Breadcrumbs for pages that sit below the top level. Emitted as data only —
+// Breadcrumbs for pages that sit below the top level. Emitted as data only -
 // the visible navigation already exists in the header and footer.
 export function BreadcrumbSchema({ trail }) {
   const schema = {
@@ -129,7 +129,7 @@ export function ArticleSchema({
 }
 
 // The blog index itself, plus the posts it lists. Posts that are not written
-// yet are deliberately absent — listing an unpublished URL is a broken promise
+// yet are deliberately absent - listing an unpublished URL is a broken promise
 // to a crawler.
 export function BlogSchema({ name, description, posts = [] }) {
   const schema = {

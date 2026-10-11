@@ -1,7 +1,7 @@
 export const metadata = {
   title: "Sales Automation Software That Runs the Whole Motion",
   description:
-    "Sales automation software that does more than send on a schedule. GNX Sales sources and qualifies leads, writes personalized sequences, follows up, handles replies, places AI voice calls, and books meetings — from one subscription.",
+    "Sales automation software that does more than send on a schedule. GNX Sales sources and qualifies leads, writes personalized sequences, follows up, handles replies, places AI voice calls, and books meetings - from one subscription.",
   alternates: { canonical: "/sales-automation-software" },
   openGraph: {
     url: "/sales-automation-software",
@@ -30,7 +30,7 @@ const automates = [
   {
     icon: "mail",
     title: "Writing the outreach",
-    body: "First touch, follow-up, and breakup are generated together as one coherent sequence, from that campaign's own positioning — not one shared global template.",
+    body: "First touch, follow-up, and breakup are generated together as one coherent sequence, from that campaign's own positioning - not one shared global template.",
   },
   {
     icon: "send",
@@ -65,7 +65,7 @@ const comparison = [
   { them: "Priced per seat, so growing the team doubles the bill", us: "Priced by volume, with no seat charge" },
   { them: "Calling is a separate product with its own data", us: "Email and voice share one prospect record" },
   { them: "Templates with a first name swapped in", us: "Each message written from what is actually known about that person" },
-  { them: "The model writes even when it knows nothing", us: "No required facts, no message — silence beats a guess" },
+  { them: "The model writes even when it knows nothing", us: "No required facts, no message - silence beats a guess" },
   { them: "Weeks of setup and a implementation call", us: "Live in about five minutes" },
 ];
 
@@ -112,7 +112,7 @@ export default function SalesAutomationSoftwarePage() {
       breadcrumb={[{ name: "Sales automation software", path: "/sales-automation-software" }]}
       eyebrow="Sales automation software"
       title="Sales automation that does more than press send."
-      intro="Most sales automation software automates the sending and leaves you the thinking. GNX Sales sources and qualifies the accounts, researches each person, writes the sequence, sends it, follows up, drafts the replies, places the calls, and books the meeting — from one subscription."
+      intro="Most sales automation software automates the sending and leaves you the thinking. GNX Sales sources and qualifies the accounts, researches each person, writes the sequence, sends it, follows up, drafts the replies, places the calls, and books the meeting - from one subscription."
       secondaryCta={{ href: "/pricing", label: "View pricing" }}
       cta={{
         heading: "Automate the whole motion, not just the sending.",

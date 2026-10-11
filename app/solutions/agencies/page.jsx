@@ -1,7 +1,7 @@
 export const metadata = {
   title: "AI Sales Agent for Agencies Running Client Outbound",
   description:
-    "Run outbound for every client from one system. Separate ideal customer profiles, positioning, sequences, and voice agents per client — lead discovery, enrichment, email, follow-ups, replies, and calls without accounts bleeding into one another.",
+    "Run outbound for every client from one system. Separate ideal customer profiles, positioning, sequences, and voice agents per client - lead discovery, enrichment, email, follow-ups, replies, and calls without accounts bleeding into one another.",
   alternates: { canonical: "/solutions/agencies" },
   openGraph: {
     url: "/solutions/agencies",
@@ -20,12 +20,12 @@ const workflow = [
   {
     icon: "target",
     title: "Lead discovery, per client",
-    body: "Each client campaign carries its own ideal customer profile — industries, titles, seniority, geography, company size — and its own qualification rubric. Accounts are found against that profile, not a shared one, so a fintech client's list and a logistics client's list never touch.",
+    body: "Each client campaign carries its own ideal customer profile - industries, titles, seniority, geography, company size - and its own qualification rubric. Accounts are found against that profile, not a shared one, so a fintech client's list and a logistics client's list never touch.",
   },
   {
     icon: "users",
     title: "Enrichment you are not paying twice for",
-    body: "Candidates are checked against the client's rubric before enrichment is billed, so you are not burning budget discovering that an account was never a fit. Rejections come back with reasons — no work email, unverified address, shared inbox, duplicate, suppressed — which is exactly the evidence you need when a client asks why the list came in short.",
+    body: "Candidates are checked against the client's rubric before enrichment is billed, so you are not burning budget discovering that an account was never a fit. Rejections come back with reasons - no work email, unverified address, shared inbox, duplicate, suppressed - which is exactly the evidence you need when a client asks why the list came in short.",
   },
   {
     icon: "mail",
@@ -40,7 +40,7 @@ const workflow = [
   {
     icon: "inbox",
     title: "Replies threaded and drafted",
-    body: "Responses are pulled from the connected mailbox, threaded, and drafted for review. A reply stops the rest of that prospect's sequence automatically — no more explaining to a client why a follow-up landed after their prospect had already answered.",
+    body: "Responses are pulled from the connected mailbox, threaded, and drafted for review. A reply stops the rest of that prospect's sequence automatically - no more explaining to a client why a follow-up landed after their prospect had already answered.",
   },
   {
     icon: "phone",
@@ -55,14 +55,14 @@ const workflow = [
   {
     icon: "trend",
     title: "Reporting a client will accept",
-    body: "Per-campaign and per-call performance, emails sent, reply rate, meetings booked, and credit usage metered per provider — so a monthly client report is a screenshot, not an evening's work.",
+    body: "Per-campaign and per-call performance, emails sent, reply rate, meetings booked, and credit usage metered per provider - so a monthly client report is a screenshot, not an evening's work.",
   },
 ];
 
 const separation = [
   "Each campaign carries its own targeting rules, so one client's accounts never enter another's pipeline",
   "Each campaign stores its own positioning, tone, and objection handling rather than sharing a global setting",
-  "A campaign keeps the brief it launched with — changing one client's positioning next month never rewrites outreach you already sent",
+  "A campaign keeps the brief it launched with - changing one client's positioning next month never rewrites outreach you already sent",
   "Voice campaigns get their own agent and conversation flow, so two clients never share one prompt",
   "Suppression and do-not-call are enforced per campaign, not just globally",
 ];
@@ -78,7 +78,7 @@ const faqs = [
   },
   {
     q: "What happens if a client changes their positioning?",
-    a: "A campaign freezes the brief it launched with. Updating positioning affects campaigns you launch afterwards and never silently rewrites outreach that has already gone out — which matters when a client asks what exactly was sent in March.",
+    a: "A campaign freezes the brief it launched with. Updating positioning affects campaigns you launch afterwards and never silently rewrites outreach that has already gone out - which matters when a client asks what exactly was sent in March.",
   },
   {
     q: "Can each client have their own voice agent?",
@@ -100,7 +100,7 @@ export default function AgenciesPage() {
       breadcrumb={[{ name: "Solutions", path: "/solutions" }, { name: "For agencies", path: "/solutions/agencies" }]}
       eyebrow="For agencies"
       title="Run outbound for every client from one system."
-      intro="Lead discovery, enrichment, personalized email, follow-ups, replies, and voice calls — running separately for each client, out of one subscription, without accounts or positioning bleeding into one another."
+      intro="Lead discovery, enrichment, personalized email, follow-ups, replies, and voice calls - running separately for each client, out of one subscription, without accounts or positioning bleeding into one another."
       secondaryCta={{ href: "/pricing", label: "View pricing" }}
       cta={{
         heading: "Add your next client without adding a tool.",
@@ -137,7 +137,7 @@ export default function AgenciesPage() {
         <div className="guide-callout">
           <p>
             The most useful of these is the frozen brief. When a client asks in June what was actually sent in
-            March, the campaign still holds the exact positioning it launched with — including the model version
+            March, the campaign still holds the exact positioning it launched with - including the model version
             and the facts behind each message.
           </p>
         </div>

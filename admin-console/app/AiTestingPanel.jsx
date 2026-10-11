@@ -111,10 +111,10 @@ function VoiceModelPicker({ catalog, value, onChange, voicePlaceholder = "Keep c
         </Field>
       </div>
       <div className="admin-pill-list">
-        <span className="chip">voice · {voice ? money(voice.pricePerMinute) : "—"}</span>
+        <span className="chip">voice · {voice ? money(voice.pricePerMinute) : "-"}</span>
         <span className="chip">backup · {backup ? `${PROVIDER_LABELS[backup.provider] || backup.provider}` : "none"}</span>
-        <span className="chip">model · {model ? money(model.pricePerMinute) : "—"}</span>
-        <span className="chip" style={{ fontWeight: 800 }}>voice + model · {total == null ? "—" : `$${total.toFixed(3)}/min`}</span>
+        <span className="chip">model · {model ? money(model.pricePerMinute) : "-"}</span>
+        <span className="chip" style={{ fontWeight: 800 }}>voice + model · {total == null ? "-" : `$${total.toFixed(3)}/min`}</span>
         {preview ? <audio controls src={preview} style={{ height: 30 }} /> : null}
       </div>
       {catalog?.voicesError ? <div className="notice-warn">Retell voice list could not be loaded: {catalog.voicesError}</div> : null}
@@ -230,7 +230,7 @@ function VoiceSettingsSection({ catalog, organizations, setError, setNotice, onO
                   <tr className="data-row" key={row.organization_id}>
                     <td><strong>{orgName(row.organization_id)}</strong></td>
                     <td>{row.voice_id || "platform default"}</td>
-                    <td>{row.fallback_voice_id || "—"}</td>
+                    <td>{row.fallback_voice_id || "-"}</td>
                     <td>{row.model || "platform default"}</td>
                     <td><span className="faint">{row.updated_at ? new Date(row.updated_at).toLocaleString() : ""}</span></td>
                   </tr>

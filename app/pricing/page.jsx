@@ -24,7 +24,7 @@ import FaqSection from "../../components/marketing/FaqSection";
 const comparison = [
   { them: 'Buy a list and send to all of it', us: 'Every account checked against your profile first' },
   { them: 'Pay to enrich, then find out they were a bad fit', us: 'Fit is settled before a credit is spent' },
-  { them: 'Email only — calling is a different tool and a second bill', us: 'Email and AI voice from one shared pool' },
+  { them: 'Email only - calling is a different tool and a second bill', us: 'Email and AI voice from one shared pool' },
   { them: 'The model writes whatever sounds convincing', us: 'It is handed an explicit list of what it does not know' },
   { them: 'No way to rehearse calls before launch', us: 'Choose a scored adversarial stress test before launch' },
   { them: 'You remember to stop the sequence after a reply', us: 'A reply stops the follow-ups on its own' },
@@ -67,7 +67,7 @@ export default function PricingPage() {
         <section className="story-hero public-section">
           <span className="eyebrow">Pricing</span>
           <h1 className="display">AI sales agent pricing without adding headcount.</h1>
-          <p>Choose a monthly or annual paid plan. Every tier includes the same core sales loop — email sequences, lead enrichment, and AI voice calling. Credits set the ceiling and flex across enrichment, drafting, and calling, so AI SDR pricing here means one number, not a feature ladder.</p>
+          <p>Choose a monthly or annual paid plan. Every tier includes the same core sales loop - email sequences, lead enrichment, and AI voice calling. Credits set the ceiling and flex across enrichment, drafting, and calling, so AI SDR pricing here means one number, not a feature ladder.</p>
           <div className="content-hero-actions">
             <Link className="btn btn-primary btn-lg" href="/signup">
               Choose a plan <Icon name="arrow" size={18} color="#06231a" />

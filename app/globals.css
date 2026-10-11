@@ -36,7 +36,7 @@
   --bg-2:   #eef5f1;
 
   /* ---- Semantic ---- */
-  /* Rejection/stop state. 6.6:1 on white, 6.3:1 on --bg — readable as text,
+  /* Rejection/stop state. 6.6:1 on white, 6.3:1 on --bg - readable as text,
      unlike the bright greens which are fill-only. */
   --stop:    #b42318;
   --stop-50: #fdf3f2;
@@ -3459,7 +3459,7 @@ a { color: inherit; text-decoration: none; }
 .landing-text-link { margin-top: 26px; display: inline-flex; align-items: center; gap: 7px; color: var(--g-700); font-size: 14px; font-weight: 700; }
 .landing-text-link:hover { gap: 10px; }
 
-/* Co-pilot chat mock. Deliberately a conversation, not a checklist — it must not
+/* Co-pilot chat mock. Deliberately a conversation, not a checklist - it must not
    read like the qualification panel in the section above it. */
 .cp { overflow: hidden; min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--r-xl); box-shadow: var(--sh-md); }
 .cp-thread { padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
@@ -3474,7 +3474,7 @@ a { color: inherit; text-decoration: none; }
 .cp-rows span { margin-top: 2px; display: block; color: var(--muted); font-size: 10.5px; }
 .cp-input { padding: 12px 16px; display: flex; align-items: center; gap: 8px; color: var(--faint); background: var(--bg); border-top: 1px solid var(--line); font-size: 12px; }
 
-/* Comparison table. The only two-column compare on the site — its whole job is
+/* Comparison table. The only two-column compare on the site - its whole job is
    to look unlike every card grid above it. */
 .cmp { margin-top: 44px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-xl); }
 .cmp-head { display: grid; grid-template-columns: 1fr 1fr; background: var(--bg); border-bottom: 1px solid var(--line); }
@@ -3543,7 +3543,7 @@ a { color: inherit; text-decoration: none; }
 .plan-card.is-featured .plan-limits { border-top-color: rgba(255,255,255,.16); }
 .plan-limits li { display: flex; flex-direction: column; }
 /* The number+label pair is its own row, so the label centers on the number
-   itself — not on the number plus the "Up to" line stacked above it. */
+   itself - not on the number plus the "Up to" line stacked above it. */
 .plan-limit-row { display: flex; align-items: center; gap: 9px; }
 .plan-limits b { min-width: 62px; color: var(--g-800); font-family: var(--font-display); font-size: 19px; text-align: center; }
 .plan-limits span { color: var(--muted); font-size: 13px; font-weight: 700; }
@@ -6428,7 +6428,7 @@ canvas {
 @keyframes tour-spin { to { transform: rotate(360deg); } }
 
 /* ============================================================
-   Agent screen — visual refresh
+   Agent screen - visual refresh
    ============================================================ */
 .agent-chat-head {
   position: relative;
@@ -6517,7 +6517,7 @@ canvas {
 }
 
 /* ============================================================
-   Calls (AI voice calls) screen — visual refresh
+   Calls (AI voice calls) screen - visual refresh
    ============================================================ */
 .calls-kpi-grid {
   display: grid;

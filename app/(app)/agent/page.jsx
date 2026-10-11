@@ -322,7 +322,7 @@ function CampaignDraftCard({ campaign, onPrepare }) {
         <span className="chip" style={{ fontSize: 10.5 }}>Draft</span>
       </div>
       <div style={{ fontSize: 14, fontWeight: 700, marginTop: 12 }}>{campaign.name || 'New campaign'}</div>
-      <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>{campaign.channel || 'email'} · up to {campaign.maxLeads ?? '—'} leads · nothing will send yet</div>
+      <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>{campaign.channel || 'email'} · up to {campaign.maxLeads ?? '-'} leads · nothing will send yet</div>
       <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }} disabled={busy} onClick={prepare}>
         <Icon name="bolt" size={13} color="#06231a" /> {busy ? 'Preparing…' : 'Proceed with Campaign preparation'}
       </button>
@@ -340,7 +340,7 @@ function MeetingProposalCard({ proposal }) {
       <div style={{ fontSize: 13, fontWeight: 700, marginTop: 10 }}>{name}{lead.company ? ` · ${lead.company}` : ''}</div>
       {proposal?.text && <p className="faint" style={{ fontSize: 12, lineHeight: 1.5, margin: '8px 0 10px' }}>{proposal.text}</p>}
       {slots.length > 0 ? <div className="row wrap" style={{ gap: 7 }}>{slots.map(slot => <span key={slot.startAt} className="chip" style={{ fontSize: 11.5 }}>{slot.label}</span>)}</div> : <p className="faint" style={{ fontSize: 12 }}>No real calendar slots were available for this proposal.</p>}
-      <p className="faint" style={{ fontSize: 10.5, marginTop: 10 }}>Draft only — nothing was sent or booked.</p>
+      <p className="faint" style={{ fontSize: 10.5, marginTop: 10 }}>Draft only - nothing was sent or booked.</p>
     </div>
   );
 }

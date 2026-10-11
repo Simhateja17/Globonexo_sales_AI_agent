@@ -10,7 +10,7 @@ import {
   marketingCeilingsFor,
 } from "../../lib/plans";
 
-// Every plan ships the same capability set by design — only volume changes.
+// Every plan ships the same capability set by design - only volume changes.
 // So the cards carry the numbers (which differ) and the shared capability list
 // is stated once, below the grid, instead of three identical times inside it.
 export const SHARED_CAPABILITIES = [
@@ -21,7 +21,7 @@ export const SHARED_CAPABILITIES = [
   "Suppression and do-not-call handling",
 ];
 
-// marketingCeilingsFor() lives in lib/plans.js — see that file for how these
+// marketingCeilingsFor() lives in lib/plans.js - see that file for how these
 // rounded numbers relate to the real, verified usage ceilings.
 const limitsFor = (plan) => {
   const { emailsPerMonth, callsPerMonth } = marketingCeilingsFor(plan);

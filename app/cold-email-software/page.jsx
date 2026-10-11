@@ -30,11 +30,11 @@ const stopsAt = [
   },
   {
     title: "Personalization is a merge field",
-    body: "A first name and a company name in a shared template is not personalization, and readers have long since learned to spot it. Genuine per-person writing requires knowing something specific about the person — which requires research the sending tool does not do.",
+    body: "A first name and a company name in a shared template is not personalization, and readers have long since learned to spot it. Genuine per-person writing requires knowing something specific about the person - which requires research the sending tool does not do.",
   },
   {
     title: "AI add-ons write from thin context",
-    body: "Where an AI drafting button exists, it is handed whatever happens to be in the spreadsheet row and asked to sound convincing. That is the setup that produces a confident sentence about a challenge the company does not have — the worst outcome available, because it proves nobody looked.",
+    body: "Where an AI drafting button exists, it is handed whatever happens to be in the spreadsheet row and asked to sound convincing. That is the setup that produces a confident sentence about a challenge the company does not have - the worst outcome available, because it proves nobody looked.",
   },
   {
     title: "Email is the only channel",
@@ -54,7 +54,7 @@ const comparison = [
   { them: "Sends to the list you supply", us: "Finds and qualifies the list against your profile first" },
   { them: "Templates with merge fields", us: "Each message written from verified facts about that person" },
   { them: "AI drafts from whatever is in the row", us: "The model is told exactly what it does not know, and stops if the essentials are missing" },
-  { them: "Email only — calling is a second tool and a second bill", us: "Email and AI voice from one credit pool and one prospect record" },
+  { them: "Email only - calling is a second tool and a second bill", us: "Email and AI voice from one credit pool and one prospect record" },
   { them: "You read and answer every reply", us: "Replies are threaded and drafted, and stop the sequence automatically" },
   { them: "A scheduling link the prospect has to use", us: "The agent books against real calendar availability during the conversation" },
   { them: "Deliverability tooling, no targeting opinion", us: "Tight targeting so you send less and land more" },
@@ -82,7 +82,7 @@ const faqs = [
   },
   {
     q: "Is GNX Sales cold email software?",
-    a: "It includes everything cold email software does — sequences, throttled sending inside your windows, follow-ups, reply tracking — but it is broader than an email-only tool. It also sources and qualifies the leads, researches each person before writing, drafts the replies, places AI voice calls, and books the meeting.",
+    a: "It includes everything cold email software does - sequences, throttled sending inside your windows, follow-ups, reply tracking - but it is broader than an email-only tool. It also sources and qualifies the leads, researches each person before writing, drafts the replies, places AI voice calls, and books the meeting.",
   },
   {
     q: "Do I still need a separate cold email tool?",
@@ -90,7 +90,7 @@ const faqs = [
   },
   {
     q: "Does cold email still work?",
-    a: "Yes, when the targeting is tight and the message is specifically about the reader. What has stopped working is volume — sending more of the same template to a broader list. The constraint has shifted from delivery to relevance.",
+    a: "Yes, when the targeting is tight and the message is specifically about the reader. What has stopped working is volume - sending more of the same template to a broader list. The constraint has shifted from delivery to relevance.",
   },
   {
     q: "Will AI-written cold email hurt my domain reputation?",
@@ -108,7 +108,7 @@ export default function ColdEmailSoftwarePage() {
       breadcrumb={[{ name: "Cold email software", path: "/cold-email-software" }]}
       eyebrow="Comparison"
       title="Cold email software, and where it stops."
-      intro="Cold email software is genuinely good at one thing: getting a sequence delivered to a list at volume. The trouble is that everything before and after the sending — deciding who belongs on the list, knowing enough to write something true, answering the replies, reaching the people who never open email — is still yours."
+      intro="Cold email software is genuinely good at one thing: getting a sequence delivered to a list at volume. The trouble is that everything before and after the sending - deciding who belongs on the list, knowing enough to write something true, answering the replies, reaching the people who never open email - is still yours."
       secondaryCta={{ href: "/platform", label: "See the platform" }}
       cta={{
         heading: "More than an email tool.",
@@ -140,7 +140,7 @@ export default function ColdEmailSoftwarePage() {
       <section id="stops" className="guide-body public-section">
         <h2>Where it stops</h2>
         <p>
-          Six places the work comes back to you. None of them are flaws in the tools — they are simply outside
+          Six places the work comes back to you. None of them are flaws in the tools - they are simply outside
           what a sending product is built to do.
         </p>
         {stopsAt.map((item) => (

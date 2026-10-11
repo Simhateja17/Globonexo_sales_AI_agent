@@ -29,7 +29,7 @@ export default function LandingPage() {
   const { user, loading } = useAuth();
 
   const copilotPoints = [
-    'Ask it in plain English — no hunting through screens',
+    'Ask it in plain English - no hunting through screens',
     'Pause every live campaign with one sentence',
     'It keeps working between your campaigns, not just inside them',
     'Autopilot changes who approves a message, never what gets checked',
@@ -280,7 +280,7 @@ export default function LandingPage() {
           </div>
           <p className="landing-accuracy-note">
             <Icon name="alertCircle" size={16} color="var(--g-800)" />
-            <span>The line every prospect has learned to distrust — &ldquo;I know your team is struggling with X&rdquo; — written by a system that never knew that. GNX is designed to block unsupported claims like this.</span>
+            <span>The line every prospect has learned to distrust - &ldquo;I know your team is struggling with X&rdquo; - written by a system that never knew that. GNX is designed to block unsupported claims like this.</span>
           </p>
         </section>
 
@@ -289,7 +289,7 @@ export default function LandingPage() {
             <span className="landing-fit-label">AI voice agent</span>
             <h2 className="display"><em className="hl">Test</em> your AI voice agent before it phones anyone</h2>
             <p>
-              Select pre-launch simulation testing to put the agent through adversarial calls and score every transcript —
+              Select pre-launch simulation testing to put the agent through adversarial calls and score every transcript -
               the busy prospect, the skeptic, the wrong person, the one who asks where you got their number.
             </p>
             <ul className="landing-copilot-points">
@@ -314,7 +314,7 @@ export default function LandingPage() {
             <span className="landing-fit-label">AI Co-Pilot</span>
             <h2 className="display">Run sales automation by just <em className="hl">telling it</em> what to do</h2>
             <p>
-              Your co-pilot runs the outreach on its own — but you never have to hunt through screens to steer it.
+              Your co-pilot runs the outreach on its own - but you never have to hunt through screens to steer it.
               Ask in plain English and it does the work.
             </p>
             <ul className="landing-copilot-points">

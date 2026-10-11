@@ -1,4 +1,4 @@
-# Globonexo Sales AI — Team Implementation Plan
+# Globonexo Sales AI - Team Implementation Plan
 
 **Launch Date:** July 20, 2026  
 **Team:** Manasa (AI + voice), Poojitha (data + campaigns + frontend), Simha Teja (reviewer)  
@@ -8,7 +8,7 @@
 
 ## 1. Team & Ownership
 
-**Rule:** Each module is owned by exactly one person — no shared module ownership. This prevents confusion and keeps accountability clear.
+**Rule:** Each module is owned by exactly one person - no shared module ownership. This prevents confusion and keeps accountability clear.
 
 **Cross-training:** Both Manasa and Poojitha work across frontend and backend (≈50/50 split), but each owns complete modules end-to-end.
 
@@ -114,11 +114,11 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 6. **Add API client** (`lib/api.js`) with credentials included for cookie-based auth.
 7. **Add loading/error states** to all screens.
 8. **Install dependencies**:
-   - `axios` — API calls
-   - `date-fns` / `date-fns-tz` — timezone logic
-   - `posthog-js` — analytics
-   - `@stripe/stripe-js` — Stripe Checkout
-   - `zustand` or use Context — state management
+   - `axios` - API calls
+   - `date-fns` / `date-fns-tz` - timezone logic
+   - `posthog-js` - analytics
+   - `@stripe/stripe-js` - Stripe Checkout
+   - `zustand` or use Context - state management
 
 ---
 
@@ -147,18 +147,18 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 
 ---
 
-### Week 1 — Foundation (June 16 – June 22)
+### Week 1 - Foundation (June 16 – June 22)
 
 **Goal:** Auth, onboarding, and project skeleton ready. Each module owner sets up their own codebase.
 
-#### Day 1 — Monday, June 16
+#### Day 1 - Monday, June 16
 
-**Manasa — Auth + Infrastructure**
+**Manasa - Auth + Infrastructure**
 - [ ] Set up `globonexo-backend` repo, install dependencies, verify TypeScript build.
 - [ ] Run `supabase/migrations/001_initial.sql` against dev project.
 - [ ] Review `src/middleware/auth.middleware.ts` and cookie session plan.
 
-**Poojitha — Onboarding + Landing**
+**Poojitha - Onboarding + Landing**
 - [ ] Set up `globonexo-frontend` repo from existing prototype.
 - [ ] Remove `TweaksPanel` and design-tool code.
 - [ ] Install dependencies: `axios`, `date-fns`, `posthog-js`, `@stripe/stripe-js`.
@@ -167,14 +167,14 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Review repo split and schema.
 
-#### Day 2 — Tuesday, June 17
+#### Day 2 - Tuesday, June 17
 
-**Manasa — Auth module**
+**Manasa - Auth module**
 - [ ] Implement `/api/auth/signup`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`.
 - [ ] Set up HTTP-only cookie session with Supabase Auth.
 - [ ] Build login, signup, forgot-password frontend pages.
 
-**Poojitha — Onboarding module**
+**Poojitha - Onboarding module**
 - [ ] Build `/api/onboarding` POST endpoint (org + agent config creation).
 - [ ] Refactor onboarding wizard from 7-step to 3-step.
 - [ ] Connect onboarding frontend to API.
@@ -182,14 +182,14 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Review auth + onboarding PRs.
 
-#### Day 3 — Wednesday, June 18
+#### Day 3 - Wednesday, June 18
 
-**Manasa — Auth module**
+**Manasa - Auth module**
 - [ ] Add Zod validation for auth payloads.
 - [ ] Add auth context/provider in frontend.
 - [ ] Add protected route guards.
 
-**Poojitha — Onboarding module**
+**Poojitha - Onboarding module**
 - [ ] Add Zod validation for onboarding payload.
 - [ ] Redirect to dashboard after onboarding.
 - [ ] Build celebration screen.
@@ -197,13 +197,13 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] End-to-end auth + onboarding test.
 
-#### Day 4 — Thursday, June 19
+#### Day 4 - Thursday, June 19
 
-**Manasa — Settings module**
+**Manasa - Settings module**
 - [ ] Build `/api/settings` GET/PUT endpoints.
 - [ ] Build Settings frontend page (tone, send cap, auto-approve toggle).
 
-**Poojitha — Landing + Marketing**
+**Poojitha - Landing + Marketing**
 - [x] Extract pricing section into `/pricing` page.
 - [x] Create `/terms` and `/privacy` pages.
 - [x] Polish landing page CTA links.
@@ -211,35 +211,35 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Review settings + landing PRs.
 
-#### Day 5 — Friday, June 20
+#### Day 5 - Friday, June 20
 
-**Manasa — Infrastructure**
+**Manasa - Infrastructure**
 - [ ] Set up Redis + BullMQ locally and on GCP VM.
 - [ ] Verify all four workers (`send-email`, `poll-inbox`, `schedule-call`, `enrich-leads`) start.
 - [ ] Add job enqueue helpers in `src/jobs/`.
 
-**Poojitha — Campaigns module (setup)**
+**Poojitha - Campaigns module (setup)**
 - [ ] Build campaign list page.
 - [ ] Build campaign creation shell UI (channel, name, ICP source).
 
 **Simha Teja**
 - [ ] Review queue design.
 
-#### Day 6 — Saturday, June 21
+#### Day 6 - Saturday, June 21
 
-**Manasa — AI Engine module**
+**Manasa - AI Engine module**
 - [ ] Set up Azure OpenAI client.
 - [ ] Build prompt template engine.
 - [ ] Build `/api/ai/generate-email` endpoint.
 
-**Poojitha — Campaigns + Leads module**
+**Poojitha - Campaigns + Leads module**
 - [ ] Build Apollo search UI and connect to `/api/leads/apollo-search`.
 - [ ] Start CSV upload component.
 
 **Simha Teja**
 - [ ] Weekend check-in.
 
-#### Day 7 — Sunday, June 22
+#### Day 7 - Sunday, June 22
 
 **Manasa**
 - [ ] Buffer / testing / bug fixes.
@@ -252,17 +252,17 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 
 ---
 
-### Week 2 — Email Core Loop (June 23 – June 29)
+### Week 2 - Email Core Loop (June 23 – June 29)
 
 **Goal:** Campaigns, leads, email send, inbox reply flow all working.
 
-#### Day 8 — Monday, June 23
+#### Day 8 - Monday, June 23
 
-**Manasa — AI Engine module**
+**Manasa - AI Engine module**
 - [ ] Generate subject + body from agent config + campaign context + lead data.
 - [ ] Add email sequence step support to prompt generation.
 
-**Poojitha — Campaigns + Leads module**
+**Poojitha - Campaigns + Leads module**
 - [ ] Build `/api/leads/apollo-search` and `/api/leads/apollo-enrich`.
 - [ ] Build leads table UI with search/filter.
 - [ ] Save enriched leads to DB.
@@ -270,39 +270,39 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Review AI + lead enrichment integration.
 
-#### Day 9 — Tuesday, June 24
+#### Day 9 - Tuesday, June 24
 
-**Manasa — AI Engine module**
+**Manasa - AI Engine module**
 - [ ] Build `/api/ai/generate-reply` endpoint.
 - [ ] Generate AI draft reply from conversation history.
 
-**Poojitha — Campaigns + Leads module**
+**Poojitha - Campaigns + Leads module**
 - [ ] Build CSV upload parser and background import job.
 - [ ] Build CSV upload UI with progress/errors.
 
 **Simha Teja**
 - [ ] Review CSV + reply generation.
 
-#### Day 10 — Wednesday, June 25
+#### Day 10 - Wednesday, June 25
 
-**Manasa — AI Engine module**
+**Manasa - AI Engine module**
 - [ ] Add structured output / JSON mode for emails.
 - [ ] Test AI email generation with real onboarding data.
 
-**Poojitha — Campaigns + Leads module**
+**Poojitha - Campaigns + Leads module**
 - [ ] Build campaign sequence editor (3 steps, editable delays).
 - [ ] Build lead selector inside campaign creation.
 
 **Simha Teja**
 - [ ] Review prompt architecture + campaign form.
 
-#### Day 11 — Thursday, June 26
+#### Day 11 - Thursday, June 26
 
-**Manasa — AI Engine module (support)**
+**Manasa - AI Engine module (support)**
 - [ ] Ensure `/api/ai/generate-email` is stable for Poojitha to call from worker.
 - [ ] Add error handling and retries for OpenAI calls.
 
-**Poojitha — Gmail + Email module**
+**Poojitha - Gmail + Email module**
 - [ ] Implement Gmail OAuth connect/disconnect backend.
 - [ ] Build `send-email` BullMQ worker using Gmail API (calls Manasa's AI endpoint to generate email).
 - [ ] Implement Gmail daily send cap and queue pause.
@@ -310,13 +310,13 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Review email send flow.
 
-#### Day 12 — Friday, June 27
+#### Day 12 - Friday, June 27
 
-**Manasa — AI Engine module (support)**
+**Manasa - AI Engine module (support)**
 - [ ] Ensure `/api/ai/generate-reply` is stable for Poojitha to call from inbox flow.
 - [ ] Add prompt fallback for missing conversation history.
 
-**Poojitha — Gmail + Email module**
+**Poojitha - Gmail + Email module**
 - [ ] Build `poll-inbox` worker to fetch replies every 3 minutes.
 - [ ] Match replies by Gmail thread ID.
 - [ ] Call Manasa's AI endpoint to generate draft reply.
@@ -326,13 +326,13 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Review reply matching.
 
-#### Day 13 — Saturday, June 28
+#### Day 13 - Saturday, June 28
 
-**Manasa — AI Engine module**
+**Manasa - AI Engine module**
 - [ ] Add tone/obection handling to prompts.
 - [ ] Test end-to-end AI email + reply generation.
 
-**Poojitha — Gmail + Email module**
+**Poojitha - Gmail + Email module**
 - [ ] Build thread view UI.
 - [ ] Build AI draft actions: Approve, Edit, Regenerate, Reject.
 - [ ] Send approved replies via Gmail API.
@@ -340,7 +340,7 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Weekend check-in.
 
-#### Day 14 — Sunday, June 29
+#### Day 14 - Sunday, June 29
 
 **Manasa**
 - [ ] Buffer / testing / bug fixes.
@@ -353,94 +353,94 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 
 ---
 
-### Week 3 — Voice + Billing + Dashboard (June 30 – July 6)
+### Week 3 - Voice + Billing + Dashboard (June 30 – July 6)
 
 **Goal:** Voice calls, Stripe billing, and dashboard working.
 
-#### Day 15 — Monday, June 30
+#### Day 15 - Monday, June 30
 
-**Manasa — Voice / Retell module**
+**Manasa - Voice / Retell module**
 - [ ] Set up Retell client and buy test phone number.
 - [ ] Create Retell agent per organization via API.
 - [ ] Generate voice system prompt from agent config.
 
-**Poojitha — Dashboard module**
+**Poojitha - Dashboard module**
 - [ ] Build `/api/dashboard` aggregation query.
 - [ ] Build Dashboard UI with KPI cards, activity feed, tasks, weekly goal.
 
 **Simha Teja**
 - [ ] Review Retell integration + dashboard design.
 
-#### Day 16 — Tuesday, July 1
+#### Day 16 - Tuesday, July 1
 
-**Manasa — Voice / Retell module**
+**Manasa - Voice / Retell module**
 - [ ] Build voice campaign creation UI.
 - [ ] Add AI/manual mode toggle and calling hours config.
 - [ ] Build `schedule-call` worker to trigger Retell outbound calls.
 
-**Poojitha — Dashboard module**
+**Poojitha - Dashboard module**
 - [ ] Wire Dashboard UI to real data.
 - [ ] Add "next meeting" widget.
 
 **Simha Teja**
 - [ ] Review call scheduling.
 
-#### Day 17 — Wednesday, July 2
+#### Day 17 - Wednesday, July 2
 
-**Manasa — Voice / Retell module**
+**Manasa - Voice / Retell module**
 - [ ] Implement Retell webhooks (`call_started`, `call_ended`, `call_analyzed`).
 - [ ] Store transcript, recording URL, disposition in `calls` table.
 - [ ] Build call history UI.
 
-**Poojitha — Meetings module**
+**Poojitha - Meetings module**
 - [x] Build Meetings UI from prototype.
 - [x] Use calendar booking link only (no native booking).
 
 **Simha Teja**
 - [ ] Review call data model.
 
-#### Day 18 — Thursday, July 3
+#### Day 18 - Thursday, July 3
 
-**Manasa — Billing / Stripe module**
+**Manasa - Billing / Stripe module**
 - [ ] Create Stripe products and prices.
 - [ ] Implement `/api/billing/checkout` and `/api/billing/portal`.
 - [ ] Build pricing page and billing/settings UI.
 
-**Poojitha — Pipeline + Prospects polish**
+**Poojitha - Pipeline + Prospects polish**
 - [x] Polish prospects table and filters.
 - [x] Polish pipeline board UI.
 
 **Simha Teja**
 - [ ] Review billing + pipeline polish.
 
-#### Day 19 — Friday, July 4
+#### Day 19 - Friday, July 4
 
-**Manasa — Billing / Stripe module**
+**Manasa - Billing / Stripe module**
 - [ ] Implement `/webhooks/stripe` handler.
 - [ ] Handle `checkout.session.completed`, `invoice.paid`, `subscription.deleted`.
 - [ ] Build plan gating middleware.
 
-**Poojitha — Pipeline + Prospects polish**
+**Poojitha - Pipeline + Prospects polish**
 - [x] Polish prospects table and filters.
 - [x] Polish pipeline board UI.
 
 **Simha Teja**
 - [ ] Review webhook security.
 
-#### Day 20 — Saturday, July 5
+#### Day 20 - Saturday, July 5
 
-**Manasa — Voice / Retell module**
+**Manasa - Voice / Retell module**
 - [ ] Test full voice campaign end-to-end.
 - [ ] Handle call failures and retries.
 
-**Poojitha — Admin + Support module**
+**Poojitha - Admin + Support module**
 - [x] Build admin panel UI.
 - [x] Build admin APIs for orgs/users/campaigns + suspend/impersonate.
 
 **Simha Teja**
 - [ ] Weekend check-in.
 
-#### Day 21 — Sunday, July 6
+#### Day 21 - Sunday, July 6
 
 **Manasa**
 - [ ] Buffer / testing / bug fixes.
@@ -453,68 +453,68 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 
 ---
 
-### Week 4 — Admin + Support + Polish + Staging (July 7 – July 13)
+### Week 4 - Admin + Support + Polish + Staging (July 7 – July 13)
 
 **Goal:** All modules complete and stable on staging.
 
-#### Day 22 — Monday, July 7
+#### Day 22 - Monday, July 7
 
-**Manasa — Settings + Billing polish**
+**Manasa - Settings + Billing polish**
 - [ ] Wire Settings UI to `/api/settings`.
 - [ ] Wire Billing UI to Stripe.
 
-**Poojitha — Admin + Support module**
+**Poojitha - Admin + Support module**
 - [x] Build support chat UI for users.
 - [x] Build support ticket APIs with Supabase Realtime.
 
 **Simha Teja**
 - [ ] Review settings + support.
 
-#### Day 23 — Tuesday, July 8
+#### Day 23 - Tuesday, July 8
 
-**Manasa — Analytics module**
+**Manasa - Analytics module**
 - [ ] Build `/api/analytics/campaigns` and `/api/analytics/calls`.
 - [ ] Build Analytics charts UI (bar, line, funnel).
 - [ ] Add PostHog event tracking backend.
 
-**Poojitha — Admin + Support module**
+**Poojitha - Admin + Support module**
 - [x] Build admin support ticket reply UI.
 - [x] Send email notification on admin reply.
 
 **Simha Teja**
 - [ ] Review analytics + support.
 
-#### Day 24 — Wednesday, July 9
+#### Day 24 - Wednesday, July 9
 
-**Manasa — AI Agent chat module**
+**Manasa - AI Agent chat module**
 - [ ] Build AI Agent chat UI.
 - [ ] Connect quick actions to backend.
 - [ ] Provide static/mock responses for v0.1.
 
-**Poojitha — Campaigns + Leads final polish**
+**Poojitha - Campaigns + Leads final polish**
 - [x] Final polish on campaigns, prospects, pipeline, inbox.
 - [x] Add loading/empty/error states.
 
 **Simha Teja**
 - [ ] Review AI agent chat.
 
-#### Day 25 — Thursday, July 10
+#### Day 25 - Thursday, July 10
 
-**Manasa — Security + Infrastructure**
+**Manasa - Security + Infrastructure**
 - [ ] Review and test rate limiting.
 - [ ] Verify auth middleware on all routes.
 - [ ] Test Redis/BullMQ reliability.
 
-**Poojitha — Frontend cross-cutting**
+**Poojitha - Frontend cross-cutting**
 - [x] Add PostHog event tracking on frontend.
 - [x] Add error boundaries.
 - [x] Add loading skeletons.
 - [x] Verify all routes and links.
 
 **Simha Teja**
-- [ ] Scope check — decide what to cut if behind.
+- [ ] Scope check - decide what to cut if behind.
 
-#### Day 26 — Friday, July 11
+#### Day 26 - Friday, July 11
 
 **Manasa**
 - [ ] Fix critical backend bugs.
@@ -527,7 +527,7 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Code review + scope check.
 
-#### Day 27 — Saturday, July 12
+#### Day 27 - Saturday, July 12
 
 **Manasa**
 - [ ] End-to-end staging testing (backend).
@@ -538,7 +538,7 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Run full smoke tests.
 
-#### Day 28 — Sunday, July 13
+#### Day 28 - Sunday, July 13
 
 **Manasa**
 - [ ] Buffer / bug fixes.
@@ -551,11 +551,11 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 
 ---
 
-### Week 5 — Launch Week (July 14 – July 20)
+### Week 5 - Launch Week (July 14 – July 20)
 
 **Goal:** Production-ready, secure, launched.
 
-#### Day 29 — Monday, July 14
+#### Day 29 - Monday, July 14
 
 **Manasa**
 - [ ] Audit Supabase RLS policies.
@@ -570,7 +570,7 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Security review.
 
-#### Day 30 — Tuesday, July 15
+#### Day 30 - Tuesday, July 15
 
 **Manasa**
 - [ ] Deploy backend to production GCP VM.
@@ -586,7 +586,7 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Deploy sign-off.
 
-#### Day 31 — Wednesday, July 16
+#### Day 31 - Wednesday, July 16
 
 **Manasa**
 - [ ] Production smoke test: auth, onboarding, settings, billing, voice, AI.
@@ -600,7 +600,7 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Verify all critical paths pass.
 
-#### Day 32 — Thursday, July 17
+#### Day 32 - Thursday, July 17
 
 **Manasa**
 - [ ] Final review of API docs and billing flow.
@@ -613,7 +613,7 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Marketing review.
 
-#### Day 33 — Friday, July 18
+#### Day 33 - Friday, July 18
 
 **Manasa**
 - [ ] Final backend bug fixes.
@@ -626,7 +626,7 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Release candidate approval.
 
-#### Day 34 — Saturday, July 19
+#### Day 34 - Saturday, July 19
 
 **Manasa**
 - [ ] Launch preview.
@@ -641,7 +641,7 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 **Simha Teja**
 - [ ] Final go/no-go decision.
 
-#### Day 35 — Sunday, July 20 — 🚀 PUBLIC LAUNCH
+#### Day 35 - Sunday, July 20 - 🚀 PUBLIC LAUNCH
 
 **Manasa**
 - [ ] Monitor backend health, queues, AI, voice, billing.
@@ -652,7 +652,7 @@ The existing prototype (`frontend/components/GlobonexoPrototype.jsx`, 2,828 line
 - [ ] Respond to UX issues immediately.
 
 **Simha Teja**
-- [ ] Launch commander — coordinate team response.
+- [ ] Launch commander - coordinate team response.
 - [ ] Communicate status to stakeholders.
 
 ---

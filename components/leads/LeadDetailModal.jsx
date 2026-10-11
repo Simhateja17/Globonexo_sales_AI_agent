@@ -165,7 +165,7 @@ export default function LeadDetailModal({ lead, onClose, onEnrich, enriching, on
             <div className="lead-detail-chips">
               {knowledge.map(item => (
                 <span key={item.label} className={`chip ${item.has ? "chip-ready" : "chip-blocked"}`}>
-                  {item.has ? "✓" : "—"} {item.label}
+                  {item.has ? "✓" : "-"} {item.label}
                 </span>
               ))}
             </div>

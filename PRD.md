@@ -1,4 +1,4 @@
-# Globonexo Sales AI — Product Requirements Document (PRD)
+# Globonexo Sales AI - Product Requirements Document (PRD)
 
 **Version:** 0.1  
 **Target Launch:** July 20, 2026  
@@ -158,17 +158,17 @@ Ship a **publicly launchable v0.1** on **July 20, 2026** that supports:
 
 ### 6.3 Onboarding (3-step wizard)
 
-**Step 1 — About you + company**
+**Step 1 - About you + company**
 - First name, last name
 - Company name
 - Company website
 
-**Step 2 — Ideal customer profile**
+**Step 2 - Ideal customer profile**
 - Target job titles
 - Target company sizes
 - Target geographies
 
-**Step 3 — Agent configuration**
+**Step 3 - Agent configuration**
 - What you sell (product description)
 - Value proposition
 - Common objections
