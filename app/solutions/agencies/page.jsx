@@ -144,7 +144,8 @@ export default function AgenciesPage() {
         <p>
           The full capability list is on <Link href="/platform">the platform page</Link>, the voice agent and its
           pre-launch testing on <Link href="/voice">the voice page</Link>, and the other audiences on{" "}
-          <Link href="/solutions">the solutions overview</Link>.
+          <Link href="/solutions">the solutions overview</Link>. Looking to fill your own agency pipeline? Read{" "}
+          <Link href="/blog/sales-automation-for-marketing-agencies">sales automation for marketing agencies</Link>.
         </p>
       </section>
 

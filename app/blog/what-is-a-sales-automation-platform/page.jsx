@@ -2,7 +2,7 @@ const PATH = "/blog/what-is-a-sales-automation-platform";
 const PUBLISHED = "2026-09-12";
 const TITLE = "What Is a Sales Automation Platform? And What It Actually Replaces";
 const DESCRIPTION =
-  "What a sales automation platform runs, what it is not, the six steps of an outbound workflow, what your team should still control, and seven questions to ask a vendor.";
+  "What a sales automation platform runs, what it is not, its six outbound steps, what your team keeps, and seven questions to ask a vendor.";
 const SOCIAL_IMAGE = `${PATH}/opengraph-image`;
 
 export const metadata = {

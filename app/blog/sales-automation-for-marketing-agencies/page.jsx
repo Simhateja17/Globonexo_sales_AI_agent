@@ -2,7 +2,7 @@ const PATH = "/blog/sales-automation-for-marketing-agencies";
 const PUBLISHED = "2026-10-13";
 const TITLE = "Sales Automation for Marketing Agencies: Who Sells for the Agency That Sells Growth?";
 const DESCRIPTION =
-  "Only 14% of agencies call their pipeline healthy. The five pains of agency new business, what sales automation fixes, what to keep human, and a five-step workflow.";
+  "Only 14% of agencies call their pipeline healthy. Five pains of agency new business, what automation fixes, and a five-step workflow.";
 const SOCIAL_IMAGE = `${PATH}/opengraph-image`;
 
 export const metadata = {
