@@ -16,6 +16,7 @@ const PUBLIC_ROUTES = [
   { path: "/cold-email-software", priority: 0.7, changeFrequency: "monthly" },
   { path: "/blog", priority: 0.7, changeFrequency: "weekly" },
   { path: "/blog/what-is-a-sales-automation-platform", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/blog/sales-automation-for-marketing-agencies", priority: 0.7, changeFrequency: "monthly" },
   { path: "/solutions/individuals", priority: 0.8, changeFrequency: "monthly" },
   { path: "/solutions/agencies", priority: 0.8, changeFrequency: "monthly" },
   { path: "/solutions/b2b-startups", priority: 0.8, changeFrequency: "monthly" },

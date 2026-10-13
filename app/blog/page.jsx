@@ -50,6 +50,13 @@ export default function BlogIndexPage() {
               "What a platform does, where it helps, what your team should still control, and the seven questions to ask a vendor.",
             datePublished: "2026-09-12",
           },
+          {
+            path: "/blog/sales-automation-for-marketing-agencies",
+            headline: "Sales Automation for Marketing Agencies: Who Sells for the Agency That Sells Growth?",
+            description:
+              "Why agency pipelines stall, what sales automation fixes, and what your team should keep.",
+            datePublished: "2026-10-13",
+          },
         ]}
       />
       <BreadcrumbSchema trail={[{ name: "Blog", path: "/blog" }]} />

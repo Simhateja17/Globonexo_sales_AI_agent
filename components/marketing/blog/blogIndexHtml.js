@@ -7,7 +7,7 @@ export const blogIndexHtml = `<div style="max-width:1160px;margin:0 auto;padding
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0;max-width:620px">How automated outbound actually works: what a platform runs, what your team keeps, and what to check before you buy one.</p>
   </section>
 
-  <a data-reveal href="/blog/what-is-a-sales-automation-platform" style="display:block;margin-top:clamp(32px,4vw,48px);border-radius:var(--r-xl);overflow:hidden;position:relative;background:linear-gradient(135deg,#06311f,#075a3e);transition:transform .2s cubic-bezier(.2,.7,.2,1),box-shadow .2s" style-hover="transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,168,106,.22)">
+  <a data-reveal href="/blog/sales-automation-for-marketing-agencies" style="display:block;margin-top:clamp(32px,4vw,48px);border-radius:var(--r-xl);overflow:hidden;position:relative;background:linear-gradient(135deg,#06311f,#075a3e);transition:transform .2s cubic-bezier(.2,.7,.2,1),box-shadow .2s" style-hover="transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,168,106,.22)">
     <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:.7">
       <div style="position:absolute;width:460px;height:460px;left:-6%;top:-45%;border-radius:50%;filter:blur(60px);background:radial-gradient(circle,rgba(0,224,138,.5),transparent 65%);animation:gnxDrift 18s ease-in-out infinite"></div>
       <div style="position:absolute;width:420px;height:420px;right:4%;bottom:-60%;border-radius:50%;filter:blur(60px);background:radial-gradient(circle,rgba(21,196,192,.4),transparent 65%);animation:gnxDrift 22s ease-in-out infinite reverse"></div>
@@ -15,14 +15,14 @@ export const blogIndexHtml = `<div style="max-width:1160px;margin:0 auto;padding
     <div style="position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:clamp(24px,4vw,48px);padding:clamp(32px,5vw,56px);align-items:end">
       <div>
         <div style="display:flex;gap:14px;align-items:center;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--g-300);margin-bottom:20px">
-          <span>Latest</span><span style="opacity:.5">·</span><span>Part 1 of 4</span><span style="opacity:.5">·</span><span>7 min read</span>
+          <span>Latest</span><span style="opacity:.5">·</span><span>Part 2 of 4</span><span style="opacity:.5">·</span><span>7 min read</span>
         </div>
-        <h2 class="display" style="font-family:var(--font-display);font-size:clamp(26px,3.6vw,40px);line-height:1.08;letter-spacing:-.04em;font-weight:600;color:#fff;margin:0">What Is a Sales Automation Platform?</h2>
-        <p style="font-family:var(--font-display);font-size:clamp(16px,2vw,20px);letter-spacing:-.02em;color:var(--g-300);margin:14px 0 0;font-weight:500">And what it actually replaces</p>
+        <h2 class="display" style="font-family:var(--font-display);font-size:clamp(26px,3.6vw,40px);line-height:1.08;letter-spacing:-.04em;font-weight:600;color:#fff;margin:0">Sales Automation for Marketing Agencies</h2>
+        <p style="font-family:var(--font-display);font-size:clamp(16px,2vw,20px);letter-spacing:-.02em;color:var(--g-300);margin:14px 0 0;font-weight:500">Your agency sells growth. Who is selling for the agency?</p>
       </div>
       <div>
-        <p style="font-size:15px;line-height:1.75;color:rgba(255,255,255,.82);margin:0 0 22px;max-width:420px">What a platform does, where it helps, what your team should still control, and the seven questions to ask a vendor.</p>
-        <span style="display:inline-flex;align-items:center;gap:10px;background:#fff;color:#06231a;border-radius:999px;padding:12px 20px;font-size:14px;font-weight:800">Read the guide <span style="font-weight:800">→</span></span>
+        <p style="font-size:15px;line-height:1.75;color:rgba(255,255,255,.82);margin:0 0 22px;max-width:420px">Why agency pipelines stall, what sales automation fixes, and what your team should keep.</p>
+        <span style="display:inline-flex;align-items:center;gap:10px;background:#fff;color:#06231a;border-radius:999px;padding:12px 20px;font-size:14px;font-weight:800">Read the article <span style="font-weight:800">→</span></span>
       </div>
     </div>
   </a>
@@ -44,14 +44,15 @@ export const blogIndexHtml = `<div style="max-width:1160px;margin:0 auto;padding
         <span style="margin-top:auto;font-size:13px;font-weight:800;color:var(--g-700)">7 min read</span>
       </a>
 
-      <div data-reveal style="display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:24px;box-shadow:var(--sh-xs)">
+      <a data-reveal href="/blog/sales-automation-for-marketing-agencies" style="display:flex;flex-direction:column;border:1px solid var(--g-100);border-radius:8px;background:linear-gradient(160deg,#fff,#f4fdf8);padding:24px;transition:transform .2s cubic-bezier(.2,.7,.2,1),box-shadow .2s" style-hover="transform:translateY(-2px);box-shadow:var(--sh-md)">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px">
-          <span style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Part 2</span>
-          <span style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 10px">Coming soon</span>
+          <span style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--g-700)">Part 2</span>
+          <span style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--g-700);background:var(--g-50);border:1px solid var(--g-100);border-radius:999px;padding:5px 10px">Published</span>
         </div>
         <h3 style="font-family:var(--font-display);font-size:19px;line-height:1.25;letter-spacing:-.025em;font-weight:600;color:var(--ink);margin:0 0 10px">Sales Automation for Marketing Agencies</h3>
-        <p style="font-size:14px;line-height:1.7;color:var(--muted);margin:0">Running it for your own pipeline and your clients'.</p>
-      </div>
+        <p style="font-size:14px;line-height:1.7;color:var(--ink-2);margin:0 0 20px">Why agency pipelines stall, and what automation fixes.</p>
+        <span style="margin-top:auto;font-size:13px;font-weight:800;color:var(--g-700)">7 min read</span>
+      </a>
 
       <div data-reveal style="display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:24px;box-shadow:var(--sh-xs)">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px">

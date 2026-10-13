@@ -466,11 +466,11 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
       <h3 style="font-family:var(--font-display);font-size:17px;letter-spacing:-.02em;font-weight:600;margin:0 0 10px;color:var(--ink)">What Is a Sales Automation Platform?</h3>
       <p style="font-size:14px;line-height:1.6;color:var(--g-700);font-weight:700;margin:0">You're reading it.</p>
     </div>
-    <div style="border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:22px;transition:transform .2s cubic-bezier(.2,.7,.2,1),box-shadow .2s" style-hover="transform:translateY(-2px);box-shadow:var(--sh-md)">
-      <div style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Part 2</div>
+    <a href="/blog/sales-automation-for-marketing-agencies" style="display:block;border-bottom:none;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:22px;transition:transform .2s cubic-bezier(.2,.7,.2,1),box-shadow .2s" style-hover="transform:translateY(-2px);box-shadow:var(--sh-md)">
+      <div style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--g-700);margin-bottom:12px">Part 2</div>
       <h3 style="font-family:var(--font-display);font-size:17px;letter-spacing:-.02em;font-weight:600;margin:0 0 10px;color:var(--ink)">Sales Automation for Marketing Agencies</h3>
-      <p style="font-size:14px;line-height:1.6;color:var(--muted);margin:0">Running it for your own pipeline and your clients'.</p>
-    </div>
+      <p style="font-size:14px;line-height:1.6;color:var(--g-700);font-weight:700;margin:0">Read it now.</p>
+    </a>
     <div style="border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:22px;transition:transform .2s cubic-bezier(.2,.7,.2,1),box-shadow .2s" style-hover="transform:translateY(-2px);box-shadow:var(--sh-md)">
       <div style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Part 3</div>
       <h3 style="font-family:var(--font-display);font-size:17px;letter-spacing:-.02em;font-weight:600;margin:0 0 10px;color:var(--ink)">How to Automate Lead Generation, Enrichment, Follow-ups and Cold Calling</h3>
