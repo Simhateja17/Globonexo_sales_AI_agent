@@ -1,6 +1,6 @@
 export const metadata = {
   title: { absolute: "Refund policy for GNX Sales" },
-  description: "Review the GNX Sales Refund Policy for subscription billing, cancellations, usage charges, eligibility, and refund requests.",
+  description: "How GNX Sales billing and cancelling work: payments are final, your plan runs to the end of the paid period, and billing mistakes are corrected.",
   alternates: { canonical: "/refund" },
   openGraph: { url: "/refund" },
 };
@@ -14,16 +14,16 @@ import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
 
 const numbers = [
   { value: "1 click", title: "To cancel", body: "From Billing, anytime. No call, no form." },
-  { value: "14 days", title: "To ask for a refund", body: "From the date of the charge, for the cases below." },
-  { value: "3 days", title: "For our decision", body: "Business days, from the day we get your request." },
-  { value: "5–10 days", title: "For money to arrive", body: "Business days, back to your original card or account." },
+  { value: "Full period", title: "Your plan keeps working", body: "Until the end of the period you already paid for." },
+  { value: "No refunds", title: "Payments are final", body: "Including unused days and unused credits." },
+  { value: "3 days", title: "To fix a billing error", body: "Business days, from the day we get your report." },
 ];
 
 const steps = [
   { title: "Email us", body: "From your account email to support@gnxsales.com." },
-  { title: "Tell us what happened", body: "Workspace name, charge date or invoice, and why." },
-  { title: "We decide", body: "Within 3 business days, with our reason." },
-  { title: "Money returns", body: "To your original payment method in 5 to 10 business days." },
+  { title: "Tell us what happened", body: "Workspace name, charge date or invoice, and what looks wrong." },
+  { title: "We check", body: "Within 3 business days, with our reason." },
+  { title: "We correct it", body: "A confirmed mistake goes back to your original payment method in 5 to 10 business days." },
 ];
 
 export default function RefundPage() {
@@ -42,13 +42,12 @@ export default function RefundPage() {
               <span>No surprises.</span>
             </h1>
             <p>
-              How cancelling works, when we give money back, and exactly how to ask. Short, because billing should be
-              simple.
+              How cancelling works and what you keep afterwards. Short, because billing should be simple.
             </p>
             <div className="privacy-hero-pills">
               <span>Effective 18 October 2026</span>
               <span>Payments via Razorpay</span>
-              <span>5 minute read</span>
+              <span>3 minute read</span>
             </div>
           </div>
         </div>
@@ -71,44 +70,47 @@ export default function RefundPage() {
               <li>There is no free trial. Plans are paid in advance, monthly or yearly, in US dollars through Razorpay.</li>
               <li>Your plan renews automatically at the end of each period until you cancel.</li>
               <li>Cancel anytime from <strong>Billing</strong> in the app. Cancelling stops the next renewal.</li>
-              <li>Your plan keeps working until the end of the period you already paid for. We do not refund the unused part of that period.</li>
-              <li>Unused credits do not carry over to the next period and are not refunded.</li>
+              <li>Your plan keeps working until the end of the period you already paid for. Cancelling does not end it early.</li>
+              <li>Unused credits do not carry over to the next period.</li>
             </ul>
           </LegalSection>
 
-          <LegalSection id="eligible" n="02" title="When we give a refund">
-            <p>Fees are non-refundable, except in the cases below. Ask within 14 days of the charge.</p>
+          <LegalSection id="eligible" n="02" title="What happens when you cancel">
+            <p>All payments are final. We do not give refunds, including for the unused part of a period.</p>
             <div className="refund-split">
               <div className="refund-card refund-card--yes">
                 <div className="refund-card-head">
                   <span><Icon name="check" size={16} color="#fff" stroke={2.5} /></span>
-                  <strong>We will refund</strong>
+                  <strong>What you keep</strong>
                 </div>
                 <ul className="privacy-list">
-                  <li>You were charged twice for the same period.</li>
-                  <li>You were charged after a cancellation we had confirmed.</li>
-                  <li>A long outage on our side stopped you from using GNX Sales.</li>
-                  <li>We removed a core feature you paid for. You get the unused part of the period back.</li>
+                  <li>Your plan, with all its features, until the end of the paid period.</li>
+                  <li>Your remaining credits for that same period.</li>
+                  <li>30 days after your account closes to ask us for an export of your data.</li>
+                  <li>No further charges once the renewal is stopped.</li>
                 </ul>
               </div>
               <div className="refund-card refund-card--no">
                 <div className="refund-card-head">
                   <span><Icon name="close" size={16} color="#fff" stroke={2.5} /></span>
-                  <strong>We will not refund</strong>
+                  <strong>What we do not refund</strong>
                 </div>
                 <ul className="privacy-list privacy-list--no">
-                  <li>Credits already used for AI writing, lead enrichment or calls.</li>
+                  <li>Unused days left in a period after you cancel.</li>
+                  <li>Unused credits, and credits already used for AI writing, lead enrichment or calls.</li>
                   <li>Emails already sent and calls already placed.</li>
-                  <li>Unused credits or days left in a period after you cancel.</li>
                   <li>Results that did not meet your hopes, such as fewer replies or meetings.</li>
                   <li>An account suspended for breaking our Terms of Service.</li>
                 </ul>
               </div>
             </div>
-            <p>Nothing here takes away a refund that the law where you live requires.</p>
           </LegalSection>
 
-          <LegalSection id="how" n="03" title="How to ask for a refund">
+          <LegalSection id="how" n="03" title="Billing mistakes we will fix">
+            <p>
+              If we charge you wrongly, tell us. We correct billing mistakes on our side, such as being charged twice
+              for the same period, or charged after a cancellation we had confirmed.
+            </p>
             <ol className="refund-steps">
               {steps.map((step, i) => (
                 <li key={step.title} className={i === steps.length - 1 ? "is-last" : undefined}>
@@ -119,8 +121,9 @@ export default function RefundPage() {
               ))}
             </ol>
             <p>
-              Approved refunds go back through Razorpay in the currency you paid. How fast it shows depends on your
-              bank or card issuer. Any bank or currency conversion fees are not refunded.
+              Corrections go back through Razorpay in the currency you paid. How fast it shows depends on your bank or
+              card issuer. Any bank or currency conversion fees are not returned. Nothing here takes away a refund that
+              the law where you live requires.
             </p>
           </LegalSection>
 
@@ -152,12 +155,12 @@ export default function RefundPage() {
       <section className="privacy-cta public-section">
         <div className="privacy-cta-card">
           <div>
-            <h2 className="display">Charged when you shouldn&apos;t have been?</h2>
-            <p>Email us with the charge date. A person will look at it within 3 business days.</p>
+            <h2 className="display">Charged by mistake?</h2>
+            <p>Email us with the charge date. A person will check it within 3 business days.</p>
           </div>
           <div className="content-cta-actions">
             <a className="btn btn-primary btn-lg" href="mailto:support@gnxsales.com">
-              Request a refund <Icon name="arrow" size={17} color="#06231a" />
+              Report a billing error <Icon name="arrow" size={17} color="#06231a" />
             </a>
             <Link className="landing-outline-btn" href="/faq#billing">Billing FAQ</Link>
           </div>

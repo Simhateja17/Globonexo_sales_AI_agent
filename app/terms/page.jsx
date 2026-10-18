@@ -165,13 +165,14 @@ export default function TermsPage() {
 
           <LegalSection id="cancel" n="05" title="Cancelling and refunds">
             <p>
-              Cancel anytime from Billing. Cancelling stops the next renewal. Your plan keeps working until the end of
-              the period you paid for, and we do not refund the unused part of that period.
+              Cancel anytime from Billing. Cancelling stops the next renewal. Your plan, with its features and credits,
+              keeps working until the end of the period you paid for.
             </p>
             <p>
-              Fees and used credits are non-refundable, except that we review requests made within 14 days of a charge
-              for duplicate billing, a charge after a confirmed cancellation, or a long outage that stopped you using
-              the service. The Refund Policy has the full process. Nothing here limits a refund the law requires.
+              All payments are final and we do not give refunds, including for the unused part of a period and unused
+              credits. The one exception is a billing mistake on our side, such as being charged twice for the same
+              period or charged after a confirmed cancellation, which we correct. The Refund Policy has the details.
+              Nothing here limits a refund the law requires.
             </p>
           </LegalSection>
 
@@ -302,7 +303,7 @@ export default function TermsPage() {
             <p>
               We work to keep GNX Sales running, but it may be interrupted for maintenance, provider failures, security
               events or things beyond our control. We may change, add or remove features. If we remove a core feature you
-              pay for, we will tell you in advance and you may cancel and get a pro-rated refund for the unused period.
+              pay for, we will tell you in advance and you may cancel before the change takes effect.
             </p>
           </LegalSection>
 

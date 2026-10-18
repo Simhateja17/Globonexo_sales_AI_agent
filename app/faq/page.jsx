@@ -165,7 +165,7 @@ const groups = [
       },
       {
         q: "Do you give refunds?",
-        a: "Fees are non-refundable, except that we review requests made within 14 days of a charge for duplicate billing, a charge after a confirmed cancellation, or a long outage that stopped you using the product. Email support@gnxsales.com and we answer within 3 business days. Approved refunds reach your original payment method in 5 to 10 business days.",
+        a: "No. All payments are final, including the unused part of a period and unused credits. If you cancel, your plan keeps working until the end of the period you paid for. The one exception is a billing mistake on our side, such as a duplicate charge for the same period or a charge after a confirmed cancellation. Email support@gnxsales.com and we will correct it, with an answer within 3 business days.",
       },
     ],
   },
