@@ -69,7 +69,16 @@ export default function FaqBrowser({ groups, children }) {
 
         <div className="faq-body" aria-live="polite">
           {visible.length === 0 && (
-            <p className="faq-empty">No answers match &ldquo;{query}&rdquo;. Try another word, or email support@gnxsales.com.</p>
+            <div className="faq-empty">
+              <p>No answers match &ldquo;{query}&rdquo;.</p>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => window.dispatchEvent(new CustomEvent("faq-assistant:open", { detail: { question: query.trim() } }))}
+              >
+                Ask our AI assistant
+              </button>
+            </div>
           )}
           {visible.map((group) => (
             <section key={group.id} className="faq-topic" id={group.id}>
