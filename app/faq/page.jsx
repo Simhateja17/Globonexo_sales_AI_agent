@@ -9,6 +9,7 @@ import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
 import PublicFooter from "../../components/layout/PublicFooter";
+import FaqAssistant from "../../components/marketing/FaqAssistant";
 import FaqBrowser from "../../components/marketing/FaqBrowser";
 import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
 
@@ -271,6 +272,7 @@ export default function FaqPage() {
         </div>
       </section>
 
+      <FaqAssistant />
       <PublicFooter />
       <BreadcrumbSchema trail={[{ name: "FAQ", path: "/faq" }]} />
 

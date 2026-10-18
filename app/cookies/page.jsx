@@ -5,51 +5,160 @@ export const metadata = {
   openGraph: { url: "/cookies" },
 };
 
-import LegalPage from "../../components/layout/LegalPage";
+import Link from "next/link";
+import Icon from "../../components/ui/Icon";
+import PublicNav from "../../components/layout/PublicNav";
+import PublicFooter from "../../components/layout/PublicFooter";
+import LegalSection from "../../components/marketing/LegalSection";
+import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
 
-const sections = [
-  {
-    title: "1. What Cookies Are",
-    body: "Cookies are small text files stored on your device when you visit a website. We also use similar technologies such as local storage and browser session storage to keep the product working correctly.",
-  },
-  {
-    title: "2. Essential Cookies",
-    body: "These are required to run the service. They keep you signed in, maintain your session with Supabase authentication, remember your organization context, protect against request forgery, and support secure OAuth flows such as connecting Gmail. The product does not work without them.",
-  },
-  {
-    title: "3. Preference Storage",
-    body: "We use local storage to remember interface choices such as whether you are a returning user, saved filters, and dismissed prompts. This keeps the product consistent between visits and holds no marketing data.",
-  },
-  {
-    title: "4. Analytics Cookies",
-    body: "We use product analytics, including PostHog, to understand which features are used, where users encounter errors, and how to improve reliability. These cookies collect usage events, page views, and device or browser details.",
-  },
-  {
-    title: "5. Third-Party Cookies",
-    body: "Providers we rely on may set their own cookies when you use their flows. This includes Razorpay for checkout and fraud prevention, Google for Gmail authorization, and Supabase for authentication.",
-  },
-  {
-    title: "6. Advertising",
-    body: "We do not use advertising cookies, and we do not sell information collected through cookies to advertising networks.",
-  },
-  {
-    title: "7. Managing Cookies",
-    body: "Most browsers let you view, block, or delete cookies in their settings. Blocking essential cookies will sign you out and prevent core parts of the product from loading. You can clear analytics data at any time by clearing site data for the domain.",
-  },
-  {
-    title: "8. Retention",
-    body: "Session cookies are removed when you close the browser. Persistent cookies remain for a limited period set by us or the relevant provider, and are refreshed while you keep using the service.",
-  },
-  {
-    title: "9. Changes",
-    body: "We may update this policy as the product and its integrations change. The date above reflects the most recent revision.",
-  },
-  {
-    title: "10. Contact",
-    body: "Questions about cookies can be sent to support@gnxsales.com.",
-  },
+const kinds = [
+  { icon: "lock", badge: "Always on", title: "Essential", body: "Keep you signed in and the app secure. GNX Sales cannot work without them." },
+  { icon: "sliders", badge: "Your device only", title: "Preferences", body: "Remember small choices, like a tour you closed. Stored in your browser, never sent to us." },
+  { icon: "trend", badge: "You can turn off", title: "Analytics", body: "Show us which features get used and where things break, so we can fix them.", muted: true },
 ];
 
-export default function CookiePage() {
-  return <LegalPage title="Cookie Policy" updated="July 21, 2026" sections={sections} />;
+const cookies = [
+  ["sb-…-auth-token", "Essential cookie", "Keeps you signed in through Supabase, our sign-in provider.", "Until you sign out"],
+  ["site_auth_ok", "Essential cookie", "Remembers you passed our site access check.", "7 days"],
+  ["ph_…_posthog", "Analytics cookie", "PostHog product analytics: pages viewed, clicks, errors and device type.", "1 year"],
+  ["returning_user", "Local storage", "Knows you have been here before, to skip the first-visit intro.", "Until cleared"],
+  ["Tour and intro keys", "Local storage", "Remembers tours and tips you have closed.", "Until cleared"],
+  ["gnx-active-apollo-import", "Local storage", "Keeps track of a lead import in progress if you refresh the page.", "Until the import ends"],
+  ["gnx_onboarding_preparation", "Session storage", "Holds onboarding progress while you set up.", "Until you close the tab"],
+];
+
+const others = [
+  ["Razorpay", "Checkout and fraud checks when you pay"],
+  ["Google", "When you sign in or connect Gmail"],
+  ["Google Fonts", "Loads our fonts. Sets no cookies"],
+];
+
+export default function CookiesPage() {
+  return (
+    <div className="public-page">
+      <PublicNav />
+
+      <section className="privacy-hero">
+        <div className="privacy-hero-inner public-section">
+          <div className="privacy-hero-copy">
+            <span className="privacy-hero-eyebrow">
+              <Icon name="cookie" size={14} /> Legal · Cookie Policy
+            </span>
+            <h1 className="display">
+              A short list.<br />
+              <span>No ad trackers.</span>
+            </h1>
+            <p>Every cookie and bit of browser storage GNX Sales uses, why it is there, and how to turn it off.</p>
+            <div className="privacy-hero-pills">
+              <span>Effective 18 October 2026</span>
+              <span>4 minute read</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="privacy-glance privacy-glance--3 public-section" aria-label="What we use">
+        {kinds.map((item) => (
+          <div key={item.title} className="privacy-glance-card">
+            <div className="legal-kind-head">
+              <span className="privacy-glance-icon"><Icon name={item.icon} size={20} color="#fff" /></span>
+              <em className={item.muted ? "is-muted" : undefined}>{item.badge}</em>
+            </div>
+            <h3>{item.title}</h3>
+            <p>{item.body}</p>
+          </div>
+        ))}
+      </section>
+
+      <main className="privacy-layout privacy-layout--single public-section">
+        <article className="privacy-article">
+          <LegalSection id="what" n="01" title="What cookies are">
+            <p>
+              Cookies are small text files a website saves in your browser. We also use similar browser storage, called
+              local storage and session storage. This policy covers all of them on gnxsales.com and in the GNX Sales
+              app, run by Globonexo India Private Limited.
+            </p>
+          </LegalSection>
+
+          <LegalSection id="list" n="02" title="Everything we set">
+            <div className="privacy-table-wrap">
+              <table className="privacy-table">
+                <thead>
+                  <tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">What it does</th><th scope="col">Lasts</th></tr>
+                </thead>
+                <tbody>
+                  {cookies.map(([name, type, what, lasts]) => (
+                    <tr key={name}><td>{name}</td><td>{type}</td><td>{what}</td><td>{lasts}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p>We also use Vercel Web Analytics to count page visits. It does not use cookies and does not identify you.</p>
+          </LegalSection>
+
+          <LegalSection id="third" n="03" title="Cookies set by others">
+            <p>
+              Some steps take you to another company&apos;s page or window, and that company may set its own cookies
+              under its own policy:
+            </p>
+            <div className="privacy-grid privacy-grid--providers">
+              {others.map(([name, role]) => (
+                <div key={name} className="privacy-provider">
+                  <strong>{name}</strong>
+                  <span>{role}</span>
+                </div>
+              ))}
+            </div>
+          </LegalSection>
+
+          <LegalSection id="never" n="04" title="What we never use">
+            <ul className="privacy-list privacy-list--no">
+              <li>Advertising or retargeting cookies.</li>
+              <li>Social media tracking pixels.</li>
+              <li>Selling or sharing cookie data with ad networks or data brokers.</li>
+            </ul>
+          </LegalSection>
+
+          <LegalSection id="control" n="05" title="How to turn them off">
+            <ul className="privacy-list">
+              <li><strong>In your browser:</strong> every major browser lets you block or delete cookies and clear site data in its settings. Blocking essential cookies will sign you out.</li>
+              <li><strong>Analytics only:</strong> block cookies from gnxsales.com&apos;s analytics, use a browser that blocks trackers, or email us to switch analytics off for your account.</li>
+              <li><strong>Do Not Track:</strong> browsers send this signal in different ways and there is no common standard, so we treat the steps above as the way to opt out.</li>
+            </ul>
+            <p>
+              If you are in the EU or UK, analytics cookies need your consent, and you can withdraw it anytime by
+              clearing them or emailing us.
+            </p>
+          </LegalSection>
+
+          <LegalSection id="changes" n="06" title="Changes and contact">
+            <p>
+              When we add or remove a cookie, we update this list and the date at the top. Questions go to{" "}
+              <a href="mailto:support@gnxsales.com">support@gnxsales.com</a>. For how we handle personal data in
+              general, read the <Link href="/privacy">Privacy Policy</Link>.
+            </p>
+          </LegalSection>
+        </article>
+      </main>
+
+      <section className="privacy-cta public-section">
+        <div className="privacy-cta-card">
+          <div>
+            <h2 className="display">Want analytics off for your account?</h2>
+            <p>Send us one line from your account email and we will switch it off.</p>
+          </div>
+          <div className="content-cta-actions">
+            <a className="btn btn-primary btn-lg" href="mailto:support@gnxsales.com">
+              Email us <Icon name="arrow" size={17} color="#06231a" />
+            </a>
+            <Link className="landing-outline-btn" href="/privacy">Privacy Policy</Link>
+          </div>
+        </div>
+      </section>
+
+      <PublicFooter />
+      <BreadcrumbSchema trail={[{ name: "Cookie Policy", path: "/cookies" }]} />
+    </div>
+  );
 }

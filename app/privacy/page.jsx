@@ -8,6 +8,7 @@ export const metadata = {
 import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
+import LegalSection from "../../components/marketing/LegalSection";
 import PrivacyToc from "../../components/marketing/PrivacyToc";
 import PublicFooter from "../../components/layout/PublicFooter";
 import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
@@ -89,18 +90,6 @@ const faqs = [
   { q: "Are calls recorded?", a: "Both outbound and inbound calls are recorded so you can review them. Every call starts by saying it is an AI agent." },
 ];
 
-function Section({ id, n, title, children }) {
-  return (
-    <section className="privacy-sec" id={id}>
-      <div className="privacy-sec-n">{n}</div>
-      <div className="privacy-sec-body">
-        <h2>{title}</h2>
-        {children}
-      </div>
-    </section>
-  );
-}
-
 export default function PrivacyPage() {
   return (
     <div className="public-page">
@@ -152,7 +141,7 @@ export default function PrivacyPage() {
         <PrivacyToc items={toc} />
 
         <article className="privacy-article">
-          <Section id="who" n="01" title="Who we are">
+          <LegalSection id="who" n="01" title="Who we are">
             <p>
               GNX Sales (gnxsales.com) is an AI sales agent built and operated by Globonexo India Private Limited, a
               company incorporated under the Companies Act, 2013, with its registered office at 44, Backary Portion, 2nd Floor, Regal Building, Connaught Place, New Delhi, Central Delhi - 110001, India. In this policy, &quot;GNX Sales&quot;, &quot;we&quot; and &quot;us&quot; mean Globonexo India
@@ -164,9 +153,9 @@ export default function PrivacyPage() {
               made under it. Where we serve customers in the United States, Canada, the UK or the EU, we also honour
               the rights those laws give you, as set out in section 12.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="scope" n="02" title="What this covers, and our two roles">
+          <LegalSection id="scope" n="02" title="What this covers, and our two roles">
             <p>
               This policy covers our website, the GNX Sales app, and the emails and calls our agent makes. We hold two
               different roles, and it matters which one applies to you:
@@ -187,9 +176,9 @@ export default function PrivacyPage() {
                 </p>
               </div>
             </div>
-          </Section>
+          </LegalSection>
 
-          <Section id="collect" n="03" title="What we collect">
+          <LegalSection id="collect" n="03" title="What we collect">
             <p>We collect only what the product needs to run. Here is all of it.</p>
             <div className="privacy-table-wrap">
               <table className="privacy-table">
@@ -207,9 +196,9 @@ export default function PrivacyPage() {
               We do not ask for, and you should not upload, sensitive data such as health, financial account, religion,
               caste or government ID details about your prospects.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="use" n="04" title="How we use it, and on what basis">
+          <LegalSection id="use" n="04" title="How we use it, and on what basis">
             <p>Every use below has a stated purpose. We do not use your data for anything that is not on this list.</p>
             <ul className="privacy-list">
               <li><strong>To run the service you signed up for:</strong> sign you in, build your agent, find and enrich leads, write and send emails, place calls, detect replies and book meetings.</li>
@@ -225,9 +214,9 @@ export default function PrivacyPage() {
               You can withdraw consent at any time (section 12). Withdrawing it will stop the parts of the service that
               depend on it, but will not undo processing already done.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="google" n="05" title="Gmail and Google user data">
+          <LegalSection id="google" n="05" title="Gmail and Google user data">
             <p>Connecting Google is optional. If you connect Gmail, we ask for three permissions, each for one job:</p>
             <ul className="privacy-list">
               <li><strong>gmail.send</strong> to send the outreach emails and follow-ups you approved, from your own address.</li>
@@ -257,9 +246,9 @@ export default function PrivacyPage() {
               If you connect a custom mailbox instead, we use SMTP to send and IMAP to read replies to campaign
               messages. Mailbox passwords are encrypted before we store them.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="calls" n="06" title="AI voice calls">
+          <LegalSection id="calls" n="06" title="AI voice calls">
             <p>
               GNX Sales can call prospects and answer inbound calls with an AI voice agent. Every call opens with a clear
               statement that the caller is an AI, and calls end automatically after 20 minutes.
@@ -268,9 +257,9 @@ export default function PrivacyPage() {
               <li><strong>Outbound calls:</strong> we store the recording, transcript and outcome (duration, disposition, meeting booked) so you can review them in Call History. Recording laws differ by place, and you are responsible for any notice or consent your prospects&apos; location requires.</li>
               <li><strong>Inbound calls:</strong> we use the caller&apos;s number and the details they confirm to route the call, and we store the recording, transcript and structured outcome so you can review them in Call History. The AI disclosure at the start of the call tells the caller it may be recorded.</li>
             </ul>
-          </Section>
+          </LegalSection>
 
-          <Section id="ai" n="07" title="AI processing">
+          <LegalSection id="ai" n="07" title="AI processing">
             <p>
               To write emails, replies, call prompts and summaries, we send the relevant campaign context, lead details
               and message history to AI model providers. They process it to return a result to your account. We do not
@@ -278,9 +267,9 @@ export default function PrivacyPage() {
               them to train on it.
             </p>
             <p>AI can be wrong. That is why replies wait for your approval by default, unless you switch on auto-pilot.</p>
-          </Section>
+          </LegalSection>
 
-          <Section id="share" n="08" title="Who we share with">
+          <LegalSection id="share" n="08" title="Who we share with">
             <p>
               We share data only with providers who help us run GNX Sales, under contracts that limit them to our
               instructions. We never sell personal data or share it for advertising.
@@ -298,9 +287,9 @@ export default function PrivacyPage() {
               protect people from harm, or to a buyer if Globonexo is merged or acquired, in which case this policy
               continues to apply.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="where" n="09" title="Where your data is stored">
+          <LegalSection id="where" n="09" title="Where your data is stored">
             <p>
               Globonexo is an Indian company, but GNX Sales runs in the <strong>United States</strong>. Our database and
               backend servers are hosted in US data centres, so your account, lead, campaign and conversation data is
@@ -318,9 +307,9 @@ export default function PrivacyPage() {
               or UK, we rely on standard contractual clauses or an equivalent safeguard. Our team in India accesses the
               data remotely, only as section 11 allows.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="retain" n="10" title="How long we keep it">
+          <LegalSection id="retain" n="10" title="How long we keep it">
             <p>We keep data only as long as its purpose lasts, then erase it, unless a law tells us to keep it longer.</p>
             <div className="privacy-table-wrap">
               <table className="privacy-table">
@@ -334,9 +323,9 @@ export default function PrivacyPage() {
                 </tbody>
               </table>
             </div>
-          </Section>
+          </LegalSection>
 
-          <Section id="security" n="11" title="Security, and what happens if something goes wrong">
+          <LegalSection id="security" n="11" title="Security, and what happens if something goes wrong">
             <p>
               We encrypt data in transit and at rest, encrypt stored mailbox passwords, limit staff access to what each
               job needs, and log access to production systems. These follow reasonable security practices under the IT
@@ -347,9 +336,9 @@ export default function PrivacyPage() {
               Protection Board of India without delay, in the form and time the DPDP Rules require, with what happened,
               what it means for you and what we are doing about it.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="rights" n="12" title="Your rights">
+          <LegalSection id="rights" n="12" title="Your rights">
             <p>Under DPDP law you have these rights. Email us to use any of them. We do not charge for it.</p>
             <div className="privacy-grid privacy-grid--rights">
               {rights.map(([name, body]) => (
@@ -370,9 +359,9 @@ export default function PrivacyPage() {
               You can also ask for this policy in Hindi or any other language listed in the Eighth Schedule to the
               Constitution of India.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="contacted" n="13" title="If a GNX Sales customer contacted you">
+          <LegalSection id="contacted" n="13" title="If a GNX Sales customer contacted you">
             <p>
               Our customers use GNX Sales to email and call business contacts. If you received one of those emails or
               calls, the business that contacted you decides why, and you can ask them directly. You can also:
@@ -385,32 +374,32 @@ export default function PrivacyPage() {
               Customers must have a lawful basis to contact you and must honour opt-outs. Our Terms of Service require
               it, and we suspend accounts that ignore it.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="children" n="14" title="Children">
+          <LegalSection id="children" n="14" title="Children">
             <p>
               GNX Sales is a business tool for people 18 and over. We do not knowingly collect data from anyone under 18.
               If you think a child has given us data, tell us and we will erase it.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="cookies" n="15" title="Cookies">
+          <LegalSection id="cookies" n="15" title="Cookies">
             <p>
               We use essential cookies to keep you signed in and secure, local storage for your interface preferences,
               and PostHog for product analytics. We do not use advertising cookies. The{" "}
               <Link href="/cookies">Cookie Policy</Link> has the full list and how to turn them off.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="changes" n="16" title="Changes to this policy">
+          <LegalSection id="changes" n="16" title="Changes to this policy">
             <p>
               When we change this policy, we update the date at the top. If a change affects how we use your data in a
               meaningful way, we will email account owners at least 14 days before it takes effect, and ask for fresh
               consent where the law requires it.
             </p>
-          </Section>
+          </LegalSection>
 
-          <Section id="contact" n="17" title="Contact us">
+          <LegalSection id="contact" n="17" title="Contact us">
             <p>
               For any question, request or complaint about your data, write to us. Use the subject
               line &quot;Privacy request&quot; so it reaches the right person.
@@ -432,7 +421,7 @@ export default function PrivacyPage() {
               If you are not satisfied with our answer, you can complain to the Data Protection Board of India once you
               have used our complaint process.
             </p>
-          </Section>
+          </LegalSection>
         </article>
       </main>
 
