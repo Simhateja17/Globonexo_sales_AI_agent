@@ -9,123 +9,206 @@ import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
 import PublicFooter from "../../components/layout/PublicFooter";
+import FaqBrowser from "../../components/marketing/FaqBrowser";
 import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
 
 const groups = [
   {
+    id: "start",
+    chip: "Getting started",
+    icon: "bolt",
     title: "Getting started",
     items: [
       {
-        q: "What exactly does GNX sales do?",
-        a: "It runs the outbound loop for you. The agent sources and qualifies leads, writes personalized emails, sends and follows up on a schedule, drafts replies to responses, and books qualified meetings on your calendar.",
+        q: "What exactly does GNX Sales do?",
+        a: "It is an AI sales agent that runs your outbound for you. It finds buyers who match your ideal customer, researches why they would care, writes and sends the emails, calls them with an AI voice, follows up, and books the meeting on your calendar.",
       },
       {
         q: "How long does setup take?",
-        a: "Complete onboarding so the agent learns your offer and ideal customer, connect Gmail or a custom SMTP + IMAP mailbox for sending and replies, build a lead list, and launch a campaign. Meeting timing depends on your market, offer, list quality, and prospect response rather than a fixed promise.",
+        a: "Most people launch their first campaign in one sitting. Answer the onboarding questions so the agent learns your offer, connect Gmail or a custom mailbox, build a lead list, and launch. When meetings come depends on your market and offer, so we do not promise a date.",
       },
       {
-        q: "Do I need a technical person to set it up?",
-        a: "No. Onboarding is a guided set of questions and the integrations are one-click OAuth connections. No code or engineering work is required.",
+        q: "Do I need a technical person?",
+        a: "No. Onboarding is a guided set of questions and the connections are one-click sign-ins. If you built your product with AI tools and never hired a salesperson, this was made for you.",
       },
       {
-        q: "Can I import my existing leads?",
-        a: "Yes. Upload a CSV and map your columns, or search our lead database directly inside the product to build a new list against your ideal customer profile.",
+        q: "Can I bring my own leads?",
+        a: "Yes. Upload a CSV and map the columns, or let the agent search our lead database for people who match your ideal customer.",
       },
     ],
   },
   {
-    title: "AI and quality control",
+    id: "agent",
+    chip: "Calls and replies",
+    icon: "phone",
+    title: "Calls and replies",
     items: [
       {
-        q: "Do AI replies send automatically?",
-        a: "Not unless you turn that on. By default every AI-drafted reply waits in your inbox for review, and you can approve, edit, or reject it before anything goes out.",
+        q: "Does it really make phone calls?",
+        a: "Yes. Every plan includes AI voice campaigns. The agent calls your leads, has a real conversation, handles common objections and books a meeting when the prospect is ready. It can also answer inbound calls.",
       },
       {
-        q: "How personalized are the messages?",
-        a: "The agent writes from your onboarding answers, the campaign context, and what it knows about each lead, so messages reference the specific company and role rather than reusing one template.",
+        q: "Does the caller say it is an AI?",
+        a: "Always. Every call opens by telling the person they are speaking to an AI agent. Calls end automatically after 20 minutes.",
       },
       {
-        q: "What if the AI writes something wrong?",
-        a: "AI output can be inaccurate, which is why human review is the default. You stay responsible for what is sent, and you can edit any draft or adjust the campaign instructions to correct the pattern.",
+        q: "What happens when a prospect replies?",
+        a: "Follow-ups to that person stop at once and you get an alert, so you can take over the conversation. Follow-ups also stop for leads who book a meeting, say they are not interested, or unsubscribe. If you prefer, switch on autopilot for that campaign and the agent replies for you within the instructions you set.",
       },
       {
-        q: "Can I control tone and messaging?",
-        a: "Yes. You set the offer, tone, and call to action per campaign, and you can edit any generated step directly before launching.",
+        q: "Are calls recorded?",
+        a: "Outbound calls are recorded and transcribed so you can review them in Call History. Inbound calls are not recorded or transcribed.",
+      },
+      {
+        q: "Which languages does the agent speak?",
+        a: "English, for both email and calls. It works best for selling to English-speaking markets such as the US, Canada, the UK and India.",
       },
     ],
   },
   {
+    id: "quality",
+    chip: "AI quality",
+    icon: "check",
+    title: "AI quality",
+    items: [
+      {
+        q: "Do AI replies send on their own?",
+        a: "Only if you turn on autopilot, which you set per campaign. By default every draft waits for you to edit, regenerate or approve it. Autopilot changes who approves a message, never whether it was checked: every message passes the same validation either way.",
+      },
+      {
+        q: "How personal are the messages?",
+        a: "Each one is written from your offer and what the agent found about that lead's company and role. When it cannot verify a fact, it leaves the fact out rather than guess.",
+      },
+      {
+        q: "What if it writes something wrong?",
+        a: "AI can be wrong, which is why review is the default. Edit the draft, or change the campaign instructions so the pattern does not repeat.",
+      },
+    ],
+  },
+  {
+    id: "compliance",
+    chip: "Compliance",
+    icon: "shield",
     title: "Deliverability and compliance",
     items: [
       {
-        q: "Will this hurt my domain reputation?",
-        a: "Sending is throttled and spread across sending windows rather than blasted. You still control volume, and we recommend warming a new domain and keeping lists targeted rather than broad.",
+        q: "Will this hurt my domain?",
+        a: "Sending is spread across sending windows, never blasted, with a daily cap per plan: 100 emails a day on Individual, 200 on Agency and 500 on Startup. GNX Sales does not warm domains for you, so warm a new domain first and keep lists tight.",
       },
       {
         q: "Who is responsible for compliance?",
-        a: "You are. You are responsible for your lead lists, consent, unsubscribe handling, and call disclosure requirements under applicable email, telemarketing, and privacy rules. See our Terms of Service for the full detail.",
+        a: "You are, as the business doing the outreach. That includes having a lawful basis for each contact and following rules like CAN-SPAM, the TCPA, CASL and India's DPDP Act where they apply. The Terms of Service set this out in full.",
       },
       {
         q: "How are unsubscribes handled?",
-        a: "Outbound messages carry unsubscribe or reply instructions, and opt-outs are recorded so the lead is excluded from further sending.",
+        a: "Every email carries unsubscribe instructions. When someone replies asking to stop, the agent detects it (it ignores the quoted text, so your own footer is never mistaken for an opt-out), marks the lead unsubscribed and stops all further emails and calls to them.",
+      },
+      {
+        q: "Do you check Do Not Call lists?",
+        a: "Before you add leads to a voice campaign, you confirm that each number is a direct or mobile line, was checked against the Do Not Call registries that apply, and may lawfully be called. GNX Sales then screens leads before dialing: a DNC match is blocked and never called. Treat our screen as a safety net, not your only check.",
       },
     ],
   },
   {
+    id: "integrations",
+    icon: "link",
     title: "Integrations",
     items: [
       {
-        q: "Which email providers are supported?",
-        a: "Gmail is supported through secure OAuth, and other mail providers can connect through SMTP for sending and IMAP for reading campaign replies.",
+        q: "Which email providers work?",
+        a: "Gmail and Google Workspace through secure Google sign-in. Outlook and any other provider connect through SMTP for sending and IMAP for reading replies, as long as your mailbox allows password or app-password sign-in. Individual allows 1 mailbox, Agency 10 and Startup 30.",
       },
       {
-        q: "What does the product integrate with?",
-        a: "Gmail or custom SMTP + IMAP for email, our lead sourcing and enrichment provider, our AI voice calling provider, Google Calendar for booking, Razorpay for billing, Supabase for authentication and data, and PostHog for product analytics.",
+        q: "How are meetings booked?",
+        a: "In GNX Sales' built-in Calendar. When a prospect agrees, the agent books the meeting there, with the Google Meet link you saved, which is reused for every meeting. Google Calendar sync is coming soon.",
       },
       {
-        q: "Do voice campaigns come with every plan?",
-        a: "AI voice campaigns are included from the Growth plan upward. The Starter plan covers email outbound, lead sourcing, and human-approved AI replies.",
+        q: "Does it connect to my CRM?",
+        a: "Not yet. GNX Sales has its own Prospects, Pipeline and Inbox built in, so you can run the whole outbound loop without a CRM. Tell us which CRM you use and we will prioritise it.",
       },
     ],
   },
   {
+    id: "billing",
+    chip: "Plans and billing",
+    icon: "card",
     title: "Plans and billing",
     items: [
       {
-        q: "Do you offer a free trial?",
-        a: "No. All accounts start with a paid monthly or annual subscription. You select a plan in Billing before onboarding, and cancellation stops the next renewal while the current paid period remains available.",
+        q: "What do the plans cost?",
+        a: "Individual is $59 a month, Agency $179 and Startup $479. Paying yearly brings them to $49, $149 and $399 a month. Every plan includes AI email sequences, lead enrichment and AI voice calling.",
       },
       {
-        q: "Can I change or cancel my plan?",
-        a: "You can change or cancel at any time from Billing in your settings. Cancelling stops future renewals and your plan stays active through the end of the current billing period.",
+        q: "What is the difference between plans?",
+        a: "Individual: 2,645 credits a month, 3 email and 1 voice campaign, 1 user, 1 mailbox, 1 phone number. Agency: 5,370 credits, 10 email and 4 voice campaigns, 5 users, 10 mailboxes, 3 phone numbers. Startup: 14,370 credits, 25 email and 10 voice campaigns, 15 users, 30 mailboxes, 10 phone numbers.",
       },
       {
-        q: "Do you offer refunds?",
-        a: "Fees are generally non-refundable, but we review requests made within 14 days for duplicate charges, charges after a confirmed cancellation, or a sustained outage. Our Refund Policy has the full terms.",
+        q: "Is there a free trial?",
+        a: "No. Every account starts on a paid monthly or yearly plan. Book a demo first if you want to see the agent work before paying.",
       },
       {
-        q: "What happens if I exceed my plan limits?",
-        a: "You will be prompted to upgrade before sending beyond your plan's email, call, or enrichment limits. Usage already consumed is billed as used.",
+        q: "What are credits?",
+        a: "Credits pay for the work the agent does: AI writing, finding and enriching contacts, and voice calls. One credit equals one cent of what that work costs us at our providers, so you pay for real usage. Phone numbers cost more to find than emails. Each campaign has a credit ceiling you set, and the agent stops before going over it.",
+      },
+      {
+        q: "What happens when my credits run out?",
+        a: "New AI writing, enrichment and calls pause, and anything already in progress finishes. Credits refill on your next billing date, or upgrade to get more straight away.",
+      },
+      {
+        q: "Which currency, and is GST charged?",
+        a: "Prices are in US dollars and payments go through Razorpay. Right now no GST or other tax is added, for customers in India or anywhere else. We will start charging GST where it applies soon. When we do, we will email you before your next renewal, and the tax will show as a separate line on your checkout and invoice.",
+      },
+      {
+        q: "Can I change or cancel?",
+        a: "Anytime, from Billing. When you upgrade, Billing shows the price with your unused credit on the current plan taken off, before you pay. Cancelling stops the next renewal and your plan keeps working until the end of the period you paid for. We do not refund the unused part of a period.",
+      },
+      {
+        q: "Do you give refunds?",
+        a: "Fees are non-refundable, except that we review requests made within 14 days of a charge for duplicate billing, a charge after a confirmed cancellation, or a long outage that stopped you using the product. Email support@gnxsales.com and we answer within 3 business days. Approved refunds reach your original payment method in 5 to 10 business days.",
       },
     ],
   },
   {
-    title: "Data and security",
+    id: "data",
+    chip: "Data and privacy",
+    icon: "lock",
+    title: "Data and privacy",
     items: [
       {
+        q: "Who is behind GNX Sales?",
+        a: "Globonexo India Private Limited, a company registered in India. We serve customers worldwide, mainly in the US, Canada and India.",
+      },
+      {
+        q: "Where is my data stored?",
+        a: "In the United States. Our database and backend servers are hosted in US data centres, so your account, leads, campaigns and conversations are stored and processed there.",
+      },
+      {
         q: "Do you sell my data?",
-        a: "No. We do not sell personal information. Data is shared only with the service providers needed to run the product, such as hosting, email, payments, and AI infrastructure.",
+        a: "No. We share data only with the providers needed to run the product, such as hosting, email, calling, payments and AI.",
       },
       {
-        q: "Is my lead data used to train AI models?",
-        a: "Campaign context and lead details are sent to AI providers to generate content for your account. We do not sell your data or use it to build products for other customers.",
+        q: "Is my data used to train AI?",
+        a: "No. It is sent to AI providers only to produce content for your account, and never used to build anything for other customers.",
       },
       {
-        q: "Can I delete my data?",
-        a: "Yes. You can disconnect integrations at any time and request account deletion by writing to support@gnxsales.com. See the Privacy Policy for retention detail.",
+        q: "How do I delete my data?",
+        a: "Disconnect integrations anytime in Settings, and email support@gnxsales.com to close your account. We erase your workspace within 30 days. The Privacy Policy explains what the law makes us keep.",
       },
     ],
   },
+];
+
+const quickFacts = [
+  { value: "$59", unit: " /month", label: "Plans start here, calling included" },
+  { value: "Email + calls", label: "One agent runs both channels" },
+  { value: "You approve", label: "Replies wait for you by default" },
+  { value: "1 business day", label: "Our reply time on support email" },
+];
+
+const contacts = [
+  { icon: "mail", title: "Email support", body: "For account, billing and product questions.", cta: "support@gnxsales.com", href: "mailto:support@gnxsales.com" },
+  { icon: "calendar", title: "Book a 30 minute demo", body: "Watch the agent find, email and call a lead live.", cta: "Pick a time", href: "/contact" },
+  { icon: "book", title: "Help Center", body: "Step by step guides for every screen.", cta: "Browse guides", href: "/help" },
 ];
 
 const faqSchema = {
@@ -145,53 +228,48 @@ export default function FaqPage() {
     <div className="public-page">
       <PublicNav />
 
-      <main>
-        <section className="content-hero public-section">
-          <span className="eyebrow">FAQs</span>
-          <h1 className="display">Questions we get asked most.</h1>
-          <p>
-            Straight answers on setup, AI quality, deliverability, integrations, billing, and how we handle your data.
-          </p>
-          <div className="content-hero-actions">
-            <Link className="btn btn-primary btn-lg" href="/signup">
-              View plans <Icon name="arrow" size={18} color="#06231a" />
-            </Link>
-            <Link className="btn btn-ghost btn-lg" href="/help">Browse the Help Center</Link>
-          </div>
-        </section>
-
-        <section className="content-section public-section">
-          <div className="faq-groups-grid">
-            {groups.map((group) => (
-              <div key={group.title} className="faq-group">
-                <h2>{group.title}</h2>
-                <div className="faq-list">
-                  {group.items.map((item) => (
-                    <details key={item.q} className="faq-item">
-                      <summary>
-                        <span>{item.q}</span>
-                        <Icon name="plus" size={18} color="var(--muted)" />
-                      </summary>
-                      <p>{item.a}</p>
-                    </details>
-                  ))}
-                </div>
+      <FaqBrowser groups={groups}>
+        <section className="faq-facts public-section" aria-label="Quick facts">
+          <div>
+            {quickFacts.map((fact) => (
+              <div key={fact.value}>
+                <strong>
+                  {fact.value}
+                  {fact.unit && <small>{fact.unit}</small>}
+                </strong>
+                <span>{fact.label}</span>
               </div>
             ))}
           </div>
         </section>
+      </FaqBrowser>
 
-        <section className="content-cta public-section">
-          <div>
-            <h2>Did not find your answer?</h2>
-            <p>Ask us directly. We reply within one business day.</p>
+      <section className="faq-stuck">
+        <div className="faq-stuck-inner public-section">
+          <div className="faq-stuck-head">
+            <span className="eyebrow">Still stuck</span>
+            <h2 className="display">Ask a person.</h2>
+            <p>Three ways to reach us. We answer every message within one business day.</p>
           </div>
-          <div className="content-cta-actions">
-            <Link className="btn btn-dark" href="/contact">Contact support</Link>
-            <Link className="btn btn-ghost" href="/help">Help Center</Link>
+          <div className="faq-stuck-grid">
+            {contacts.map((c) => {
+              const inner = (
+                <>
+                  <span className="faq-stuck-icon"><Icon name={c.icon} size={22} color="#fff" /></span>
+                  <h3>{c.title}</h3>
+                  <p>{c.body}</p>
+                  <strong>{c.cta}</strong>
+                </>
+              );
+              return c.href.startsWith("mailto:") ? (
+                <a key={c.title} className="faq-stuck-card" href={c.href}>{inner}</a>
+              ) : (
+                <Link key={c.title} className="faq-stuck-card" href={c.href}>{inner}</Link>
+              );
+            })}
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
       <PublicFooter />
       <BreadcrumbSchema trail={[{ name: "FAQ", path: "/faq" }]} />
