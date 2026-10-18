@@ -7122,3 +7122,40 @@ canvas {
 }
 /* ---- Terms: "cannot do" list uses red diamonds instead of green dots ---- */
 .privacy-list--no li::before { background: var(--stop); border-radius: 2px; transform: rotate(45deg); }
+
+/* ---- /refund and /cookies (single-column legal pages) ---- */
+.privacy-layout--single .privacy-article { flex: 1 1 100%; }
+.privacy-glance--3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.legal-stat { padding: 26px; }
+.legal-stat strong { display: block; font-family: var(--font-display); font-size: 44px; font-weight: 600; line-height: 1.1; letter-spacing: -.04em; color: var(--g-700); }
+.legal-stat h3 { margin-top: 6px; font-size: 15px; font-family: var(--font-body); font-weight: 800; letter-spacing: 0; }
+.legal-stat p { margin-top: 4px; }
+.legal-kind-head { display: flex; align-items: center; justify-content: space-between; }
+.legal-kind-head em {
+  padding: 5px 10px; border-radius: var(--r-pill);
+  background: var(--g-50); color: var(--g-700);
+  font-size: 11.5px; font-style: normal; font-weight: 800;
+}
+.legal-kind-head em.is-muted { background: var(--bg-2); color: var(--ink-2); }
+.privacy-layout--single .privacy-glance-card h3 { font-size: 20px; }
+
+.refund-split { max-width: 760px; margin-top: 22px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.refund-card { padding: 24px; border-radius: var(--r-lg); border: 1px solid var(--g-100); background: var(--g-50); }
+.refund-card--no { border-color: #f6d5d1; background: var(--stop-50); }
+.refund-card-head { display: flex; align-items: center; gap: 10px; }
+.refund-card-head span { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--g-600); }
+.refund-card--no .refund-card-head span { background: var(--stop); }
+.refund-card-head strong { font-family: var(--font-display); font-size: 20px; font-weight: 600; }
+.refund-card .privacy-list { margin-top: 16px; }
+.refund-steps { max-width: 760px; margin-top: 22px; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; list-style: none; }
+.refund-steps li { padding: 20px; border: 1px solid var(--line); border-radius: var(--r-md); background: #fff; }
+.refund-steps li.is-last { border-color: var(--g-100); background: var(--g-50); }
+.refund-steps li > span {
+  width: 32px; height: 32px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--ink); color: #fff; font-family: var(--font-display); font-weight: 600;
+}
+.refund-steps li.is-last > span { background: var(--g-600); }
+.refund-steps li > strong { display: block; margin-top: 14px; font-size: 15px; font-weight: 800; }
+.refund-steps li > p { margin-top: 6px; color: var(--muted); font-size: 13.5px; line-height: 1.6; }
+.privacy-layout--single .privacy-sec-body .refund-steps li > p { margin-top: 6px; font-size: 13.5px; line-height: 1.6; }
