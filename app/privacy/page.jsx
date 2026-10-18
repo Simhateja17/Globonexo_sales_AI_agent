@@ -36,7 +36,7 @@ const toc = [
   ["children", "Children"],
   ["cookies", "Cookies"],
   ["changes", "Changes"],
-  ["grievance", "Grievance Officer"],
+  ["contact", "Contact us"],
 ];
 
 const collected = [
@@ -76,7 +76,7 @@ const rights = [
   ["Correction", "Fix, complete or update anything that is wrong."],
   ["Erasure", "Have your data deleted once we no longer need it by law."],
   ["Withdraw consent", "As easily as you gave it, at any time."],
-  ["Grievance redressal", "Complain to our Grievance Officer and get an answer."],
+  ["Complaints", "Raise a complaint with us and get an answer."],
   ["Nominate", "Name someone to act for you if you die or cannot act."],
 ];
 
@@ -132,7 +132,6 @@ export default function PrivacyPage() {
             <div>
               <p>CIN: U62013DC2026PTC469655</p>
               <p>44, Backary Portion, 2nd Floor, Regal Building, Connaught Place, New Delhi, Central Delhi - 110001, India</p>
-              <p>Grievance Officer: [FULL NAME]</p>
               <a href="mailto:support@gnxsales.com">support@gnxsales.com</a>
             </div>
           </aside>
@@ -411,17 +410,16 @@ export default function PrivacyPage() {
             </p>
           </Section>
 
-          <Section id="grievance" n="17" title="Grievance Officer and contact">
+          <Section id="contact" n="17" title="Contact us">
             <p>
-              For any question, request or complaint about your data, write to our Grievance Officer. Use the subject
+              For any question, request or complaint about your data, write to us. Use the subject
               line &quot;Privacy request&quot; so it reaches the right person.
             </p>
             <div className="privacy-officer">
               <div>
-                <span>Grievance Officer</span>
-                <strong>[FULL NAME]</strong>
+                <span>Privacy requests</span>
+                <strong>Globonexo India Private Limited</strong>
                 <p>
-                  Globonexo India Private Limited<br />
                   44, Backary Portion, 2nd Floor, Regal Building, Connaught Place, New Delhi, Central Delhi - 110001, India
                 </p>
               </div>
@@ -432,7 +430,7 @@ export default function PrivacyPage() {
             </div>
             <p>
               If you are not satisfied with our answer, you can complain to the Data Protection Board of India once you
-              have used our grievance process.
+              have used our complaint process.
             </p>
           </Section>
         </article>
@@ -465,7 +463,7 @@ export default function PrivacyPage() {
           </div>
           <div className="content-cta-actions">
             <a className="btn btn-primary btn-lg" href="mailto:support@gnxsales.com">
-              Email the Grievance Officer <Icon name="arrow" size={17} color="#06231a" />
+              Email our privacy team <Icon name="arrow" size={17} color="#06231a" />
             </a>
             <Link className="landing-outline-btn" href="/terms">Read the Terms</Link>
           </div>
