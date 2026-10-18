@@ -6853,7 +6853,9 @@ canvas {
   color: var(--ink-2); font-size: 13.5px; font-weight: 700; line-height: 1.35;
 }
 .privacy-toc a em { min-width: 20px; color: var(--faint); font-style: normal; font-variant-numeric: tabular-nums; }
-.privacy-toc a:hover { background: var(--g-50); color: var(--g-700); }
+.privacy-toc a:hover,
+.privacy-toc a.is-active { background: var(--g-50); color: var(--g-700); }
+.privacy-toc a.is-active em { color: var(--g-500); }
 .privacy-article { flex: 999 1 600px; min-width: 0; }
 
 .privacy-sec {
@@ -6994,7 +6996,8 @@ canvas {
 .faq-topics > span { padding: 4px 12px 10px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .faq-topics a { display: flex; justify-content: space-between; padding: 10px 12px; border-radius: var(--r-sm); color: var(--ink-2); font-size: 14px; font-weight: 800; }
 .faq-topics a em { color: var(--faint); font-style: normal; font-weight: 700; }
-.faq-topics a:hover { background: var(--g-50); color: var(--g-700); }
+.faq-topics a:hover,
+.faq-topics a.is-active { background: var(--g-50); color: var(--g-700); }
 .faq-body { flex: 999 1 600px; min-width: 0; }
 .faq-topic { scroll-margin-top: 24px; }
 .faq-topic + .faq-topic { margin-top: 56px; }

@@ -57,7 +57,7 @@ const groups = [
       },
       {
         q: "Are calls recorded?",
-        a: "Outbound calls are recorded and transcribed so you can review them in Call History. Inbound calls are not recorded or transcribed.",
+        a: "Both outbound and inbound calls are recorded and transcribed so you can review them in Call History.",
       },
       {
         q: "Which languages does the agent speak?",

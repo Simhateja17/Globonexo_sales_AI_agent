@@ -8,6 +8,7 @@ export const metadata = {
 import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
+import PrivacyToc from "../../components/marketing/PrivacyToc";
 import PublicFooter from "../../components/layout/PublicFooter";
 import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
 
@@ -35,7 +36,7 @@ const toc = [
   ["children", "Children"],
   ["cookies", "Cookies"],
   ["changes", "Changes"],
-  ["grievance", "Grievance Officer"],
+  ["contact", "Contact us"],
 ];
 
 const collected = [
@@ -65,7 +66,7 @@ const retention = [
   ["Leads and campaigns", "Until you delete them or close your account."],
   ["Google and mailbox credentials", "Until you disconnect. Deleted at once when you do."],
   ["Outbound call recordings", "Until you delete them or close your account."],
-  ["Inbound call recordings", "Not kept at all."],
+  ["Inbound call recordings", "Until you delete them or close your account."],
   ["Security and access logs", "At least one year, as the DPDP Rules require."],
   ["Invoices and tax records", "Eight years, as the Companies Act, 2013 and GST law require."],
 ];
@@ -75,7 +76,7 @@ const rights = [
   ["Correction", "Fix, complete or update anything that is wrong."],
   ["Erasure", "Have your data deleted once we no longer need it by law."],
   ["Withdraw consent", "As easily as you gave it, at any time."],
-  ["Grievance redressal", "Complain to our Grievance Officer and get an answer."],
+  ["Complaints", "Raise a complaint with us and get an answer."],
   ["Nominate", "Name someone to act for you if you die or cannot act."],
 ];
 
@@ -85,7 +86,7 @@ const faqs = [
   { q: "Can you read all my Gmail?", a: "We only read threads the agent started, to catch replies. The rest of your inbox is never opened. Disconnect anytime and the tokens are deleted." },
   { q: "You are an Indian company. Can I use you from the US or Canada?", a: "Yes. Our database and servers are in the US, so your data stays there. We follow Indian law as the company, and also honour the rights your local law gives you, including CCPA, PIPEDA and GDPR rights. Section 12 lists them." },
   { q: "How do I delete everything?", a: "Email support@gnxsales.com from your account email. We erase your workspace within 30 days, keeping only the logs and tax records the law requires." },
-  { q: "Are calls recorded?", a: "Outbound calls are recorded so you can review them. Inbound calls are not. Every call starts by saying it is an AI agent." },
+  { q: "Are calls recorded?", a: "Both outbound and inbound calls are recorded so you can review them. Every call starts by saying it is an AI agent." },
 ];
 
 function Section({ id, n, title, children }) {
@@ -129,9 +130,8 @@ export default function PrivacyPage() {
             <span>Data Fiduciary</span>
             <strong>Globonexo India Private Limited</strong>
             <div>
-              <p>CIN: [CIN NUMBER]</p>
-              <p>[REGISTERED OFFICE ADDRESS], India</p>
-              <p>Grievance Officer: [FULL NAME]</p>
+              <p>CIN: U62013DC2026PTC469655</p>
+              <p>44, Backary Portion, 2nd Floor, Regal Building, Connaught Place, New Delhi, Central Delhi - 110001, India</p>
               <a href="mailto:support@gnxsales.com">support@gnxsales.com</a>
             </div>
           </aside>
@@ -149,22 +149,13 @@ export default function PrivacyPage() {
       </section>
 
       <main className="privacy-layout public-section">
-        <nav className="privacy-toc" aria-label="On this page">
-          <span>On this page</span>
-          {toc.map(([id, label], i) => (
-            <a key={id} href={`#${id}`}>
-              <em>{String(i + 1).padStart(2, "0")}</em>
-              {label}
-            </a>
-          ))}
-        </nav>
+        <PrivacyToc items={toc} />
 
         <article className="privacy-article">
           <Section id="who" n="01" title="Who we are">
             <p>
               GNX Sales (gnxsales.com) is an AI sales agent built and operated by Globonexo India Private Limited, a
-              company incorporated under the Companies Act, 2013, with its registered office at [REGISTERED OFFICE
-              ADDRESS]. In this policy, &quot;GNX Sales&quot;, &quot;we&quot; and &quot;us&quot; mean Globonexo India
+              company incorporated under the Companies Act, 2013, with its registered office at 44, Backary Portion, 2nd Floor, Regal Building, Connaught Place, New Delhi, Central Delhi - 110001, India. In this policy, &quot;GNX Sales&quot;, &quot;we&quot; and &quot;us&quot; mean Globonexo India
               Private Limited.
             </p>
             <p>
@@ -275,7 +266,7 @@ export default function PrivacyPage() {
             </p>
             <ul className="privacy-list">
               <li><strong>Outbound calls:</strong> we store the recording, transcript and outcome (duration, disposition, meeting booked) so you can review them in Call History. Recording laws differ by place, and you are responsible for any notice or consent your prospects&apos; location requires.</li>
-              <li><strong>Inbound calls:</strong> we use the caller&apos;s number and the details they confirm to route the call and record a structured outcome. We do not keep recordings, transcripts or provider call logs of inbound calls.</li>
+              <li><strong>Inbound calls:</strong> we use the caller&apos;s number and the details they confirm to route the call, and we store the recording, transcript and structured outcome so you can review them in Call History. The AI disclosure at the start of the call tells the caller it may be recorded.</li>
             </ul>
           </Section>
 
@@ -419,18 +410,17 @@ export default function PrivacyPage() {
             </p>
           </Section>
 
-          <Section id="grievance" n="17" title="Grievance Officer and contact">
+          <Section id="contact" n="17" title="Contact us">
             <p>
-              For any question, request or complaint about your data, write to our Grievance Officer. Use the subject
+              For any question, request or complaint about your data, write to us. Use the subject
               line &quot;Privacy request&quot; so it reaches the right person.
             </p>
             <div className="privacy-officer">
               <div>
-                <span>Grievance Officer</span>
-                <strong>[FULL NAME]</strong>
+                <span>Privacy requests</span>
+                <strong>Globonexo India Private Limited</strong>
                 <p>
-                  Globonexo India Private Limited<br />
-                  [REGISTERED OFFICE ADDRESS], India
+                  44, Backary Portion, 2nd Floor, Regal Building, Connaught Place, New Delhi, Central Delhi - 110001, India
                 </p>
               </div>
               <div>
@@ -440,7 +430,7 @@ export default function PrivacyPage() {
             </div>
             <p>
               If you are not satisfied with our answer, you can complain to the Data Protection Board of India once you
-              have used our grievance process.
+              have used our complaint process.
             </p>
           </Section>
         </article>
@@ -473,7 +463,7 @@ export default function PrivacyPage() {
           </div>
           <div className="content-cta-actions">
             <a className="btn btn-primary btn-lg" href="mailto:support@gnxsales.com">
-              Email the Grievance Officer <Icon name="arrow" size={17} color="#06231a" />
+              Email our privacy team <Icon name="arrow" size={17} color="#06231a" />
             </a>
             <Link className="landing-outline-btn" href="/terms">Read the Terms</Link>
           </div>

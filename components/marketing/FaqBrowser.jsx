@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import Icon from "../ui/Icon";
+import useActiveSection from "../../hooks/useActiveSection";
 
 // Topic hero search, jump chips, sidebar and grouped accordion for /faq.
 // Answers are plain strings so the same data can feed the FAQPage schema.
@@ -17,6 +18,8 @@ export default function FaqBrowser({ groups, children }) {
       }))
       .filter((group) => group.items.length > 0);
   }, [groups, needle]);
+
+  const active = useActiveSection(visible.map((g) => g.id));
 
   return (
     <>
@@ -57,7 +60,7 @@ export default function FaqBrowser({ groups, children }) {
         <nav className="faq-topics" aria-label="Topics">
           <span>Topics</span>
           {groups.map((g) => (
-            <a key={g.id} href={`#${g.id}`}>
+            <a key={g.id} href={`#${g.id}`} className={active === g.id ? "is-active" : undefined} aria-current={active === g.id ? "location" : undefined}>
               {g.title}
               <em>{g.items.length}</em>
             </a>
