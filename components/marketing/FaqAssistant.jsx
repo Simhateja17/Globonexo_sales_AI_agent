@@ -12,7 +12,7 @@ const SUGGESTIONS = [
   "Does it really make phone calls?",
   "What do the plans cost?",
   "Is my data used to train AI?",
-  "How do refunds work?",
+  "Can I cancel anytime?",
 ];
 
 const GREETING =

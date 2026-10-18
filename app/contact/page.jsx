@@ -9,57 +9,15 @@ import Link from "next/link";
 import Icon from "../../components/ui/Icon";
 import PublicNav from "../../components/layout/PublicNav";
 import PublicFooter from "../../components/layout/PublicFooter";
+import ContactForm from "../../components/marketing/ContactForm";
+import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
+import { DEMO_URL, INSTAGRAM_URL, LINKEDIN_URL, SUPPORT_EMAIL, SUPPORT_HOURS } from "../../lib/site";
 
-const channels = [
-  {
-    icon: "chat",
-    title: "Product support",
-    body: "Trouble with campaigns, agents, inbox, or integrations. The fastest route is an in-app ticket, which reaches us with your account context attached.",
-    action: { label: "Open a support ticket", href: "/support" },
-    note: "Signed-in users · replies within 1 business day",
-  },
-  {
-    icon: "mail",
-    title: "Email us",
-    body: "Not signed in, or prefer email? Write to us directly and include your organization name so we can find your account.",
-    action: { label: "support@gnxsales.com", href: "mailto:support@gnxsales.com" },
-    note: "Replies within 1 business day",
-  },
-  {
-    icon: "building",
-    title: "Sales and plans",
-    body: "Questions about pricing, credit usage, campaign limits, or moving to the Scale plan. We can walk through your outbound motion first.",
-    action: { label: "support@gnxsales.com", href: "mailto:support@gnxsales.com" },
-    note: "Replies within 1 business day",
-  },
-  {
-    icon: "lock",
-    title: "Billing and refunds",
-    body: "Invoices, payment methods, plan changes, duplicate charges, and refund requests handled under our Refund Policy.",
-    action: { label: "support@gnxsales.com", href: "mailto:support@gnxsales.com" },
-    note: "Refund requests reviewed within 3 business days",
-  },
-  {
-    icon: "alertCircle",
-    title: "Security and privacy",
-    body: "Report a vulnerability, ask about data handling, or make a data deletion request. Please do not include credentials in your message.",
-    action: { label: "support@gnxsales.com", href: "mailto:support@gnxsales.com" },
-    note: "Acknowledged within 24 hours",
-  },
-  {
-    icon: "doc",
-    title: "Help yourself first",
-    body: "Setup guides, deliverability tips, and answers to the questions we get most often are already written up.",
-    action: { label: "Browse the Help Center", href: "/help" },
-    note: "Available any time",
-  },
-];
-
-const speedTips = [
-  "Your organization name and the email address on the account.",
-  "The campaign, agent, or lead the issue involves.",
-  "What you expected to happen and what happened instead.",
-  "The time it occurred and a screenshot if you have one.",
+const tips = [
+  "Write from the email on your account",
+  "Name the campaign, lead or call involved",
+  "Say what you expected and what happened",
+  "Add the time and a screenshot",
 ];
 
 export default function ContactPage() {
@@ -67,70 +25,124 @@ export default function ContactPage() {
     <div className="public-page contact-page">
       <PublicNav />
 
-      <main>
-        <section className="content-hero public-section">
-          <span className="eyebrow">Contact support</span>
-          <h1 className="display">Talk to a person who knows the product.</h1>
-          <p>
-            Support is handled by the team that builds GNX sales. Pick the channel that matches your question
-            and we will get back to you quickly.
-          </p>
-          <p className="content-hero-meta">
-            <Icon name="clock" size={16} color="var(--g-700)" />
-            Monday to Friday, 9am–6pm ET · Priority support included on Growth and Scale plans
-          </p>
-        </section>
-
-        <section className="content-section public-section">
-          <div className="content-section-head">
-            <h2>Choose the right way to reach us</h2>
-            <p>Find the support, sales, billing, or security channel that fits your question.</p>
-          </div>
-          <div className="card-grid contact-card-grid">
-            {channels.map((channel) => (
-              <article key={channel.title} className="content-card">
-                <span className="content-card-icon"><Icon name={channel.icon} size={20} color="var(--g-700)" /></span>
-                <h3>{channel.title}</h3>
-                <p>{channel.body}</p>
-                {channel.action.href.startsWith("mailto:") ? (
-                  <a className="content-card-link" href={channel.action.href}>
-                    {channel.action.label} <Icon name="arrow" size={15} color="currentColor" />
-                  </a>
-                ) : (
-                  <Link className="content-card-link" href={channel.action.href}>
-                    {channel.action.label} <Icon name="arrow" size={15} color="currentColor" />
-                  </Link>
-                )}
-                <span className="content-card-note">{channel.note}</span>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="content-section public-section">
-          <div className="contact-split">
-            <div>
-              <h2>Help us answer on the first reply</h2>
-              <p>Including these details usually saves a full round trip:</p>
-              <ul className="content-list">
-                {speedTips.map((tip) => (
-                  <li key={tip}><Icon name="checkCircle" size={18} color="var(--g-600)" />{tip}</li>
-                ))}
-              </ul>
+      <section className="privacy-hero">
+        <div className="privacy-hero-inner public-section">
+          <div className="privacy-hero-copy">
+            <span className="privacy-hero-eyebrow">Contact us</span>
+            <h1 className="display">
+              Talk to a person<br />
+              <span>who knows the product.</span>
+            </h1>
+            <p>
+              No bots, no ticket queues you never hear back from. Pick what you need below and the right person on our
+              team reads it.
+            </p>
+            <div className="privacy-hero-pills">
+              <span className="contact-live"><i aria-hidden="true" />Replies within 1 business day</span>
+              <span>Support hours: {SUPPORT_HOURS}</span>
             </div>
-            <aside className="contact-aside">
-              <h3>Already have an account?</h3>
-              <p>In-app tickets are tracked, threaded, and keep the full history of your conversation with support.</p>
-              <Link className="btn btn-primary btn-block" href="/support">
-                Go to support tickets <Icon name="arrow" size={16} color="#06231a" />
-              </Link>
-              <Link className="btn btn-ghost btn-block" href="/login">Sign in</Link>
-            </aside>
           </div>
-        </section>
+        </div>
+      </section>
+
+      <section className="privacy-glance privacy-glance--3 public-section" aria-label="Ways to reach us">
+        <div className="privacy-glance-card contact-channel">
+          <span className="privacy-glance-icon"><Icon name="chat" size={22} color="#fff" /></span>
+          <h2>Product support</h2>
+          <p>
+            Trouble with campaigns, calls, the inbox or a connection. Signed in? Open a ticket in the app, it reaches
+            us with your account details attached.
+          </p>
+          <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+          <small>Replies within 1 business day</small>
+        </div>
+        <div className="privacy-glance-card contact-channel contact-channel--dark">
+          <span className="privacy-glance-icon"><Icon name="calendar" size={22} color="#6fe7b0" /></span>
+          <h2>Sales and demos</h2>
+          <p>
+            Not sure which plan fits, or want to watch the agent find, email and call a lead live? Book 30 minutes with
+            us.
+          </p>
+          <a className="btn btn-primary" href={DEMO_URL} target="_blank" rel="noopener noreferrer">Book a 30 minute demo</a>
+          <small>Video call on Google Meet</small>
+        </div>
+        <div className="privacy-glance-card contact-channel">
+          <span className="privacy-glance-icon"><Icon name="card" size={22} color="#fff" /></span>
+          <h2>Billing and cancelling</h2>
+          <p>
+            Invoices, plan changes, cancelling and billing mistakes, handled under our{" "}
+            <Link href="/refund">Refund Policy</Link>.
+          </p>
+          <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+          <small>Billing errors checked within 3 business days</small>
+        </div>
+      </section>
+
+      <main className="contact-main public-section">
+        <ContactForm />
+
+        <aside className="contact-side">
+          <div className="contact-side-card contact-side-card--tint">
+            <h3>Get a faster answer</h3>
+            <ul>
+              {tips.map((tip) => (
+                <li key={tip}><Icon name="check" size={16} color="var(--g-700)" stroke={2.5} />{tip}</li>
+              ))}
+            </ul>
+            <Link href="/help">Or browse the Help Center</Link>
+          </div>
+          <div className="contact-side-card">
+            <h3><Icon name="shield" size={18} color="var(--g-700)" /> Security and privacy</h3>
+            <p>
+              Report a vulnerability, ask how we handle data, or ask us to delete it. We acknowledge security reports
+              within 24 hours.
+            </p>
+            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+          </div>
+          <div className="contact-side-card">
+            <h3>Got an email or call from us?</h3>
+            <p>
+              If a GNX Sales customer contacted you and you want it to stop, email us your address or number and we will
+              block it for that customer.
+            </p>
+          </div>
+        </aside>
       </main>
 
+      <section className="contact-office">
+        <div className="contact-office-inner public-section">
+          <div className="contact-side-card">
+            <span className="contact-kicker">Registered office</span>
+            <h3>Globonexo India Private Limited</h3>
+            <p>
+              44, Backary Portion, 2nd Floor, Regal Building<br />
+              Connaught Place, New Delhi 110001, India
+            </p>
+            <small>CIN U62013DC2026PTC469655 · For legal notices by post</small>
+          </div>
+          <div className="contact-side-card">
+            <span className="contact-kicker">Privacy requests</span>
+            <h3>Data questions and complaints</h3>
+            <p>
+              For access, correction, deletion or complaints about your data. Use the subject line &quot;Privacy
+              request&quot;. We acknowledge within 2 business days.
+            </p>
+            <a href={`mailto:${SUPPORT_EMAIL}?subject=Privacy%20request`}>{SUPPORT_EMAIL}</a>
+          </div>
+          <div className="contact-side-card">
+            <span className="contact-kicker">Follow along</span>
+            <h3>We build in public</h3>
+            <p>Product updates, outbound tips and what we are shipping next.</p>
+            <div className="contact-social">
+              <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <PublicFooter />
+      <BreadcrumbSchema trail={[{ name: "Contact", path: "/contact" }]} />
     </div>
   );
 }
