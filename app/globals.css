@@ -7120,3 +7120,5 @@ canvas {
   .faq-assistant-launcher { right: 16px; bottom: 16px; }
   .faq-assistant { right: 8px; bottom: 8px; width: calc(100vw - 16px); height: min(620px, calc(100vh - 16px)); }
 }
+/* ---- Terms: "cannot do" list uses red diamonds instead of green dots ---- */
+.privacy-list--no li::before { background: var(--stop); border-radius: 2px; transform: rotate(45deg); }
