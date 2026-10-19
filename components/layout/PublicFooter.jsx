@@ -73,7 +73,7 @@ export default function PublicFooter() {
         ))}
       </div>
       <div className="public-footer-base">
-        <span>© 2026 Globonexo, Inc.</span>
+        <span>© 2026 Globonexo India Private Limited</span>
         <a href="mailto:support@gnxsales.com">support@gnxsales.com</a>
       </div>
     </footer>
