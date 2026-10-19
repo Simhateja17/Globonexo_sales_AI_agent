@@ -187,7 +187,7 @@ export default function VoicePage() {
             <div className="gd-panel">
               <small>How every call opens</small>
               <div className="gd-bubble gd-ai">
-                <b>AI caller</b>Hi Sarah, this is Ava, an AI assistant calling from Northwind. Did I catch you at an
+                <b>AI caller</b>Hi Sarah, this is Nexo, an AI assistant calling from Northwind. Did I catch you at an
                 okay time for a quick question?
               </div>
               <div className="gd-bubble gd-me">

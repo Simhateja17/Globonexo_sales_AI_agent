@@ -216,7 +216,7 @@ export const OWEN_CALL = {
   rows: [["Direction", "outbound"], ["Connection", "Agent Hangup"], ["Sentiment", "Positive"], ["Call success", "Yes"]],
   analysis: [["Meeting Booked", "Yes"], ["Interest Level", "High"], ["Objection", "Wanted an email first"], ["Next Step", "Walkthrough Thu 11:30 AM"]],
   transcript: [
-    ["Agent", "Hi Owen, this is Ava, an AI assistant calling for Northwind Labs. Did I catch you at an okay time?"],
+    ["Agent", "Hi Owen, this is Nexo, an AI assistant calling for Northwind Labs. Did I catch you at an okay time?"],
     ["User", "I've got a minute. What's this about?"],
     ["Agent", "Tidewell is moving into mid-market. We help teams like yours book more first meetings without adding reps."],
     ["User", "Honestly, just send me an email."],
