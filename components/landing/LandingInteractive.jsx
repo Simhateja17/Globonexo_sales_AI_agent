@@ -871,7 +871,7 @@ export function VoiceStage() {
         clearInterval(tick);
         setSnap({ line, chars: 0, t, done: true });
         setSeen((s) => ({ ...s, [vs]: 1 }));
-        next = setTimeout(() => setVs((vs + 1) % VS.length), 4200);
+        next = setTimeout(() => setVs((vs + 1) % VS.length), 2000);
         return;
       }
       const [kind, text] = scene.lines[line];
