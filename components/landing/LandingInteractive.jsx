@@ -54,7 +54,11 @@ export function QualifyCards() {
     }, 900);
   }, []);
 
-  useEffect(() => () => clearInterval(timer.current), []);
+  useEffect(() => {
+    // Park on the first check until the section scrolls into view.
+    if (!reducedMotion()) setQ(0);
+    return () => clearInterval(timer.current);
+  }, []);
   useWhenVisible(ref, play, reducedMotion());
 
   const state = (card, k) => {
@@ -79,8 +83,8 @@ export function QualifyCards() {
   const qbCard = q < 4 ? "is-live" : "";
 
   return (
-    <div ref={ref} style={{ display: "contents" }}>
-      <div className="gd-g2" style={{ marginTop: "40px" }}>
+    <>
+      <div ref={ref} className="gd-g2" style={{ marginTop: "40px" }}>
         <div className={`gd-qcard gd-${qaCard}`}>
           <div className="gd-qh">
             <div>
@@ -388,7 +392,7 @@ export function QualifyCards() {
           Replay the check
         </button>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -409,7 +413,10 @@ export function ReadyCard() {
     }, 260);
   }, []);
 
-  useEffect(() => () => clearInterval(timer.current), []);
+  useEffect(() => {
+    if (!reducedMotion()) setR(0);
+    return () => clearInterval(timer.current);
+  }, []);
   useWhenVisible(ref, play, reducedMotion());
 
   const OPTIONAL_FOUND = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0];
@@ -422,10 +429,13 @@ export function ReadyCard() {
   const rBusy = !rDone;
 
   return (
-    <div ref={ref} style={{ display: "contents" }}>
-      <div className="gd-rcard">
+    <>
+      <div ref={ref} className="gd-rcard">
         <div className="gd-rh">
-          <span className="gd-avatar" style={{ width: "44px", height: "44px", background: "#0e7490", fontSize: "16px" }}>
+          <span
+            className="gd-avatar"
+            style={{ width: "44px", height: "44px", background: "#0e7490", fontSize: "16px" }}
+          >
             PR
           </span>
           <div>
@@ -688,7 +698,7 @@ export function ReadyCard() {
           </>
         )}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -862,9 +872,8 @@ export function VoiceStage() {
   const [seen, setSeen] = useState({});
   const [animate, setAnimate] = useState(false);
 
-  useEffect(() => {
-    if (!reducedMotion()) setAnimate(true);
-  }, []);
+  const rootRef = useRef(null);
+  useWhenVisible(rootRef, () => setAnimate(true), reducedMotion());
 
   useEffect(() => {
     if (!animate) return undefined;
@@ -926,7 +935,7 @@ export function VoiceStage() {
   });
 
   return (
-    <div className="gd-vw">
+    <div ref={rootRef} className="gd-vw">
       <div className="gd-vw-tabs">
         {VS.map((item, i) => {
           const on = i === vs;
@@ -988,4 +997,28 @@ export function VoiceStage() {
       </div>
     </div>
   );
+}
+
+// The loop diagram's SMIL animation is held at the start until it scrolls into view.
+export function LoopAnimator() {
+  useEffect(() => {
+    const svg = document.querySelector(".gd-loop-svg");
+    if (!svg || !svg.pauseAnimations) return undefined;
+    svg.pauseAnimations();
+    svg.setCurrentTime(0);
+    if (reducedMotion() || typeof IntersectionObserver === "undefined") return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          observer.disconnect();
+          svg.setCurrentTime(0);
+          svg.unpauseAnimations();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    observer.observe(svg);
+    return () => observer.disconnect();
+  }, []);
+  return null;
 }

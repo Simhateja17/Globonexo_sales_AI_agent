@@ -836,55 +836,7 @@ export default function VoicePage() {
           </div>
         </div>
       </section>
-      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-        <div
-          style={{
-            maxWidth: "1160px",
-            margin: "0 auto",
-            padding: "22px 24px",
-            color: "rgba(255,255,255,.55)",
-            fontSize: "12.5px",
-            lineHeight: "1.8",
-          }}
-        >
-          <strong style={{ color: "#fff" }}>Sources:</strong>{" "}
-          <a
-            href="https://belkins.io/blog/cold-calling-benchmarks"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Belkins, cold calling benchmarks (2026)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://www.fcc.gov/document/fcc-confirms-tcpa-applies-ai-technologies-generate-human-voices"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            FCC, TCPA applies to AI voices (2024)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://tcpaworld.com/2024/07/17/ai-generated-calls-to-require-disclosure-new-fcc-proposal-requires-disclosure-of-ai-usage-when-obtaining-prior-express-written-consent-and-during-each-call/"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            TCPAWorld, FCC AI disclosure proposal (2024)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://justcall.io/blog/ai-voice-agent-disclosure-laws.html"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            JustCall, AI voice disclosure laws (2026)
-          </a>
-        </div>
-      </div>
+      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}></div>
       <PublicFooter />
       <BreadcrumbSchema trail={[{ name: "AI voice agent", path: "/voice" }]} />
     </div>

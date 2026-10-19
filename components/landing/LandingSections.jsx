@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Icon from "../ui/Icon";
 import FaqSection from "../marketing/FaqSection";
-import { QualifyCards, ReadyCard, VoiceStage } from "./LandingInteractive";
+import { LoopAnimator, QualifyCards, ReadyCard, VoiceStage } from "./LandingInteractive";
 import { MOST_POPULAR_PLAN_ID, PLAN_CONFIG } from "../../lib/plans";
 
 const CALENDLY_URL = "https://calendly.com/gnxsales-support/30min";
@@ -47,6 +47,7 @@ const faqs = [
 export default function LandingSections({ user, loading }) {
   return (
     <div className="gd-landing">
+      <LoopAnimator />
       <section style={{ borderBottom: "1px solid #e7ede9" }}>
         <div className="gd-g4" style={{ maxWidth: "1160px", margin: "0 auto", padding: "36px 24px" }}>
           <div className="gd-fact">
@@ -1408,82 +1409,7 @@ export default function LandingSections({ user, loading }) {
           </div>
         </div>
       </section>
-      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-        <div
-          style={{
-            maxWidth: "1160px",
-            margin: "0 auto",
-            padding: "22px 24px",
-            color: "rgba(255,255,255,.55)",
-            fontSize: "12.5px",
-            lineHeight: "1.8",
-          }}
-        >
-          <strong style={{ color: "#fff" }}>Sources:</strong>{" "}
-          <a
-            href="https://www.salesforce.com/news/stories/sales-research-2023/"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Salesforce, State of Sales
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://saleshandy.com/blog/cold-email-statistics/"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Saleshandy, cold email statistics (2026)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://woodpecker.co/blog/cold-email-statistics/"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Woodpecker, cold email statistics (2026)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://belkins.io/blog/cold-calling-benchmarks"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Belkins, cold calling benchmarks (2026)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://www.gartner.com/en/newsroom/press-releases/2026-05-20-gartner-survey-finds-sixty-nine-percent-of-b-two-b-buyers-turn-to-sales-reps-to-validate-ai-generated-insights"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Gartner, buyers validate AI with reps (2026)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://www.bridgegroupinc.com/research/2025-sdr-models-metrics-report-the-bridge-group"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            The Bridge Group, 2025 SDR Metrics Report
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://support.google.com/a/answer/81126"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Google, email sender guidelines
-          </a>
-        </div>
-      </div>
+      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}></div>
     </div>
   );
 }

@@ -878,44 +878,6 @@ export default function SalesAutomationSoftwarePage() {
             <span>What sending tools do well, and the work they hand back to you.</span>
           </Link>
         </div>
-        <div
-          style={{
-            marginTop: "40px",
-            paddingTop: "24px",
-            borderTop: "1px solid var(--line)",
-            color: "var(--muted)",
-            fontSize: "13px",
-            lineHeight: "1.8",
-          }}
-        >
-          <strong style={{ color: "var(--ink)" }}>Sources:</strong>
-          <a
-            href="https://www.salesforce.com/news/stories/sales-research-2023/"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Salesforce, State of Sales (2022)
-          </a>{" "}
-          ·
-          <a
-            href="https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            FTC, CAN-SPAM guide
-          </a>{" "}
-          ·
-          <a
-            href="https://www.fcc.gov/document/fcc-confirms-tcpa-applies-ai-technologies-generate-human-voices"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            FCC, TCPA and AI voices (2024)
-          </a>
-        </div>
       </section>
       <section
         style={{

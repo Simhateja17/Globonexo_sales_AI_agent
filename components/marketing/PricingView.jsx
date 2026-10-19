@@ -967,52 +967,6 @@ export default function PricingView({ faqs }) {
           </Link>
         </div>
       </section>
-      <div
-        style={{
-          maxWidth: "1160px",
-          margin: "0 auto",
-          padding: "0 24px 56px",
-          color: "var(--muted)",
-          fontSize: "13px",
-          lineHeight: "1.8",
-        }}
-      >
-        <strong style={{ color: "var(--ink)" }}>Sources:</strong>
-        <a
-          href="https://www.bridgegroupinc.com/research/2025-sdr-models-metrics-report-the-bridge-group"
-          style={{ fontWeight: "700" }}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          The Bridge Group, 2025 SDR Metrics
-        </a>{" "}
-        ·
-        <a
-          href="https://www.cleverly.co/blog/b2b-lead-generation-agency-cost"
-          style={{ fontWeight: "700" }}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Cleverly, agency cost (2026)
-        </a>{" "}
-        ·
-        <a
-          href="https://salesbread.com/appointment-setting-services-cost/"
-          style={{ fontWeight: "700" }}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          SalesBread, appointment setting cost
-        </a>{" "}
-        ·
-        <a href="https://reply.io/pricing/" style={{ fontWeight: "700" }} target="_blank" rel="noopener noreferrer">
-          Reply.io pricing
-        </a>{" "}
-        ·
-        <a href="https://aisdr.com/pricing/" style={{ fontWeight: "700" }} target="_blank" rel="noopener noreferrer">
-          AiSDR pricing
-        </a>
-      </div>
       <PublicFooter />
       <BreadcrumbSchema trail={[{ name: "Pricing", path: "/pricing" }]} />
     </div>
