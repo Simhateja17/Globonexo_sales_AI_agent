@@ -60,7 +60,7 @@ const faqs = [
   },
   {
     q: "Do you give refunds?",
-    a: "Fees are non-refundable, except that we review requests within 14 days of a charge for duplicate billing, a charge after a confirmed cancellation, or a long outage. Email support@gnxsales.com and we reply within 3 business days.",
+    a: "No. All payments are final, including the unused part of a period and unused credits. If you cancel, your plan keeps working until the end of the period you paid for. The one exception is a billing mistake on our side, such as a duplicate charge or a charge after a confirmed cancellation. Email support@gnxsales.com and we reply within 3 business days.",
   },
   {
     q: "Is it cheaper than hiring an SDR?",
