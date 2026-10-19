@@ -11,111 +11,63 @@ export const metadata = {
   },
 };
 
-import Link from "next/link";
-import Icon from "../../components/ui/Icon";
-import PublicNav from "../../components/layout/PublicNav";
-import PublicFooter from "../../components/layout/PublicFooter";
-import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
-import PlanCards from "../../components/marketing/PlanCards";
-import FaqSection from "../../components/marketing/FaqSection";
-
-// The contrast that used to sit on the landing page. It belongs here, next to
-// the prices, where someone is actually deciding.
-const comparison = [
-  { them: 'Buy a list and send to all of it', us: 'Every account checked against your profile first' },
-  { them: 'Pay to enrich, then find out they were a bad fit', us: 'Fit is settled before a credit is spent' },
-  { them: 'Email only, calling is a different tool and a second bill', us: 'Email and AI voice from one shared pool' },
-  { them: 'The model writes whatever sounds convincing', us: 'It is handed an explicit list of what it does not know' },
-  { them: 'No way to rehearse calls before launch', us: 'Choose a scored adversarial stress test before launch' },
-  { them: 'You remember to stop the sequence after a reply', us: 'A reply stops the follow-ups on its own' },
-  { them: 'Buy and configure your own calling number separately', us: 'A phone number is provisioned for you automatically' },
-];
-
+import PricingView from "../../components/marketing/PricingView";
 
 const faqs = [
   {
-    q: "How does AI sales agent pricing work here?",
-    a: "One monthly or annual subscription per plan. Each plan comes with a pool of credits that flex across lead enrichment, message drafting, and voice calling, plus a ceiling on how many campaigns you can run at once. There is no per-seat charge and no per-channel charge.",
-  },
-  {
-    q: "Is AI voice calling priced separately?",
-    a: "No. Email and voice draw from the same credit pool on every plan, and a calling number is provisioned for you automatically. What scales with the tier is how many voice campaigns run at once, never whether you get the channel.",
-  },
-  {
     q: "Is there a free trial?",
-    a: "No. All accounts start on a paid monthly or annual subscription. You choose a plan before onboarding, and cancelling stops the next renewal while the current paid period stays available.",
+    a: "No. Every account starts on a paid monthly or yearly plan. Book a demo if you want to watch the agent find, email and call a lead before you pay.",
   },
   {
-    q: "What happens if I hit my plan limits?",
-    a: "You are prompted to upgrade before sending beyond your plan's email, call, or enrichment limits. Usage already consumed is billed as used.",
+    q: "Is AI calling priced separately?",
+    a: "No. Outbound calling is in every plan and draws from the same credits as email and enrichment, and your plan's phone numbers are included. Extra numbers beyond your plan cost 200 credits each every 30 days. The plan decides how many voice campaigns run at once.",
+  },
+  {
+    q: "What happens when I run out of credits?",
+    a: "New AI writing, enrichment and calls pause, and anything already in progress finishes. Credits refill on your next billing date, or upgrade to get more straight away. You are never billed for overage.",
+  },
+  {
+    q: "Am I locked into a contract?",
+    a: "No. Monthly plans renew month to month and you can cancel from Billing any time; your plan keeps working until the period you paid for ends. Yearly plans are paid up front for 12 months at about 17% less.",
+  },
+  {
+    q: "Are there hidden costs?",
+    a: "No setup fee, no onboarding fee, no per-seat and no per-channel charges. You need your own sending inbox and domain, with SPF, DKIM and DMARC set up. GNX does not warm new domains, so warm a brand new one before your first campaign.",
+  },
+  {
+    q: "Will it hurt my email deliverability?",
+    a: "It is built not to. By default the agent only emails addresses verified as real, sends are paced inside daily caps of 100 to 500, and every email carries a one-click unsubscribe. Tight targeting does the rest.",
+  },
+  {
+    q: "How much of my time does it take?",
+    a: "Setup takes one sitting. After that, plan on reviewing drafts when a batch is ready, usually once a week, and handling the replies and meetings it brings in. Switch on autopilot per campaign once you trust the output.",
+  },
+  {
+    q: "How do I pay?",
+    a: "Through Razorpay's secure checkout, in US dollars. Your saved payment method renews the plan automatically each period.",
+  },
+  {
+    q: "Do you charge per seat?",
+    a: "No. Seats come with the plan: 1 on Individual, 5 on Agency and 15 on Startup. Adding a teammate within your seats costs nothing extra.",
+  },
+  {
+    q: "How much do I save paying yearly?",
+    a: "About 17%. Yearly works out to $49, $149 or $399 a month, billed once as $588, $1,788 or $4,788.",
   },
   {
     q: "Can I change or cancel my plan?",
-    a: "Any time, from Billing in your settings. Cancelling stops future renewals and your plan stays active through the end of the current billing period.",
+    a: "Any time, from Billing. Upgrades show the price with unused credit taken off. Moving to a smaller plan starts at the end of your current period. Cancelling stops the next renewal, and unused time is not refunded.",
   },
   {
-    q: "How does this compare to hiring an SDR?",
-    a: "A plan costs a fraction of a sales development rep's monthly salary and covers sourcing, enrichment, writing, sending, following up, calling, and booking. It does not replace the person who runs the meeting.",
+    q: "Do you give refunds?",
+    a: "Fees are non-refundable, except that we review requests within 14 days of a charge for duplicate billing, a charge after a confirmed cancellation, or a long outage. Email support@gnxsales.com and we reply within 3 business days.",
+  },
+  {
+    q: "Is it cheaper than hiring an SDR?",
+    a: "On cost, yes: the median SDR earns about $80K a year on target, before tools and management, while the top plan is $5,748 a year paid monthly. But it does a different job. GNX handles research, writing, follow-up, first calls and booking. A person still runs the conversation and closes.",
   },
 ];
 
 export default function PricingPage() {
-  return (
-    <div className="public-page story-page">
-      <div className="story-hero-band">
-        <PublicNav variant="dark" />
-        <section className="story-hero public-section">
-          <span className="eyebrow">Pricing</span>
-          <h1 className="display">AI sales agent pricing without adding headcount.</h1>
-          <p>Choose a monthly or annual paid plan. Every tier includes the same core sales loop, email sequences, lead enrichment, and AI voice calling. Credits set the ceiling and flex across enrichment, drafting, and calling, so AI SDR pricing here means one number, not a feature ladder.</p>
-          <div className="content-hero-actions">
-            <Link className="btn btn-primary btn-lg" href="/signup">
-              Choose a plan <Icon name="arrow" size={18} color="#06231a" />
-            </Link>
-            <Link className="landing-outline-btn" href="/platform">See what is included</Link>
-          </div>
-        </section>
-      </div>
-
-      <main>
-        <section className="pricing-grid public-section" aria-label="Pricing plans">
-          <PlanCards />
-        </section>
-
-        <section className="pricing-compare public-section">
-          <div className="content-section-head">
-            <h2>Why this AI SDR pricing beats the usual stack</h2>
-            <p>Not a cheaper version of the same thing. A different way of deciding who gets contacted.</p>
-          </div>
-          <div className="cmp">
-            <div className="cmp-head">
-              <span>The usual way</span>
-              <span className="cmp-head-us">GNX Sales</span>
-            </div>
-            {comparison.map((row) => (
-              <div key={row.us} className="cmp-row">
-                <div className="cmp-them"><Icon name="close" size={15} color="var(--stop)" /><p>{row.them}</p></div>
-                <div className="cmp-us"><Icon name="check" size={15} color="var(--g-800)" /><p>{row.us}</p></div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <FaqSection heading="Pricing questions" items={faqs} />
-
-        <section className="pricing-note public-section">
-          <div>
-            <h2>Every plan includes the core sales loop.</h2>
-            <p>Every plan includes AI email sequences, lead enrichment from verified data providers, AI voice calling with a phone number provisioned for you, human-approved replies, inbox review, dashboard metrics, and support access.</p>
-          </div>
-          <Link className="btn btn-primary btn-lg" href="/signup">
-            Create account <Icon name="arrow" size={16} color="#06231a" />
-          </Link>
-        </section>
-      </main>
-
-      <PublicFooter />
-      <BreadcrumbSchema trail={[{ name: "Pricing", path: "/pricing" }]} />
-    </div>
-  );
+  return <PricingView faqs={faqs} />;
 }
