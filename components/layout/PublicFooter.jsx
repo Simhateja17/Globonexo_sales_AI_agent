@@ -72,6 +72,7 @@ export default function PublicFooter() {
           </div>
         ))}
       </div>
+      {/* Legal name shown in the footer. Keep in sync with legalName in SiteSchema.jsx. */}
       <div className="public-footer-base">
         <span>© 2026 Globonexo India Private Limited</span>
         <a href="mailto:support@gnxsales.com">support@gnxsales.com</a>
