@@ -733,7 +733,7 @@ export default function LandingSections({ user, loading }) {
             <div className="gd-rcard">
               <div className="gd-rh">
                 <span
-                  className="gd-hd-av"
+                  className="gd-avatar"
                   style={{ width: "44px", height: "44px", background: "#0e7490", fontSize: "16px" }}
                 >
                   PR

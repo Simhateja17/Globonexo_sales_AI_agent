@@ -8232,3 +8232,4 @@ canvas {
 .gd-landing @keyframes hdgrow { from{width:0}to{width:100%} }
 .landing-hero-copy h1.gd-h1 { font-size: clamp(42px, 6vw, 70px); line-height: 1.03; letter-spacing: -.045em; }
 .gd-hero-badge { display: inline-flex; margin-bottom: 22px; padding: 7px 14px; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; background: rgba(255,255,255,.08); color: var(--g-200); font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.gd-landing .gd-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff; font-weight: 800; letter-spacing: .02em; }
