@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Icon from "../ui/Icon";
 import FaqSection from "../marketing/FaqSection";
-import VoiceSim from "./VoiceSim";
+import { QualifyCards, ReadyCard, VoiceStage } from "./LandingInteractive";
 import { MOST_POPULAR_PLAN_ID, PLAN_CONFIG } from "../../lib/plans";
 
 const CALENDLY_URL = "https://calendly.com/gnxsales-support/30min";
@@ -195,6 +195,22 @@ export default function LandingSections({ user, loading }) {
               strokeWidth="2"
               strokeDasharray="6 8"
             ></ellipse>
+            <g>
+              <circle r="16" fill="#00c27a" opacity=".18">
+                <animateMotion
+                  dur="14s"
+                  repeatCount="indefinite"
+                  path="M556,85 A420,215 0 1,1 556,515 A420,215 0 1,1 556,85"
+                ></animateMotion>
+              </circle>
+              <circle r="7" fill="#00a86b" stroke="#fff" strokeWidth="2.5">
+                <animateMotion
+                  dur="14s"
+                  repeatCount="indefinite"
+                  path="M556,85 A420,215 0 1,1 556,515 A420,215 0 1,1 556,85"
+                ></animateMotion>
+              </circle>
+            </g>
             <g transform="translate(716.7 101.4) rotate(12.0)">
               <circle r="13" fill="#088256"></circle>
               <path
@@ -284,7 +300,24 @@ export default function LandingSections({ user, loading }) {
               ></path>
             </g>
             <g transform="translate(451.0 45.0)">
-              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5"></rect>
+              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5">
+                <animate
+                  attributeName="stroke"
+                  values="#00a86b;#00a86b;#e7ede9;#e7ede9;#00a86b;#00a86b"
+                  keyTimes="0.0000;0.0750;0.0850;0.9650;0.9750;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+                <animate
+                  attributeName="stroke-width"
+                  values="2.5;2.5;1.5;1.5;2.5;2.5"
+                  keyTimes="0.0000;0.0750;0.0850;0.9650;0.9750;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+              </rect>
               <text x="18" y="33" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="600" fill="#9aa8a0">
                 01
               </text>
@@ -296,7 +329,24 @@ export default function LandingSections({ user, loading }) {
               </text>
             </g>
             <g transform="translate(748.0 108.0)">
-              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5"></rect>
+              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5">
+                <animate
+                  attributeName="stroke"
+                  values="#e7ede9;#e7ede9;#00a86b;#00a86b;#e7ede9;#e7ede9"
+                  keyTimes="0.0000;0.1146;0.1246;0.2246;0.2346;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+                <animate
+                  attributeName="stroke-width"
+                  values="1.5;1.5;2.5;2.5;1.5;1.5"
+                  keyTimes="0.0000;0.1146;0.1246;0.2246;0.2346;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+              </rect>
               <text x="18" y="33" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="600" fill="#9aa8a0">
                 02
               </text>
@@ -308,7 +358,24 @@ export default function LandingSections({ user, loading }) {
               </text>
             </g>
             <g transform="translate(871.0 260.0)">
-              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5"></rect>
+              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5">
+                <animate
+                  attributeName="stroke"
+                  values="#e7ede9;#e7ede9;#00a86b;#00a86b;#e7ede9;#e7ede9"
+                  keyTimes="0.0000;0.2150;0.2250;0.3250;0.3350;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+                <animate
+                  attributeName="stroke-width"
+                  values="1.5;1.5;2.5;2.5;1.5;1.5"
+                  keyTimes="0.0000;0.2150;0.2250;0.3250;0.3350;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+              </rect>
               <text x="18" y="33" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="600" fill="#9aa8a0">
                 03
               </text>
@@ -320,7 +387,24 @@ export default function LandingSections({ user, loading }) {
               </text>
             </g>
             <g transform="translate(748.0 412.0)">
-              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5"></rect>
+              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5">
+                <animate
+                  attributeName="stroke"
+                  values="#e7ede9;#e7ede9;#00a86b;#00a86b;#e7ede9;#e7ede9"
+                  keyTimes="0.0000;0.3154;0.3254;0.4254;0.4354;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+                <animate
+                  attributeName="stroke-width"
+                  values="1.5;1.5;2.5;2.5;1.5;1.5"
+                  keyTimes="0.0000;0.3154;0.3254;0.4254;0.4354;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+              </rect>
               <text x="18" y="33" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="600" fill="#9aa8a0">
                 04
               </text>
@@ -332,7 +416,24 @@ export default function LandingSections({ user, loading }) {
               </text>
             </g>
             <g transform="translate(451.0 475.0)">
-              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5"></rect>
+              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5">
+                <animate
+                  attributeName="stroke"
+                  values="#e7ede9;#e7ede9;#00a86b;#00a86b;#e7ede9;#e7ede9"
+                  keyTimes="0.0000;0.4650;0.4750;0.5750;0.5850;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+                <animate
+                  attributeName="stroke-width"
+                  values="1.5;1.5;2.5;2.5;1.5;1.5"
+                  keyTimes="0.0000;0.4650;0.4750;0.5750;0.5850;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+              </rect>
               <text x="18" y="33" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="600" fill="#9aa8a0">
                 05
               </text>
@@ -344,7 +445,24 @@ export default function LandingSections({ user, loading }) {
               </text>
             </g>
             <g transform="translate(154.0 412.0)">
-              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5"></rect>
+              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5">
+                <animate
+                  attributeName="stroke"
+                  values="#e7ede9;#e7ede9;#00a86b;#00a86b;#e7ede9;#e7ede9"
+                  keyTimes="0.0000;0.6146;0.6246;0.7246;0.7346;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+                <animate
+                  attributeName="stroke-width"
+                  values="1.5;1.5;2.5;2.5;1.5;1.5"
+                  keyTimes="0.0000;0.6146;0.6246;0.7246;0.7346;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+              </rect>
               <text x="18" y="33" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="600" fill="#9aa8a0">
                 06
               </text>
@@ -356,7 +474,24 @@ export default function LandingSections({ user, loading }) {
               </text>
             </g>
             <g transform="translate(31.0 260.0)">
-              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5"></rect>
+              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5">
+                <animate
+                  attributeName="stroke"
+                  values="#e7ede9;#e7ede9;#00a86b;#00a86b;#e7ede9;#e7ede9"
+                  keyTimes="0.0000;0.7150;0.7250;0.8250;0.8350;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+                <animate
+                  attributeName="stroke-width"
+                  values="1.5;1.5;2.5;2.5;1.5;1.5"
+                  keyTimes="0.0000;0.7150;0.7250;0.8250;0.8350;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+              </rect>
               <text x="18" y="33" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="600" fill="#9aa8a0">
                 07
               </text>
@@ -368,7 +503,24 @@ export default function LandingSections({ user, loading }) {
               </text>
             </g>
             <g transform="translate(154.0 108.0)">
-              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5"></rect>
+              <rect width="210" height="80" rx="16" fill="#fff" stroke="#e7ede9" strokeWidth="1.5">
+                <animate
+                  attributeName="stroke"
+                  values="#e7ede9;#e7ede9;#00a86b;#00a86b;#e7ede9;#e7ede9"
+                  keyTimes="0.0000;0.8154;0.8254;0.9254;0.9354;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+                <animate
+                  attributeName="stroke-width"
+                  values="1.5;1.5;2.5;2.5;1.5;1.5"
+                  keyTimes="0.0000;0.8154;0.8254;0.9254;0.9354;1.0000"
+                  dur="14s"
+                  repeatCount="indefinite"
+                  calcMode="discrete"
+                ></animate>
+              </rect>
               <text x="18" y="33" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="600" fill="#9aa8a0">
                 08
               </text>
@@ -474,7 +626,10 @@ export default function LandingSections({ user, loading }) {
           </ol>
         </div>
       </section>
-      <section style={{ background: "#f6faf8", borderTop: "1px solid #e7ede9", borderBottom: "1px solid #e7ede9" }}>
+      <section
+        className="gd-js-qual"
+        style={{ background: "#f6faf8", borderTop: "1px solid #e7ede9", borderBottom: "1px solid #e7ede9" }}
+      >
         <div style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
           <div style={{ maxWidth: "760px", textAlign: "center", margin: "0 auto" }}>
             <div className="gd-eyebrow">Qualification</div>
@@ -484,502 +639,13 @@ export default function LandingSections({ user, loading }) {
               writing. Leads that fail are dropped, not padded into your list.
             </p>
           </div>
-          <div className="gd-g2" style={{ marginTop: "40px" }}>
-            <div className="gd-qcard">
-              <div className="gd-qh">
-                <div>
-                  <b>Northwind Logistics</b>
-                  <small>Freight and logistics</small>
-                </div>
-                <span className="gd-vpill gd-bad">Dropped</span>
-              </div>
-              <div className="gd-qr">
-                <span className="gd-qm">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                </span>
-                <div>
-                  <small>Which companies fit what you sell</small>
-                  <b>Freight and logistics, 120 staff</b>
-                </div>
-              </div>
-              <div className="gd-qr">
-                <span className="gd-qm">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                </span>
-                <div>
-                  <small>Which person there is worth reaching</small>
-                  <b>Operations Manager · matches your target titles</b>
-                </div>
-              </div>
-              <div className="gd-qr gd-bad">
-                <span className="gd-qm">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#b42318"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 6l12 12M18 6L6 18"></path>
-                  </svg>
-                </span>
-                <div>
-                  <small>Where we can actually reach them</small>
-                  <b>info@ shared inbox · no direct number</b>
-                </div>
-              </div>
-              <div className="gd-qr gd-off">
-                <span className="gd-qm">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#9aa8a0"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 12h12"></path>
-                  </svg>
-                </span>
-                <div>
-                  <small>Why they should care today</small>
-                  <b>Not reached</b>
-                </div>
-              </div>
-              <div className="gd-qf gd-bad">
-                <span>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="5" y="11" width="14" height="10" rx="2"></rect>
-                    <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
-                  </svg>
-                  Dropped before spending a credit.
-                </span>
-                <span>No email drafted, no call queued.</span>
-              </div>
-            </div>
-            <div className="gd-qcard">
-              <div className="gd-qh">
-                <div>
-                  <b>Bluepeak Systems</b>
-                  <small>B2B software</small>
-                </div>
-                <span className="gd-vpill">Cleared for outreach</span>
-              </div>
-              <div className="gd-qr">
-                <span className="gd-qm">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                </span>
-                <div>
-                  <small>Which companies fit what you sell</small>
-                  <b>B2B software, 340 staff</b>
-                </div>
-              </div>
-              <div className="gd-qr">
-                <span className="gd-qm">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                </span>
-                <div>
-                  <small>Which person there is worth reaching</small>
-                  <b>Head of Revenue Operations</b>
-                </div>
-              </div>
-              <div className="gd-qr">
-                <span className="gd-qm">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                </span>
-                <div>
-                  <small>Where we can actually reach them</small>
-                  <b>Verified work email · direct dial</b>
-                </div>
-              </div>
-              <div className="gd-qr">
-                <span className="gd-qm">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                </span>
-                <div>
-                  <small>Why they should care today</small>
-                  <b>Headcount up 38% in 12 months</b>
-                </div>
-              </div>
-              <div className="gd-qf">
-                <span>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-                    <path d="M3 7l9 6 9-6"></path>
-                  </svg>
-                  Drafting email sequence · 3 steps
-                </span>
-                <span>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"></path>
-                  </svg>
-                  Voice call queued · Tue, 10:20 AM
-                </span>
-              </div>
-            </div>
-          </div>
+          <QualifyCards />
         </div>
       </section>
-      <section>
+      <section className="gd-js-ready">
         <div className="gd-split" style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
           <div className="gd-splitv">
-            <div className="gd-rcard">
-              <div className="gd-rh">
-                <span
-                  className="gd-avatar"
-                  style={{ width: "44px", height: "44px", background: "#0e7490", fontSize: "16px" }}
-                >
-                  PR
-                </span>
-                <div>
-                  <b>Priya Raman</b>
-                  <small>VP Sales, Loopwise</small>
-                </div>
-                <span className="gd-vpill">Ready to write</span>
-              </div>
-              <div className="gd-rsec">
-                <small>Required facts</small>
-                <em>4 of 4</em>
-              </div>
-              <div className="gd-rgrid">
-                <span className="gd-ok">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                  Person name
-                </span>
-                <span className="gd-ok">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                  Job title
-                </span>
-                <span className="gd-ok">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                  Company name
-                </span>
-                <span className="gd-ok">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                  Work email
-                </span>
-              </div>
-              <div className="gd-rsec">
-                <small>Optional facts</small>
-                <em>6 of 10</em>
-              </div>
-              <div className="gd-rgrid">
-                <span className="gd-ok">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                  Industry
-                </span>
-                <span className="gd-ok">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                  Company size
-                </span>
-                <span className="gd-ok">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                  Location
-                </span>
-                <span className="gd-ok">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                  Seniority
-                </span>
-                <span className="gd-ok">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                  Department
-                </span>
-                <span className="gd-ok">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#088256"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12l5 5 9-10"></path>
-                  </svg>
-                  Funding
-                </span>
-                <span className="gd-miss">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#9aa8a0"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 12h12"></path>
-                  </svg>
-                  Technologies<i>Missing, not guessed</i>
-                </span>
-                <span className="gd-miss">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#9aa8a0"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 12h12"></path>
-                  </svg>
-                  Revenue<i>Missing, not guessed</i>
-                </span>
-                <span className="gd-miss">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#9aa8a0"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 12h12"></path>
-                  </svg>
-                  Growth<i>Missing, not guessed</i>
-                </span>
-                <span className="gd-miss">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#9aa8a0"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 12h12"></path>
-                  </svg>
-                  Description<i>Missing, not guessed</i>
-                </span>
-              </div>
-              <div className="gd-rfoot">
-                The email uses only these facts. The four missing ones are left out, not invented.
-              </div>
-            </div>
+            <ReadyCard />
           </div>
           <div className="gd-splitc">
             <div style={{ maxWidth: "760px" }}>
@@ -1105,20 +771,42 @@ export default function LandingSections({ user, loading }) {
         </div>
       </section>
       <section style={{ background: "#f6faf8", borderTop: "1px solid #e7ede9", borderBottom: "1px solid #e7ede9" }}>
-        <div className="gd-split" style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
-          <div className="gd-splitc">
-            <div style={{ maxWidth: "760px" }}>
-              <div className="gd-eyebrow">AI calls</div>
-              <h2 className="gd-h2">Test your AI caller before it phones anyone.</h2>
-              <p className="gd-lead">
-                Switch on pre-launch simulation and the agent takes 10 hard calls first: the busy prospect, the skeptic,
-                the wrong person, the one who asks where you got their number. Every transcript is scored.
-              </p>
-              <Link className="gd-tlink" href="/voice">
-                How AI calls work{" "}
+        <div style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
+          <div style={{ maxWidth: "760px", textAlign: "center", margin: "0 auto" }}>
+            <div className="gd-eyebrow">AI calls</div>
+            <h2 className="gd-h2">We try to break Nexo before it phones anyone.</h2>
+            <p className="gd-lead">
+              Before a voice campaign dials, Nexo takes 10 hostile test calls and every transcript is scored. Listen in
+              on four of them.
+            </p>
+            <Link className="gd-tlink" href="/voice">
+              How AI calls work{" "}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14M13 6l6 6-6 6"></path>
+              </svg>
+            </Link>
+          </div>
+          <VoiceStage />
+          <p className="gd-vx-note">
+            Sample test calls written to show what each test checks. Real runs use your own agent and cost 100 credits
+            for all 10 calls.
+          </p>
+          <div className="gd-g4" style={{ marginTop: "32px" }}>
+            <div className="gd-fact">
+              <span className="gd-ci">
                 <svg
-                  width="16"
-                  height="16"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -1127,83 +815,80 @@ export default function LandingSections({ user, loading }) {
                   strokeLinejoin="round"
                   aria-hidden="true"
                 >
-                  <path d="M5 12h14M13 6l6 6-6 6"></path>
+                  <path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"></path>
+                  <path d="M9 12l2 2 4-4"></path>
                 </svg>
-              </Link>
+              </span>
+              <div>
+                <b>Says it is an AI</b>
+                <span>In the first sentence of every call.</span>
+              </div>
             </div>
-            <ul className="gd-ticks">
-              <li>
+            <div className="gd-fact">
+              <span className="gd-ci">
                 <svg
-                  width="16"
-                  height="16"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#088256"
-                  strokeWidth="2.4"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   aria-hidden="true"
                 >
-                  <path d="M5 12l5 5 9-10"></path>
+                  <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+                  <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
                 </svg>
-                <span>Opens every call by saying it is an AI assistant calling for your company</span>
-              </li>
-              <li>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#088256"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12l5 5 9-10"></path>
-                </svg>
-                <span>Refuses to invent customers, pricing or results it was never given</span>
-              </li>
-              <li>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#088256"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12l5 5 9-10"></path>
-                </svg>
-                <span>Ends the call at once on a do-not-call request</span>
-              </li>
-              <li>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#088256"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12l5 5 9-10"></path>
-                </svg>
-                <span>Outbound calls end at 10 minutes, and every call is logged with a transcript</span>
-              </li>
-            </ul>
-            <div className="gd-quote">
-              <small>The first line of every call</small>“Hi Owen, this is Ava, an AI assistant calling for Northwind
-              Labs. Did I catch you at an okay time?”
+              </span>
+              <div>
+                <b>Never invents facts</b>
+                <span>No made-up customers, results or prices.</span>
+              </div>
             </div>
-          </div>
-          <div className="gd-splitv">
-            <VoiceSim />
+            <div className="gd-fact">
+              <span className="gd-ci">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"></path>
+                </svg>
+              </span>
+              <div>
+                <b>Stops on request</b>
+                <span>A do-not-call request ends the call at once.</span>
+              </div>
+            </div>
+            <div className="gd-fact">
+              <span className="gd-ci">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path d="M12 7v5l3 2"></path>
+                </svg>
+              </span>
+              <div>
+                <b>Capped at 10 minutes</b>
+                <span>Every call logged with a transcript.</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
