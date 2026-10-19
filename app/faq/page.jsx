@@ -177,7 +177,7 @@ const groups = [
     items: [
       {
         q: "Who is behind GNX Sales?",
-        a: "Globonexo India Private Limited, a company registered in India. We serve customers worldwide, mainly in the US, Canada and India.",
+        a: "Globonexo India Private Limited, a company registered in New Delhi, India. We serve customers worldwide, mainly in the US, Canada and India.",
       },
       {
         q: "Where is my data stored?",
