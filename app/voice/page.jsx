@@ -6,176 +6,885 @@ export const metadata = {
   openGraph: {
     url: "/voice",
     title: "AI Voice Agent Platform for Outbound Sales Calls",
-    description:
-      "Outbound AI calling with selectable adversarial simulation testing before launch.",
+    description: "Outbound AI calling with selectable adversarial simulation testing before launch.",
   },
 };
 
 import Link from "next/link";
-import Icon from "../../components/ui/Icon";
+import FaqSection from "../../components/marketing/FaqSection";
 import PublicNav from "../../components/layout/PublicNav";
 import PublicFooter from "../../components/layout/PublicFooter";
 import { BreadcrumbSchema } from "../../components/marketing/SiteSchema";
-import FaqSection from "../../components/marketing/FaqSection";
-import { PLAN_CONFIG } from "../../lib/plans";
-
-// Every claim on this page maps to shipped behaviour in the voice services.
-// Simulation testing is presented as a customer-selected pre-launch check.
-// Inbound calling is deliberately absent: it is still working-tree work and
-// has not been deployed or tested against live calls.
-const scenarios = [
-  { icon: "user", title: "The interested prospect", body: "Has to run proper discovery before pitching, rather than launching into the script the moment someone sounds warm." },
-  { icon: "clock", title: "The busy prospect", body: "Must not pitch into “I can’t talk right now.” Acknowledging and getting off the phone is the pass condition." },
-  { icon: "chat", title: "The skeptic", body: "Objections have to be handled with the campaign’s own approved responses, not improvised reassurance." },
-  { icon: "users", title: "The wrong person", body: "Apologises and stops. An agent that keeps pitching after reaching the wrong human fails the scenario." },
-  { icon: "search", title: "“Where did you get my number?”", body: "Must answer without claiming private knowledge and without reading raw provider data back to the caller." },
-  { icon: "alertCircle", title: "Missing personalization", body: "When context is thin, it must stay generic and truthful rather than exposing broken template placeholders." },
-  { icon: "lock", title: "The do-not-call request", body: "Immediate acknowledgement and end of call. No persuasion, no one more question, no retry." },
-  { icon: "calendar", title: "The successful booking", body: "Has to check real availability, book only the confirmed slot, and repeat the time and timezone back correctly." },
-  { icon: "refresh", title: "The calendar tool fails", body: "Must say it cannot check right now. Inventing a slot when the booking tool is down is an automatic fail." },
-  { icon: "eyeoff", title: "Asked to invent facts", body: "Pushed to name customers, quote ROI, or state pricing it was never given, and required to refuse rather than guess." },
-];
-
-const guarantees = [
-  { icon: "target", title: "The campaign shapes the conversation", body: "The call flow is built from that campaign’s product description, value proposition, pain points, objections, and tone, not one shared global prompt. Two campaigns with different offers never borrow each other’s pitch." },
-  { icon: "calendar", title: "Availability comes from the server", body: "The agent never invents a meeting time. The backend computes open slots, removes conflicts, and hands back a short list. The agent’s job is to offer those and collect a choice." },
-  { icon: "lock", title: "Double booking is impossible", body: "A database constraint prevents two active meetings at the same time for the same organization. If two calls race for the last slot, one wins and the other has to offer a different time." },
-  { icon: "phone", title: "Do-not-call is checked before dialing", body: "Voice has its own do-not-call gate, separate from email suppression. A number that should not be called does not get called." },
-];
-
 
 const faqs = [
   {
     q: "What is an AI voice agent for sales?",
-    a: "It is software that places outbound calls and holds the conversation itself, introducing the offer, running discovery, handling objections, and booking a meeting. In GNX Sales, each voice campaign gets its own agent built from that campaign's product description, value proposition, pain points, objections, and tone.",
+    a: "Software that places calls and holds the conversation itself: it introduces your offer, runs discovery, handles objections and books a meeting. In GNX, each voice campaign gets its own agent built from that campaign's brief.",
   },
   {
-    q: "Can I test the agent before it calls prospects?",
-    a: "Yes. You can select a pre-launch test that runs the agent through ten adversarial scenarios with explicit pass and fail conditions, the busy prospect, the skeptic, the wrong person, a do-not-call request, a failing calendar tool, and a caller pushing it to invent customers or pricing. Every transcript is scored, and you can fix the campaign and run the test again.",
+    q: "Does the caller say it is an AI?",
+    a: "Always. The first line of every outbound call says the caller is an AI assistant from your company, and the inbound receptionist opens the same way. Outbound calls end after 10 minutes, inbound calls after 20.",
+  },
+  {
+    q: "Can I test the agent before it calls real prospects?",
+    a: "Yes. Switch on the pre-launch test and the agent runs through ten scored scenarios, from a skeptic to a do-not-call request to a failing calendar. Each run uses 100 credits.",
   },
   {
     q: "Do I need to buy a phone number?",
-    a: "No. A calling number is provisioned for you automatically. There is no telephony account to set up and no separate carrier bill.",
+    a: "No. Your plan includes its numbers: 1, 3 or 10. Extra numbers cost 200 credits each every 30 days.",
   },
   {
     q: "Can it book meetings during the call?",
-    a: "Yes. Calendar availability and booking are live tools the agent can call mid-conversation. The backend computes open slots and the agent offers only those, so it can never invent a time, and a database constraint makes double booking impossible.",
+    a: "Yes. It checks open slots on the server, offers only those, books the one the prospect picks and reads the time and timezone back.",
   },
   {
-    q: "What happens on a do-not-call request?",
-    a: "The call ends immediately, acknowledgement, no persuasion, no one more question, no retry. Do-not-call is also checked before dialing, on its own gate separate from email suppression.",
-  },
-  {
-    q: "Does outbound AI calling cost extra?",
-    a: "No. Voice and email draw from the same credit pool on every plan. What scales with the tier is how many voice campaigns you can run at once.",
+    q: "What does a call cost?",
+    a: "Calls draw from your plan's credits. A real call averages about 27 credits, from 8 to 79 depending on length.",
   },
 ];
 
 export default function VoicePage() {
   return (
-    <div className="public-page story-page">
-      <div className="story-hero-band">
-        <PublicNav variant="dark" />
-        <section className="story-hero public-section">
-          <span className="eyebrow">AI voice agent platform</span>
-          <h1 className="display">An AI voice agent you can test before it calls anyone.</h1>
-          <p>
-            Handing an AI voice agent a phone number and your prospect list is a real risk. Select pre-launch
-            simulation testing to run adversarial calls and review the scored transcripts before reaching prospects.
-          </p>
-          <div className="content-hero-actions">
-            <Link className="btn btn-primary btn-lg" href="/signup">
-              Choose a plan <Icon name="arrow" size={18} color="#06231a" />
+    <div className="public-page gd-page gd-pg2 gd-page-voice">
+      <PublicNav />
+      <section
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          background: "linear-gradient(135deg, #041f16 0%, #06311f 45%, #075b3f 100%)",
+          color: "#fff",
+        }}
+      >
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            width: "560px",
+            height: "560px",
+            right: "-160px",
+            top: "-220px",
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(41,214,143,.5), rgba(41,214,143,0) 70%)",
+            filter: "blur(60px)",
+          }}
+        ></div>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: "0",
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px)",
+            backgroundSize: "52px 52px",
+            WebkitMaskImage: "radial-gradient(ellipse at 30% 40%, #000 0%, transparent 70%)",
+            maskImage: "radial-gradient(ellipse at 30% 40%, #000 0%, transparent 70%)",
+          }}
+        ></div>
+        <div style={{ position: "relative", maxWidth: "1160px", margin: "0 auto", padding: "48px 24px 88px" }}>
+          <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <Link className="gd-crumb" href="/">
+              Home
             </Link>
-            <Link className="landing-outline-btn" href="/accuracy">How it avoids guessing</Link>
-          </div>
-        </section>
-      </div>
-
-      <main>
-        <section className="story-body public-section">
-          <div className="content-section-head">
-            <h2>The scenarios an AI voice agent for sales has to pass</h2>
-            <p>
-              Each one is a scripted call with explicit pass and fail conditions, judged against the transcript.
-              A campaign that fails can be fixed and re-run before a single real prospect hears from it.
-            </p>
-          </div>
-          <ol className="story-scenarios">
-            {scenarios.map((item) => (
-              <li key={item.title} className="story-scenario">
-                <span className="story-scenario-mark" aria-hidden="true">
-                  <Icon name="check" size={14} color="#06231a" stroke={2.6} />
-                </span>
-                <span className="content-card-icon"><Icon name={item.icon} size={18} color="var(--g-700)" /></span>
-                <div>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <p className="voice-baseline">
-            <Icon name="checkCircle" size={18} color="var(--g-700)" />
-            <span>
-              Every scenario also enforces one shared baseline: the agent never invents company facts, private
-              information, customer results, pricing, or integrations, and stays concise and non-pressuring throughout.
+            <span aria-hidden="true" style={{ color: "rgba(255,255,255,.35)" }}>
+              /
             </span>
+            <span style={{ color: "#fff", fontSize: "13px", fontWeight: "800" }}>AI Calls</span>
+          </nav>
+          <div style={{ marginTop: "40px", display: "flex", flexWrap: "wrap", gap: "48px", alignItems: "center" }}>
+            <div style={{ flex: "999 1 520px", minWidth: "0" }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  padding: "7px 14px",
+                  borderRadius: "999px",
+                  background: "rgba(255,255,255,.08)",
+                  border: "1px solid rgba(255,255,255,.14)",
+                  color: "#a8f0c6",
+                  fontSize: "12px",
+                  fontWeight: "800",
+                  letterSpacing: ".14em",
+                  textTransform: "uppercase",
+                }}
+              >
+                AI voice agent
+              </div>
+              <h1
+                style={{
+                  margin: "22px 0 0",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: "600",
+                  fontSize: "clamp(42px, 6vw, 72px)",
+                  lineHeight: "1.02",
+                  letterSpacing: "-.045em",
+                }}
+              >
+                An AI caller that is
+                <br /> <span style={{ color: "#6fe7b0" }}>honest, tested and booked.</span>
+              </h1>
+              <p
+                style={{
+                  margin: "22px 0 0",
+                  maxWidth: "620px",
+                  color: "rgba(255,255,255,.76)",
+                  fontSize: "18px",
+                  lineHeight: "1.7",
+                }}
+              >
+                Reach the buyers who never open email. Every call opens by saying it is an AI, every agent is tested
+                before it dials, and meetings land only in time that is really free.
+              </p>
+              <div style={{ marginTop: "30px", display: "flex", flexWrap: "wrap", gap: "12px" }}>
+                <Link
+                  href="/pricing"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    height: "50px",
+                    padding: "0 24px",
+                    borderRadius: "999px",
+                    background: "linear-gradient(180deg, #29d68f, #00c27a)",
+                    color: "#06231a",
+                    fontSize: "15px",
+                    fontWeight: "800",
+                    boxShadow: "0 12px 30px rgba(0,194,122,.35)",
+                  }}
+                >
+                  Choose a plan{" "}
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12h14M13 6l6 6-6 6"></path>
+                  </svg>
+                </Link>
+                <Link
+                  href="/pricing"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    height: "50px",
+                    padding: "0 24px",
+                    borderRadius: "999px",
+                    background: "rgba(255,255,255,.08)",
+                    border: "1px solid rgba(255,255,255,.2)",
+                    color: "#fff",
+                    fontSize: "15px",
+                    fontWeight: "800",
+                  }}
+                >
+                  See pricing
+                </Link>
+              </div>
+            </div>
+            <div className="gd-panel">
+              <small>How every call opens</small>
+              <div className="gd-bubble gd-ai">
+                <b>AI caller</b>Hi Sarah, this is Ava, an AI assistant calling from Northwind. Did I catch you at an
+                okay time for a quick question?
+              </div>
+              <div className="gd-bubble gd-me">
+                <b>Prospect</b>Sure, I have a minute.
+              </div>
+              <div className="gd-bubble gd-ai">
+                <b>AI caller</b>Thanks. I saw your team is hiring two SDRs. How are you handling outbound today?
+              </div>
+              <p style={{ margin: "14px 0 0", color: "rgba(255,255,255,.55)", fontSize: "12.5px", lineHeight: "1.5" }}>
+                The opening line is fixed: the caller always says it is an AI. Names and details are illustrative.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        style={{ background: "var(--bg)", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}
+      >
+        <div style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
+          <div style={{ maxWidth: "700px" }}>
+            <div className="gd-eyebrow">Why AI for calling</div>
+            <h2 className="gd-h2">Cold calling is a numbers game people cannot afford.</h2>
+            <p className="gd-lead">Benchmarks from 175,000+ B2B dials in 2025.</p>
+          </div>
+          <div className="gd-g3" style={{ marginTop: "36px" }}>
+            <div className="gd-lstat">
+              <b>9.9%</b>
+              <p>of cold dials reach a live person.</p>
+              <small>Belkins, 2025 dial data</small>
+            </div>
+            <div className="gd-lstat">
+              <b>~370</b>
+              <p>dials, end to end, for one booked meeting.</p>
+              <small>Belkins, 2025 dial data</small>
+            </div>
+            <div className="gd-lstat">
+              <b>4.6%</b>
+              <p>of live conversations turn into a meeting.</p>
+              <small>Belkins, 2025 dial data</small>
+            </div>
+          </div>
+          <p
+            style={{
+              margin: "24px 0 0",
+              maxWidth: "760px",
+              color: "var(--muted)",
+              fontSize: "15.5px",
+              lineHeight: "1.7",
+            }}
+          >
+            That volume is why calling gets skipped. An AI caller takes the dials, voicemails and retries, so the
+            meetings that come out of it land with you.
           </p>
-        </section>
-
-        <section className="story-band">
-          <div className="content-section-head">
-            <h2>What holds on a live outbound AI call</h2>
-            <p>Testing catches a bad agent before launch. These constraints hold while it is actually talking to someone.</p>
-          </div>
-          <div className="story-guarantees">
-            {guarantees.map((item) => (
-              <article key={item.title} className="story-guarantee">
-                <span className="content-card-icon"><Icon name={item.icon} size={20} color="var(--g-700)" /></span>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="story-body public-section">
-          <div className="content-section-head">
-            <h2>The voice agent is included, not upsold</h2>
-            <p>
-              Voice and email draw from the same credit pool on every plan. What scales with the tier is how many
-              voice campaigns you can run at once, never whether you get the channel at all.
+        </div>
+      </section>
+      <section style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
+        <div style={{ maxWidth: "700px" }}>
+          <div className="gd-eyebrow">Anatomy of a call</div>
+          <h2 className="gd-h2">What happens on every call.</h2>
+        </div>
+        <ol className="gd-tl" style={{ marginTop: "36px" }}>
+          <li>
+            <i>Before</i>
+            <b>Screened</b>
+            <span>
+              You confirm consent and DNC checks when importing. GNX screens again and blocks any Do Not Call match
+              before dialing.
+            </span>
+          </li>
+          <li>
+            <i>Opening</i>
+            <b>Disclosed</b>
+            <span>
+              The first line says the caller is an AI assistant from your company, and asks if now is a good time.
+            </span>
+          </li>
+          <li>
+            <i>Talking</i>
+            <b>On brief</b>
+            <span>
+              Discovery and objection handling come from that campaign&apos;s brief. A do-not-call request ends the call
+              at once.
+            </span>
+          </li>
+          <li>
+            <i>Closing</i>
+            <b>Booked and logged</b>
+            <span>
+              It offers only open slots, confirms time and timezone, then logs the recording, transcript and summary.
+            </span>
+          </li>
+        </ol>
+      </section>
+      <section
+        style={{ background: "var(--bg)", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}
+      >
+        <div style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
+          <div style={{ maxWidth: "700px" }}>
+            <div className="gd-eyebrow">Tested before it phones anyone</div>
+            <h2 className="gd-h2">Ten scored test calls, before launch.</h2>
+            <p className="gd-lead">
+              Switch on the pre-launch test and the agent faces ten scripted callers with pass and fail rules. Fix the
+              campaign and run it again.
             </p>
           </div>
-          <div className="voice-plan-grid">
-            {PLAN_CONFIG.map((plan) => (
-              <div key={plan.id} data-plan={plan.voiceCampaigns}>
-                <strong>{plan.name}</strong>
-                <b>{plan.voiceCampaigns}</b>
-                <span>concurrent voice campaign{plan.voiceCampaigns === 1 ? "" : "s"}</span>
-                <em>${plan.monthly}/mo · {plan.monthlyCredits.toLocaleString()} credits</em>
+          <div className="gd-g5" style={{ marginTop: "36px" }}>
+            <div className="gd-sc">
+              <i>01</i>
+              <div>
+                <b>Interested prospect</b>
+                <span>Runs discovery before pitching</span>
               </div>
-            ))}
+            </div>
+            <div className="gd-sc">
+              <i>02</i>
+              <div>
+                <b>Busy prospect</b>
+                <span>Gets off the phone politely</span>
+              </div>
+            </div>
+            <div className="gd-sc">
+              <i>03</i>
+              <div>
+                <b>Skeptical prospect</b>
+                <span>Uses your approved answers</span>
+              </div>
+            </div>
+            <div className="gd-sc">
+              <i>04</i>
+              <div>
+                <b>Wrong person</b>
+                <span>Apologises and stops</span>
+              </div>
+            </div>
+            <div className="gd-sc">
+              <i>05</i>
+              <div>
+                <b>Where did you get my number?</b>
+                <span>No claims of private knowledge</span>
+              </div>
+            </div>
+            <div className="gd-sc">
+              <i>06</i>
+              <div>
+                <b>Missing personalisation</b>
+                <span>Stays generic and truthful</span>
+              </div>
+            </div>
+            <div className="gd-sc">
+              <i>07</i>
+              <div>
+                <b>Do-not-call request</b>
+                <span>Acknowledges and ends the call</span>
+              </div>
+            </div>
+            <div className="gd-sc">
+              <i>08</i>
+              <div>
+                <b>Successful booking</b>
+                <span>Real slot, time read back</span>
+              </div>
+            </div>
+            <div className="gd-sc">
+              <i>09</i>
+              <div>
+                <b>Calendar tool fails</b>
+                <span>Says it cannot check, invents nothing</span>
+              </div>
+            </div>
+            <div className="gd-sc">
+              <i>10</i>
+              <div>
+                <b>Pushed to invent facts</b>
+                <span>Refuses to make up customers or prices</span>
+              </div>
+            </div>
           </div>
-        </section>
-
-        <FaqSection heading="AI voice agent questions" items={faqs} />
-
-        <section className="solutions-cta">
-          <div>
-            <h2>Test before you call.</h2>
-            <p>Choose a plan, build a voice campaign, and select pre-launch simulations to review how the agent responds.</p>
+          <div className="gd-gnx">Each test run of all ten scenarios uses 100 credits.</div>
+        </div>
+      </section>
+      <section style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
+        <div style={{ maxWidth: "700px" }}>
+          <div className="gd-eyebrow">Booking and safety</div>
+          <h2 className="gd-h2">Built so it cannot make things up.</h2>
+        </div>
+        <div className="gd-g3" style={{ marginTop: "36px" }}>
+          <div className="gd-card">
+            <div className="gd-ci">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                <path d="M3 10h18M8 3v4M16 3v4"></path>
+              </svg>
+            </div>
+            <h3>Availability from the server</h3>
+            <p>The agent never invents a time. The backend computes open slots and hands back a short list to offer.</p>
           </div>
-          <div className="content-cta-actions">
-            <Link className="btn btn-primary btn-lg" href="/signup">
-              Choose a plan <Icon name="arrow" size={16} color="#06231a" />
+          <div className="gd-card">
+            <div className="gd-ci">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+                <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+              </svg>
+            </div>
+            <h3>No double booking</h3>
+            <p>A database rule refuses two meetings in the same slot. If two calls race, one gets a new time.</p>
+          </div>
+          <div className="gd-card">
+            <div className="gd-ci">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 7v5l3 2"></path>
+              </svg>
+            </div>
+            <h3>Hard limits on every call</h3>
+            <p>
+              Outbound calls end after 10 minutes, and 45 seconds of silence ends any call. Voicemail hangs up instead
+              of rambling.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section
+        style={{ background: "var(--bg)", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}
+      >
+        <div style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
+          <div style={{ maxWidth: "700px" }}>
+            <div className="gd-eyebrow">Inbound AI receptionist</div>
+            <h2 className="gd-h2">Answer the calls that come back.</h2>
+            <p className="gd-lead">On Agency and Startup, a separate inbound agent answers calls to your numbers.</p>
+          </div>
+          <div className="gd-g2" style={{ marginTop: "36px" }}>
+            <div className="gd-col" style={{ background: "#fbfefc", borderColor: "#a8e6c7" }}>
+              <h3>What it does</h3>
+              <ul>
+                <li>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#088256"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12l5 5 9-10"></path>
+                  </svg>
+                  <div>
+                    Opens as an AI<span>Its very first sentence says so</span>
+                  </div>
+                </li>
+                <li>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#088256"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12l5 5 9-10"></path>
+                  </svg>
+                  <div>
+                    Recognises callers<span>And caps minutes for unknown numbers each day</span>
+                  </div>
+                </li>
+                <li>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#088256"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12l5 5 9-10"></path>
+                  </svg>
+                  <div>
+                    Ends after 20 minutes<span>A hard limit on every inbound call</span>
+                  </div>
+                </li>
+                <li>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#088256"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12l5 5 9-10"></path>
+                  </svg>
+                  <div>
+                    Keeps nothing<span>Inbound recordings and transcripts are not retained</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div className="gd-col" style={{ background: "var(--bg)" }}>
+              <h3>How you control it</h3>
+              <ul>
+                <li>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#69786f"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M9 6l6 6-6 6"></path>
+                  </svg>
+                  <div>
+                    Off by default<span>Switch it on in Settings</span>
+                  </div>
+                </li>
+                <li>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#69786f"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M9 6l6 6-6 6"></path>
+                  </svg>
+                  <div>
+                    Daily minute cap<span>For unknown callers, so credits stay safe</span>
+                  </div>
+                </li>
+                <li>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#69786f"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M9 6l6 6-6 6"></path>
+                  </svg>
+                  <div>
+                    One number list<span>Uses the numbers on your plan</span>
+                  </div>
+                </li>
+                <li>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#69786f"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M9 6l6 6-6 6"></path>
+                  </svg>
+                  <div>
+                    Plan based<span>Included on Agency and Startup</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
+        <div style={{ maxWidth: "700px" }}>
+          <div className="gd-eyebrow">The rules for AI calls</div>
+          <h2 className="gd-h2">Disclosure is becoming the law. GNX already does it.</h2>
+          <p className="gd-lead">A summary for US calling, as of October 2026. Not legal advice.</p>
+        </div>
+        <div className="gd-g4" style={{ marginTop: "36px" }}>
+          <div className="gd-law">
+            <small>Federal, 2024</small>
+            <b>FCC and the TCPA</b>
+            <span>
+              AI-generated voices count as artificial voices, so these calls need the person&apos;s prior express
+              consent.
+            </span>
+          </div>
+          <div className="gd-law">
+            <small>Federal, proposed</small>
+            <b>FCC disclosure rule</b>
+            <span>
+              A 2024 proposal would require callers to disclose AI use when getting consent and on every call.
+            </span>
+          </div>
+          <div className="gd-law">
+            <small>Utah</small>
+            <b>AI Policy Act</b>
+            <span>Businesses must disclose AI when a consumer asks, and an AI may never claim to be human.</span>
+          </div>
+          <div className="gd-law">
+            <small>Maine, 2025</small>
+            <b>AI chatbot law</b>
+            <span>
+              Bars AI that could mislead someone into thinking they are talking to a human, including by voice.
+            </span>
+          </div>
+        </div>
+        <div className="gd-gnx">
+          <b>Where GNX fits.</b> Every call opens with an AI disclosure and every Do Not Call match is blocked. Getting
+          consent for the numbers you call stays with you.
+        </div>
+      </section>
+      <section
+        style={{ background: "var(--bg)", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}
+      >
+        <div
+          style={{
+            maxWidth: "1160px",
+            margin: "0 auto",
+            padding: "88px 24px",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "40px 64px",
+            alignItems: "flex-start",
+          }}
+        >
+          <div style={{ flex: "1 1 280px", maxWidth: "360px" }}>
+            <div className="gd-eyebrow">Questions</div>
+            <h2 className="gd-h2">AI calling questions</h2>
+            <p className="gd-lead">
+              More in the <Link href="/faq">full FAQ</Link>, or <Link href="/contact">ask us</Link>.
+            </p>
+          </div>
+          <div style={{ flex: "999 1 600px", minWidth: "0" }}>
+            <FaqSection items={faqs} className="" />
+          </div>
+        </div>
+      </section>
+      <section style={{ maxWidth: "1160px", margin: "0 auto", padding: "72px 24px 24px" }}>
+        <h2
+          style={{
+            margin: "0",
+            fontFamily: "var(--font-display)",
+            fontWeight: "600",
+            fontSize: "26px",
+            letterSpacing: "-.025em",
+          }}
+        >
+          Keep exploring
+        </h2>
+        <div className="gd-g3" style={{ marginTop: "22px" }}>
+          <Link className="gd-other" href="/platform">
+            <div style={{ flex: "1" }}>
+              <b>The Agent</b>
+              <span>Everything the platform does, in one place</span>
+            </div>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6"></path>
+            </svg>
+          </Link>
+          <Link className="gd-other" href="/accuracy">
+            <div style={{ flex: "1" }}>
+              <b>No Guessing</b>
+              <span>How every email stays true</span>
+            </div>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6"></path>
+            </svg>
+          </Link>
+          <Link className="gd-other" href="/pricing">
+            <div style={{ flex: "1" }}>
+              <b>Pricing</b>
+              <span>Plans from $59 a month</span>
+            </div>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6"></path>
+            </svg>
+          </Link>
+        </div>
+      </section>
+      <section
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          marginTop: "56px",
+          background: "linear-gradient(135deg, #041f16 0%, #06311f 50%, #075b3f 100%)",
+          color: "#fff",
+        }}
+      >
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            width: "480px",
+            height: "480px",
+            right: "-120px",
+            top: "-220px",
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(41,214,143,.45), rgba(41,214,143,0) 70%)",
+            filter: "blur(60px)",
+          }}
+        ></div>
+        <div
+          style={{
+            position: "relative",
+            maxWidth: "1160px",
+            margin: "0 auto",
+            padding: "80px 24px",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "28px",
+          }}
+        >
+          <div style={{ maxWidth: "620px" }}>
+            <h2
+              style={{
+                margin: "0",
+                fontFamily: "var(--font-display)",
+                fontWeight: "600",
+                fontSize: "42px",
+                lineHeight: "1.05",
+                letterSpacing: "-.035em",
+              }}
+            >
+              Let the AI take the dials.
+              <br />
+              <span style={{ color: "#6fe7b0" }}>You take the meetings.</span>
+            </h2>
+            <p style={{ margin: "16px 0 0", color: "rgba(255,255,255,.74)", fontSize: "16.5px", lineHeight: "1.7" }}>
+              Outbound AI calling is included in every plan, from $59 a month.
+            </p>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+            <Link
+              href="/signup"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                height: "50px",
+                padding: "0 24px",
+                borderRadius: "999px",
+                background: "linear-gradient(180deg, #29d68f, #00c27a)",
+                color: "#06231a",
+                fontSize: "15px",
+                fontWeight: "800",
+              }}
+            >
+              Choose a plan
             </Link>
-            <Link className="landing-outline-btn" href="/pricing">View pricing</Link>
+            <Link
+              href="/contact"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                height: "50px",
+                padding: "0 24px",
+                borderRadius: "999px",
+                background: "rgba(255,255,255,.08)",
+                border: "1px solid rgba(255,255,255,.2)",
+                color: "#fff",
+                fontSize: "15px",
+                fontWeight: "800",
+              }}
+            >
+              Book a demo
+            </Link>
           </div>
-        </section>
-      </main>
-
+        </div>
+      </section>
+      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
+        <div
+          style={{
+            maxWidth: "1160px",
+            margin: "0 auto",
+            padding: "22px 24px",
+            color: "rgba(255,255,255,.55)",
+            fontSize: "12.5px",
+            lineHeight: "1.8",
+          }}
+        >
+          <strong style={{ color: "#fff" }}>Sources:</strong>{" "}
+          <a
+            href="https://belkins.io/blog/cold-calling-benchmarks"
+            style={{ fontWeight: "700" }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Belkins, cold calling benchmarks (2026)
+          </a>{" "}
+          ·{" "}
+          <a
+            href="https://www.fcc.gov/document/fcc-confirms-tcpa-applies-ai-technologies-generate-human-voices"
+            style={{ fontWeight: "700" }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            FCC, TCPA applies to AI voices (2024)
+          </a>{" "}
+          ·{" "}
+          <a
+            href="https://tcpaworld.com/2024/07/17/ai-generated-calls-to-require-disclosure-new-fcc-proposal-requires-disclosure-of-ai-usage-when-obtaining-prior-express-written-consent-and-during-each-call/"
+            style={{ fontWeight: "700" }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            TCPAWorld, FCC AI disclosure proposal (2024)
+          </a>{" "}
+          ·{" "}
+          <a
+            href="https://justcall.io/blog/ai-voice-agent-disclosure-laws.html"
+            style={{ fontWeight: "700" }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            JustCall, AI voice disclosure laws (2026)
+          </a>
+        </div>
+      </div>
       <PublicFooter />
       <BreadcrumbSchema trail={[{ name: "AI voice agent", path: "/voice" }]} />
     </div>
