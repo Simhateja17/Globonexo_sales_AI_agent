@@ -8,7 +8,7 @@ const organization = {
   "@type": "Organization",
   "@id": `${SITE_URL}/#organization`,
   name: "GNX Sales",
-  legalName: "Globonexo, Inc.",
+  legalName: "Globonexo India Private Limited",
   url: SITE_URL,
   logo: `${SITE_URL}/gnx-sales-logo.png`,
   description:

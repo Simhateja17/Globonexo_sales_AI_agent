@@ -405,7 +405,7 @@ function Splash({ go }) {
             <button onClick={() => scrollTo('results')}>Results</button>
             <button onClick={() => scrollTo('pricing')}>Pricing</button>
           </div>
-          <span>© 2026 Globonexo, Inc.</span>
+          <span>© 2026 Globonexo India Private Limited</span>
         </footer>
       </div>
     </div>
