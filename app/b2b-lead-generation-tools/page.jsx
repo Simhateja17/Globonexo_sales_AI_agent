@@ -43,7 +43,6 @@ const toc = [
   { id: "metrics", label: "Five metrics worth tracking" },
   { id: "one-system", label: "Running it as one system" },
   { id: "faq", label: "Questions" },
-  { id: "sources", label: "Sources" },
 ];
 
 const related = [
@@ -571,62 +570,6 @@ export default function B2bLeadGenerationToolsPage() {
         <section id="faq">
           <h2>Frequently asked questions</h2>
           <FaqSection items={faqs} className="" />
-        </section>
-        <section id="sources">
-          <h2 style={{ fontSize: "22px" }}>Sources</h2>
-          <ol className="gd-src">
-            <li>
-              <a
-                href="https://www.bls.gov/news.release/archives/tenure_09242026.htm"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                US Bureau of Labor Statistics, Employee Tenure (released September 2026)
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://bridgegroupinc.com/research/sdr-tenure-and-ramp-time"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                The Bridge Group, SDR tenure and ramp time (2025)
-              </a>
-            </li>
-            <li>
-              <a href="https://saleshandy.com/blog/cold-email-statistics/" target="_blank" rel="noopener noreferrer">
-                Saleshandy, cold email statistics (30M+ emails, 2026)
-              </a>
-            </li>
-            <li>
-              <a href="https://woodpecker.co/blog/cold-email-statistics/" target="_blank" rel="noopener noreferrer">
-                Woodpecker, cold email statistics (2026)
-              </a>
-            </li>
-            <li>
-              <a href="https://support.google.com/a/answer/81126" target="_blank" rel="noopener noreferrer">
-                Google, Email sender guidelines
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://snov.io/blog/microsoft-outlook-new-email-requirements-for-bulk-senders/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Snov.io, Microsoft Outlook requirements for bulk senders
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://www.fcc.gov/document/fcc-confirms-tcpa-applies-ai-technologies-generate-human-voices"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                FCC, TCPA applies to AI technologies that generate human voices
-              </a>
-            </li>
-          </ol>
         </section>
       </article>
     </GuideArticleLayout>

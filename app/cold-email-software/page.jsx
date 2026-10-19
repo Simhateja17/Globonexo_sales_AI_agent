@@ -49,7 +49,6 @@ const toc = [
   { id: "rules", label: "Rules your email must meet" },
   { id: "which", label: "Which one you need" },
   { id: "faq", label: "Questions" },
-  { id: "sources", label: "Sources" },
 ];
 
 const related = [
@@ -662,67 +661,6 @@ export default function ColdEmailSoftwarePage() {
         <section id="faq">
           <h2>Frequently asked questions</h2>
           <FaqSection items={faqs} className="" />
-        </section>
-        <section id="sources">
-          <h2 style={{ fontSize: "22px" }}>Sources</h2>
-          <ol className="gd-src">
-            <li>
-              <a href="https://support.google.com/a/answer/81126" target="_blank" rel="noopener noreferrer">
-                Google, Email sender guidelines
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://redsift.com/blog/gmails-enforcement-ramps-up-what-bulk-senders-need-to-know"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Red Sift, Gmail&apos;s enforcement ramps up (November 2025)
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://snov.io/blog/microsoft-outlook-new-email-requirements-for-bulk-senders/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Snov.io, Microsoft Outlook requirements for bulk senders
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                FTC, CAN-SPAM Act: A Compliance Guide for Business
-              </a>
-            </li>
-            <li>
-              <a href="https://crtc.gc.ca/eng/com500/faq500.htm" target="_blank" rel="noopener noreferrer">
-                CRTC, Frequently Asked Questions about CASL
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/business-to-business-marketing/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                ICO, Business-to-business marketing
-              </a>
-            </li>
-            <li>
-              <a href="https://saleshandy.com/blog/cold-email-statistics/" target="_blank" rel="noopener noreferrer">
-                Saleshandy, cold email statistics (30M+ emails, 2026)
-              </a>
-            </li>
-            <li>
-              <a href="https://woodpecker.co/blog/cold-email-statistics/" target="_blank" rel="noopener noreferrer">
-                Woodpecker, cold email statistics (2026)
-              </a>
-            </li>
-          </ol>
         </section>
       </article>
     </GuideArticleLayout>

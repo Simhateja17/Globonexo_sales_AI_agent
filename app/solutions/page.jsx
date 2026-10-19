@@ -995,53 +995,6 @@ export default function SolutionsPage() {
           </Link>
         </div>
       </section>
-      <div
-        style={{
-          maxWidth: "1160px",
-          margin: "0 auto",
-          padding: "0 24px 56px",
-          color: "var(--muted)",
-          fontSize: "13px",
-          lineHeight: "1.8",
-        }}
-      >
-        <strong style={{ color: "var(--ink)" }}>Sources:</strong>
-        <a
-          href="https://www.gartner.com/en/newsroom/press-releases/2026-03-09-gartner-sales-survey-finds-67-percent-of-b2b-buyers-prefer-a-rep-free-experience"
-          style={{ fontWeight: "700" }}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Gartner, rep-free buying (2026)
-        </a>{" "}
-        ·
-        <a
-          href="https://www.gartner.com/en/newsroom/press-releases/2026-05-20-gartner-survey-finds-sixty-nine-percent-of-b-two-b-buyers-turn-to-sales-reps-to-validate-ai-generated-insights"
-          style={{ fontWeight: "700" }}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Gartner, buyers validate AI with reps (2026)
-        </a>{" "}
-        ·
-        <a
-          href="https://www.gartner.com/en/newsroom/press-releases/2025-05-07-gartner-sales-survey-finds-74-percent-of-b2b-buyer-teams-demonstrate-unhealthy-conflict-during-the-decision-process"
-          style={{ fontWeight: "700" }}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Gartner, buying groups (2025)
-        </a>{" "}
-        ·
-        <a
-          href="https://www.cbinsights.com/research/report/startup-failure-reasons-top/"
-          style={{ fontWeight: "700" }}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          CB Insights, why startups fail (2026)
-        </a>
-      </div>
       <PublicFooter />
       <BreadcrumbSchema trail={[{ name: "Solutions", path: "/solutions" }]} />
     </div>

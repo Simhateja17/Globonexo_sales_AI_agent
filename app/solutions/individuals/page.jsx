@@ -828,46 +828,7 @@ export default function IndividualsPage() {
           </div>
         </div>
       </section>
-      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-        <div
-          style={{
-            maxWidth: "1160px",
-            margin: "0 auto",
-            padding: "22px 24px",
-            color: "rgba(255,255,255,.55)",
-            fontSize: "12.5px",
-            lineHeight: "1.8",
-          }}
-        >
-          <strong style={{ color: "#fff" }}>Sources:</strong>{" "}
-          <a
-            href="https://saleshandy.com/blog/cold-email-statistics/"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Saleshandy, cold email statistics (2026)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://woodpecker.co/blog/cold-email-statistics/"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Woodpecker, cold email statistics (2026)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://www.gartner.com/en/newsroom/press-releases/2026-03-09-gartner-sales-survey-finds-67-percent-of-b2b-buyers-prefer-a-rep-free-experience"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Gartner, rep-free buying (2026)
-          </a>
-        </div>
-      </div>
+      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}></div>
       <PublicFooter />
       <BreadcrumbSchema
         trail={[

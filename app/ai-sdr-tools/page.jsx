@@ -44,7 +44,6 @@ const toc = [
   { id: "questions", label: "Seven questions to ask" },
   { id: "comparison", label: "How GNX Sales compares" },
   { id: "faq", label: "Questions" },
-  { id: "sources", label: "Sources" },
 ];
 
 const related = [
@@ -712,38 +711,6 @@ export default function AiSdrToolsPage() {
         <section id="faq">
           <h2>Frequently asked questions</h2>
           <FaqSection items={faqs} className="" />
-        </section>
-        <section id="sources">
-          <h2 style={{ fontSize: "22px" }}>Sources</h2>
-          <ol className="gd-src">
-            <li>
-              <a
-                href="https://www.gartner.com/en/newsroom/press-releases/2026-07-28-gartner-predicts-ai-agents-will-outnumber-sellers-10-to-1-by-2028-yet-fewer-than-40-percent-of-sellers-will-say-agents-improved-productivity"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Gartner, AI agents will outnumber sellers 10 to 1 by 2028 (July 2026)
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://bridgegroupinc.com/research/sdr-tenure-and-ramp-time"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                The Bridge Group, SDR tenure and ramp time (2025)
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://www.fcc.gov/document/fcc-confirms-tcpa-applies-ai-technologies-generate-human-voices"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                FCC, TCPA applies to AI technologies that generate human voices (February 2024)
-              </a>
-            </li>
-          </ol>
         </section>
       </article>
     </GuideArticleLayout>

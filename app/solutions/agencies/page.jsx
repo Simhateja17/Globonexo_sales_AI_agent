@@ -845,46 +845,7 @@ export default function AgenciesPage() {
           </div>
         </div>
       </section>
-      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-        <div
-          style={{
-            maxWidth: "1160px",
-            margin: "0 auto",
-            padding: "22px 24px",
-            color: "rgba(255,255,255,.55)",
-            fontSize: "12.5px",
-            lineHeight: "1.8",
-          }}
-        >
-          <strong style={{ color: "#fff" }}>Sources:</strong>{" "}
-          <a
-            href="https://www.cleverly.co/blog/b2b-lead-generation-agency-cost"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Cleverly, B2B lead generation agency cost (2026)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://salesbread.com/appointment-setting-services-cost/"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            SalesBread, appointment setting cost (2025)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://www.agilitypr.com/pr-agency-news/pipeline-crisis-93-of-marketing-services-and-professional-services-firms-say-their-growth-engine-isnt-strong-enough/"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            RSW/US survey via Agility PR (2025)
-          </a>
-        </div>
-      </div>
+      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}></div>
       <PublicFooter />
       <BreadcrumbSchema
         trail={[

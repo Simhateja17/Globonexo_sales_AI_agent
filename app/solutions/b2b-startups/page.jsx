@@ -805,46 +805,7 @@ export default function B2bStartupsPage() {
           </div>
         </div>
       </section>
-      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-        <div
-          style={{
-            maxWidth: "1160px",
-            margin: "0 auto",
-            padding: "22px 24px",
-            color: "rgba(255,255,255,.55)",
-            fontSize: "12.5px",
-            lineHeight: "1.8",
-          }}
-        >
-          <strong style={{ color: "#fff" }}>Sources:</strong>{" "}
-          <a
-            href="https://www.bridgegroupinc.com/research/2025-sdr-models-metrics-report-the-bridge-group"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            The Bridge Group, 2025 SDR Metrics Report
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://www.cbinsights.com/research/report/startup-failure-reasons-top/"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            CB Insights, why startups fail (2026)
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://www.gartner.com/en/newsroom/press-releases/2026-05-20-gartner-survey-finds-sixty-nine-percent-of-b-two-b-buyers-turn-to-sales-reps-to-validate-ai-generated-insights"
-            style={{ fontWeight: "700" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Gartner, buyers validate AI with reps (2026)
-          </a>
-        </div>
-      </div>
+      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}></div>
       <PublicFooter />
       <BreadcrumbSchema
         trail={[
