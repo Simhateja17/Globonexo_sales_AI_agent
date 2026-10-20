@@ -67,17 +67,15 @@ function buildFallbackDraft(detail, thread, displayName) {
   return `Hi ${firstName},\n\nThanks for taking a look. Based on what ${company} is working on, GNX sales can help keep outreach and follow-up moving without adding more manual work for your team.\n\nWould it be useful if I shared a short walkthrough and a few example workflows for your pipeline?`;
 }
 
-function MessageBubble({ side, label, meta, children }) {
+function MessageBubble({ side, label, meta, avatar, children }) {
   const isOutbound = side === "outbound";
   return (
-    <div className={`email-chat-message ${isOutbound ? "is-outbound" : "is-inbound"}`}>
-      <div className="email-chat-meta">
-        <span>{label}</span>
+    <div className={`msg ${isOutbound ? "" : "in"}`}>
+      <div className="msg-h">
+        {isOutbound ? <span className="pl pl-mute">{label}</span> : <>{avatar}<b>{label}</b></>}
         {meta ? <span>{meta}</span> : null}
       </div>
-      <div className="email-chat-bubble">
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
@@ -276,134 +274,109 @@ export default function InboxPage() {
     }
   };
 
+  const inboxes = [...new Map(threads.filter(item => item.connectedAccountId).map(item => [item.connectedAccountId, item.inboxAddress])).entries()];
+
   return (
-    <div className="email-inbox-shell">
-      <aside data-tour="inbox-threads" className="email-list-panel">
-        <select className="input" aria-label="Filter by inbox" value={senderFilter} onChange={event => setSenderFilter(event.target.value)}>
-          <option value="">All inboxes</option>
-          {[...new Map(threads.filter(item => item.connectedAccountId).map(item => [item.connectedAccountId, item.inboxAddress])).entries()].map(([id, address]) => <option key={id} value={id}>{address || "Inbox"}</option>)}
-        </select>
-        <div className="email-list-head">
-          <div className="row spread" style={{ gap: 12 }}>
-            <div>
-              <h1 className="display">Emails</h1>
-              <p>{threads.length} lead conversations</p>
-            </div>
-            <span className="email-count-chip">{threads.length}</span>
-          </div>
-          <div className="input-wrap email-list-search">
-            <span className="lead-ico"><Icon name="search" size={15} /></span>
-            <input className="input has-ico" placeholder="Search emails..." readOnly />
-          </div>
-          <div className="email-filter-tabs" aria-label="Email filters">
-            {EMAIL_FILTERS.map(filter => (
-              <button
-                key={filter.id}
-                type="button"
-                className={activeFilter === filter.id ? "is-active" : ""}
-                onClick={() => changeFilter(filter.id)}
-              >
-                {filter.label}
-                <span>{filterCounts[filter.id]}</span>
-              </button>
-            ))}
-          </div>
+    <main className="gx">
+      <div className="ph">
+        <div>
+          <h1>Inbox</h1>
+          <p>{threads.length} lead conversation{threads.length === 1 ? "" : "s"} across your campaign mailboxes.</p>
         </div>
+        <div className="acts">
+          <select className="sel-box" style={{ background: "#fff" }} aria-label="Filter by inbox" value={senderFilter} onChange={event => setSenderFilter(event.target.value)}>
+            <option value="">All inboxes ({inboxes.length})</option>
+            {inboxes.map(([id, address]) => <option key={id} value={id}>{address || "Inbox"}</option>)}
+          </select>
+        </div>
+      </div>
 
-        <div className="scroll email-thread-scroll">
-          {filteredThreads.length > 0 ? (
-            filteredThreads.map(item => (
-              <button
-                key={item.id}
-                type="button"
-                className={`email-thread-item ${selectedId === item.id ? "is-active" : ""}`}
-                onClick={() => setSelectedId(item.id)}
-              >
-                <Avatar name={item.name} src={item.photoUrl || undefined} size={42} />
-                <div className="email-thread-copy">
-                  <div className="row spread" style={{ gap: 8 }}>
-                    <strong className="ellip">{item.name}</strong>
-                    <span>{item.time}</span>
+      <div className="card ib">
+        <aside data-tour="inbox-threads" className="il">
+          <div className="il-h">
+            <div className="seg" style={{ display: "flex" }} role="tablist" aria-label="Email filters">
+              {EMAIL_FILTERS.map(filter => (
+                <button
+                  key={filter.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeFilter === filter.id}
+                  className={activeFilter === filter.id ? "on" : ""}
+                  onClick={() => changeFilter(filter.id)}
+                >
+                  {filter.label}{filterCounts[filter.id] ? <em>{filterCounts[filter.id]}</em> : null}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ overflowY: "auto", flex: 1 }}>
+            {filteredThreads.length > 0 ? (
+              filteredThreads.map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`th ${selectedId === item.id ? "on" : ""}`}
+                  onClick={() => setSelectedId(item.id)}
+                >
+                  <Avatar name={item.name} src={item.photoUrl || undefined} size={36} />
+                  <div className="th-m">
+                    <div className="th-top">
+                      <b className="ellip">{item.kind === "reply" && item.aiDraftStatus === "pending" ? <i /> : null}{item.name}</b>
+                      <small>{item.time}</small>
+                    </div>
+                    <span className="th-s">{item.subject}</span>
+                    <span className="th-p">{item.preview}</span>
+                    <div style={{ marginTop: 7 }}>
+                      <span className={`pl ${item.kind === "reply" ? "pl-ok" : "pl-mute"}`}>{item.kind === "reply" ? "Reply" : "Sent"}</span>
+                    </div>
                   </div>
-                  <p className="ellip">{item.company || item.email || "Lead"}</p>
-                  <div className="email-thread-subject ellip">{item.subject}</div>
-                  {item.inboxAddress && <div className="faint">{item.inboxAddress}</div>}
-                  <div className="email-thread-preview ellip">{item.preview}</div>
-                </div>
-                <div className="email-thread-footer">
-                  <span className={`email-thread-status ${item.kind === "reply" ? "has-reply" : ""}`}>
-                    {item.kind === "reply" ? "Reply" : "Sent"}
-                  </span>
-                </div>
-              </button>
-            ))
-          ) : (
-            <div className="email-empty-list">
-              <Icon name="mail" size={34} color="var(--faint)" />
-              <strong>No {activeFilter === "all" ? "emails" : activeFilter} yet</strong>
-              <span>Try another category or send a mock message in the open conversation.</span>
-            </div>
-          )}
-        </div>
-      </aside>
+                </button>
+              ))
+            ) : (
+              <div className="empty">
+                No {activeFilter === "all" ? "emails" : activeFilter} yet.
+              </div>
+            )}
+          </div>
+        </aside>
 
-      <section className="email-chat-panel">
-        <header className="email-chat-head">
+        <section className="cv">
           {thread ? (
-            <>
-              <div className="row" style={{ gap: 12, minWidth: 0 }}>
-                <Avatar name={displayName} src={lead.photo_url || thread?.photoUrl || undefined} size={42} />
-                <div className="col" style={{ minWidth: 0 }}>
-                  <strong className="ellip">{displayName}</strong>
-                  <span className="ellip">{lead.email || thread.email || thread.company || "Lead email"}</span>
-                </div>
+            <div className="cv-h">
+              <div style={{ minWidth: 0 }}>
+                <b className="ellip" style={{ display: "block" }}>{originalMessage.subject || thread.subject || displayName}</b>
+                <small className="ellip">{[thread.company, thread.inboxAddress ? `via ${thread.inboxAddress}` : null].filter(Boolean).join(" · ") || lead.email || thread.email}</small>
               </div>
-              <span className="chip">{STATUS_LABELS[draftStatus] || draftStatus}</span>
-            </>
-          ) : (
-            <>
-              <div className="row" style={{ gap: 12 }}>
-                <span className="email-chat-icon"><Icon name="mail" size={20} /></span>
-                <div>
-                  <strong>Emails</strong>
-                  <span>No conversation selected</span>
-                </div>
-              </div>
-            </>
-          )}
-        </header>
+              <span className="pl pl-mute">{STATUS_LABELS[draftStatus] || draftStatus}</span>
+            </div>
+          ) : null}
 
-        <div className="scroll email-chat-scroll">
-          {error ? <div className="notice-warn">{error}</div> : null}
+          {error ? <div className="note">{error}</div> : null}
           {success ? <div className="notice-good">{success}</div> : null}
 
           {!thread ? (
-            <div className="email-empty-chat">
-              <Icon name="mail" size={44} color="var(--faint)" />
-              <strong>Select an email</strong>
-              <span>Choose a lead on the left to open the email conversation.</span>
-            </div>
+            <div className="empty">Choose a lead on the left to open the email conversation.</div>
           ) : detailLoading ? (
-            <div className="card" style={{ padding: 18, maxWidth: 720, display: "grid", placeItems: "center", minHeight: 120 }}>
-              <Spinner size={20} />
-            </div>
+            <div className="empty"><Spinner size={20} /></div>
           ) : (
-            <div className="email-chat-stack">
-              <div className="email-chat-date">{formatDateTime(originalMessage.sent_at) || thread.time}</div>
-
-              <MessageBubble side="outbound" label="You sent" meta={formatDateTime(originalMessage.sent_at || originalMessage.created_at)}>
-                <h2>{originalMessage.subject || thread.subject}</h2>
+            <>
+              <MessageBubble side="outbound" label="You sent" meta={formatDateTime(originalMessage.sent_at || originalMessage.created_at) || thread.time}>
                 <p>{formatBody(originalMessage.body || thread.preview || lead.email)}</p>
               </MessageBubble>
 
               {hasReply ? (
-                <MessageBubble side="inbound" label={`${displayName} replied`} meta={formatDateTime(detail.received_at)}>
+                <MessageBubble
+                  side="inbound"
+                  label={displayName}
+                  avatar={<Avatar name={displayName} src={lead.photo_url || thread?.photoUrl || undefined} size={26} />}
+                  meta={[lead.email || thread.email, formatDateTime(detail.received_at)].filter(Boolean).join(" · ")}
+                >
                   <p>{formatBody(detail.body || thread.preview)}</p>
                 </MessageBubble>
               ) : (
-                <div className="email-waiting-card">
-                  <Icon name="clock" size={16} />
-                  <span>Waiting for this lead to reply.</span>
+                <div className="msg-h" style={{ color: "#69786f", fontWeight: 700 }}>
+                  <Icon name="clock" size={15} /> Waiting for this lead to reply.
                 </div>
               )}
 
@@ -412,50 +385,66 @@ export default function InboxPage() {
                   <p>{formatBody(message.body)}</p>
                 </MessageBubble>
               ))}
-            </div>
+            </>
           )}
-        </div>
 
-        {thread && canReply ? (
-          <div className="email-composer-wrap">
-            <div className="email-nexo-row">
-              <button
-                type="button"
-                className="email-nexo-draft-btn"
-                disabled={detailLoading || drafting || !selectedId}
-                onClick={fillComposerWithDraft}
-              >
-                <Icon name="spark" size={15} />
-                {drafting ? "Drafting..." : "Ask GNX sales to draft"}
-              </button>
-            </div>
-
-            <form className="email-message-composer" onSubmit={sendManualMessage}>
-              <button type="button" className="email-composer-icon-btn" aria-label="Add attachment">
-                <Icon name="plus" size={22} />
-              </button>
-              <div className="email-composer-input">
-                <textarea
-                  ref={composerRef}
-                  value={composerBody}
-                  onChange={event => setComposerBody(event.target.value)}
-                  onKeyDown={event => {
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      sendManualMessage(event);
-                    }
-                  }}
-                  rows={1}
-                  placeholder={`Message ${displayName}`}
-                />
+          {thread && canReply ? (
+            <form className="dft" onSubmit={sendManualMessage}>
+              <div className="dft-h">
+                <Icon name="spark" size={15} /> Your reply
+                <span>{composerBody.trim() ? "Ready when you are" : "Write it, or ask for a draft"}</span>
               </div>
-              <button type="submit" className="email-composer-send" disabled={!composerBody.trim() || sending} aria-label="Send message">
-                <Icon name="send" size={18} color="#06231a" />
-              </button>
+              <textarea
+                ref={composerRef}
+                className="dft-in"
+                value={composerBody}
+                onChange={event => setComposerBody(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    sendManualMessage(event);
+                  }
+                }}
+                rows={4}
+                aria-label={`Message ${displayName}`}
+                placeholder={`Message ${displayName}`}
+              />
+              <div className="dft-f">
+                <div className="x" />
+                <button type="button" className="bt bt-g sm" disabled={detailLoading || drafting || !selectedId} onClick={fillComposerWithDraft}>
+                  <Icon name="spark" size={14} /> {drafting ? "Drafting..." : "Draft with AI"}
+                </button>
+                <button type="submit" className="bt bt-p sm" disabled={!composerBody.trim() || sending}>
+                  <Icon name="send" size={14} color="#06231a" /> {sending ? "Sending..." : "Send"}
+                </button>
+              </div>
             </form>
-          </div>
-        ) : null}
-      </section>
-    </div>
+          ) : null}
+        </section>
+
+        <aside className="ctx" style={{ borderLeft: "1px solid #eef3f0" }}>
+          {thread ? (
+            <>
+              <div className="ctx-id">
+                <Avatar name={displayName} src={lead.photo_url || thread?.photoUrl || undefined} size={56} />
+                <b>{displayName}</b>
+                <small>{[lead.title, lead.company || thread.company].filter(Boolean).join(" · ") || "Lead"}</small>
+                <div className="pv-tags" style={{ justifyContent: "center" }}>
+                  <span className={`pl ${hasReply ? "pl-ok" : "pl-mute"}`}>{hasReply ? "Replied" : "Awaiting reply"}</span>
+                  {lead.score != null ? <span className="pl pl-dark">Score {lead.score}</span> : null}
+                </div>
+              </div>
+              <div className="ctx-sec">
+                <small className="h">Contact</small>
+                <div className="kv"><span>Email</span><b className="ellip">{lead.email || thread.email || "Unknown"}</b></div>
+                {lead.phone ? <div className="kv"><span>Phone</span><b>{lead.phone}</b></div> : null}
+                {lead.location ? <div className="kv"><span>Location</span><b>{lead.location}</b></div> : null}
+                {thread.inboxAddress ? <div className="kv"><span>Inbox</span><b className="ellip">{thread.inboxAddress}</b></div> : null}
+              </div>
+            </>
+          ) : null}
+        </aside>
+      </div>
+    </main>
   );
 }

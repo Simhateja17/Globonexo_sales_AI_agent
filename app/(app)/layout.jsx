@@ -1,3 +1,4 @@
+import "./app-design.css";
 import AppShell from "../../components/layout/AppShell";
 import { SetupProvider } from "../../providers/SetupProvider";
 import TourOverlay from "../../components/tour/TourOverlay";

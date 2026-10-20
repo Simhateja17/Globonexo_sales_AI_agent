@@ -18,10 +18,10 @@ import { immediateEmailBlockReason } from "../../../../lib/manual-outreach";
 import { ACTIVE_ATTEMPT_STATUSES, CALL_NOW_ACTIVE_LIMIT, callNowLimitFromError, outreachAttemptLabel } from "../../../../lib/outreach-status";
 
 const STATUS_STYLES = {
-  active: { label: "Active", bg: "var(--g-50)", color: "var(--g-700)", dot: "var(--g-500)" },
-  paused: { label: "Paused", bg: "#fff7ed", color: "#9a3412", dot: "#f97316" },
-  draft: { label: "Draft", bg: "var(--bg-2)", color: "var(--muted)", dot: "var(--faint)" },
-  completed: { label: "Completed", bg: "#eef2ff", color: "#4338ca", dot: "#6366f1" },
+  active: { label: "Active", cls: "pl-ok" },
+  paused: { label: "Paused", cls: "pl-warn" },
+  draft: { label: "Draft", cls: "pl-mute" },
+  completed: { label: "Completed", cls: "pl-info" },
 };
 
 const CHANNEL_STYLES = {
@@ -49,17 +49,14 @@ const STOPPED_STATUSES = new Set(["engaged", "meeting_booked", "not_interested",
 function StatusBadge({ status }) {
   const s = STATUS_STYLES[status] ?? STATUS_STYLES.draft;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 99, background: s.bg, color: s.color, fontSize: 12, fontWeight: 600 }}>
-      <span style={{ width: 6, height: 6, borderRadius: "50%", background: s.dot }} />
-      {s.label}
-    </span>
+    <span className={`pl ${s.cls}`}><u />{s.label}</span>
   );
 }
 
 function ChannelBadge({ channel }) {
   const c = CHANNEL_STYLES[channel] ?? CHANNEL_STYLES.email;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 99, background: c.bg, color: c.color, fontSize: 12, fontWeight: 600 }}>
+    <span className="pl" style={{ background: c.bg, color: c.color }}>
       {usesEmail(channel) && <Icon name="mail" size={12} />}
       {usesVoice(channel) && <Icon name="phone" size={12} />}
       {c.label}
@@ -138,18 +135,17 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
 
   return (
     <tr
-      className="data-row row-clickable"
       onClick={() => onOpen(lead.id)}
       tabIndex={0}
       title="Open lead details"
       onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onOpen(lead.id); } }}
     >
       <td>
-        <div className="row" style={{ gap: 11, minWidth: 0 }}>
+        <div className="who">
           <Avatar name={leadName(lead)} src={leadPhoto(lead) || undefined} size={34} />
-          <div className="col" style={{ minWidth: 0 }}>
-            <span className="ellip" style={{ fontWeight: 800, fontSize: 14 }}>{leadName(lead)}</span>
-            <span className="faint ellip" style={{ fontSize: 12 }}>{lead.title || "No title"} - {lead.company || "No company"}</span>
+          <div style={{ minWidth: 0 }}>
+            <b className="ellip">{leadName(lead)}</b>
+            <small className="ellip">{lead.title || "No title"} · {lead.company || "No company"}</small>
           </div>
         </div>
       </td>
@@ -157,8 +153,8 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
       {showPhone && <td><span style={{ fontWeight: 700, fontSize: 13 }}>{lead.phone || "No phone"}</span></td>}
       <td>
         <div className="col" style={{ gap: 4, alignItems: "flex-start" }}>
-          <span className="badge" style={leadStatusStyle(status)}>{LEAD_STATUS_LABELS[status] || status.replace(/_/g, " ")}</span>
-          {bounced && <span className="badge" style={{ background: "#fef2f2", color: "#b91c1c" }} title="This address could not receive email. No more emails go to it.">Email bounced</span>}
+          <span className="pl" style={{ ...leadStatusStyle(status), border: 0 }}>{LEAD_STATUS_LABELS[status] || status.replace(/_/g, " ")}</span>
+          {bounced && <span className="pl pl-bad" title="This address could not receive email. No more emails go to it.">Email bounced</span>}
           {eligibility && <span className="faint" style={{ fontSize: 11.5 }}>{eligibility.label}</span>}
         </div>
       </td>
@@ -174,7 +170,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
         <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
           {showEmail && (
             <button
-              className="btn btn-ghost btn-sm"
+              className="bt bt-g sm"
               type="button"
               disabled={!canEmailNow || Boolean(actionKey)}
               title={!hasEmail ? "Lead needs an email" : bounced ? "This address bounced, so emails to it are stopped" : stopped ? "Sequence is stopped for this lead" : campaignBlocked ? eligibility?.label || "Lead is not ready" : "Email this lead immediately"}
@@ -186,7 +182,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
           )}
           {showPhone && (
             <button
-              className="btn btn-ghost btn-sm"
+              className="bt bt-g sm"
               type="button"
               disabled={!canCallNow || Boolean(callNowLimit) || Boolean(actionKey)}
               title={!isAiVoice ? "Immediate calls are available for AI voice campaigns" : !hasPhone ? "Lead needs a phone number" : campaignBlocked ? eligibility?.label || "Lead is not ready" : stopped ? "Calls are stopped for this lead" : callNowLimit ? callNowLimit.message : "Call this lead now"}
@@ -499,67 +495,69 @@ export default function CampaignDetailPage() {
   ];
 
   return (
-    <div className="col" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+    <main className="gx">
       {toast && (
         <div style={{ position: "fixed", bottom: 24, right: 24, background: "var(--ink)", color: "var(--bg)", padding: "12px 20px", borderRadius: 10, fontSize: 13, fontWeight: 500, zIndex: 9999, maxWidth: 360, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
           {toast}
         </div>
       )}
 
-      <div className="row spread page-toolbar campaign-detail-toolbar">
-        <div className="row" style={{ gap: 12, minWidth: 0 }}>
-          <button className="btn btn-ghost btn-sm" type="button" style={{ width: 40, padding: 0 }} onClick={() => router.push("/campaigns")} aria-label="Back to campaigns">
+      <div className="ph">
+        <div className="cdh" style={{ minWidth: 0 }}>
+          <button className="back" type="button" onClick={() => router.push("/campaigns")} aria-label="Back to campaigns">
             <Icon name="arrowLeft" size={16} />
           </button>
           <div style={{ minWidth: 0 }}>
-            <h1 className="display page-title ellip">{campaign.name}</h1>
-            <div className="row" style={{ gap: 8, marginTop: 6, flexWrap: "wrap" }}>
+            <h1 className="ellip">{campaign.name}</h1>
+            <div className="cdh-meta" style={{ flexWrap: "wrap" }}>
               <StatusBadge status={campaign.status} />
               <ChannelBadge channel={campaign.channel} />
-              <span className="faint" style={{ fontSize: 12 }}>Created {formatDate(campaign.createdAt)}</span>
-              <span className="faint" style={{ fontSize: 12 }}>Assigned to {assignee ? [assignee.first_name, assignee.last_name].filter(Boolean).join(" ") || assignee.email : "Unassigned"}</span>
+              <span>Created {formatDate(campaign.createdAt)}</span>
+              <span>· Assigned to {assignee ? [assignee.first_name, assignee.last_name].filter(Boolean).join(" ") || assignee.email : "Unassigned"}</span>
             </div>
           </div>
         </div>
-        <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-          {!canOperate && <span className="faint" style={{ fontSize: 12, fontWeight: 800, alignSelf: "center" }}>View only</span>}
+        <div className="acts">
+          {!canOperate && <span className="muted" style={{ fontSize: 12, fontWeight: 800 }}>View only</span>}
+          {canOperate && (
+            <button className="bt bt-g" type="button" onClick={() => selectTab("settings")}><Icon name="cog" size={15} /> Settings</button>
+          )}
           {canOperate && (campaign.status === "draft" || campaign.status === "paused") && (
-            <button className="btn btn-primary btn-sm" data-tour="campaign-launch" onClick={handleLaunch} disabled={launching || launchGate.blocked} title={launchGate.blocked ? launchGate.message : undefined}>
+            <button className="bt bt-p" type="button" data-tour="campaign-launch" onClick={handleLaunch} disabled={launching || launchGate.blocked} title={launchGate.blocked ? launchGate.message : undefined}>
               {launching ? "Launching..." : "Launch campaign"}
             </button>
           )}
           {canOperate && campaign.status === "active" && (
-            <button className="btn btn-ghost btn-sm" onClick={handlePause} disabled={pausing}>
+            <button className="bt bt-g" type="button" onClick={handlePause} disabled={pausing}>
+              <Icon name="pause" size={15} />
               {pausing ? "Pausing..." : "Pause"}
             </button>
           )}
         </div>
       </div>
 
-      {error ? <div className="notice-warn">{error}</div> : null}
+      {error ? <div className="note">{error}</div> : null}
 
-      <div className="scroll grow app-page">
-        <div className="col" style={{ gap: 16 }}>
-          {canOperate ? <CampaignPreparationPanel campaignId={campaign.id} channel={campaign.channel} campaignStatus={campaign.status} onChanged={handlePreparationChanged} /> : <div className="card" style={{ padding: 16, color: "var(--muted)", fontSize: 13 }}>This campaign is assigned to another teammate. You can review its status and history, but operational controls are read-only.</div>}
+      <div className="col" style={{ gap: 16 }}>
+          {canOperate ? <CampaignPreparationPanel campaignId={campaign.id} channel={campaign.channel} campaignStatus={campaign.status} onChanged={handlePreparationChanged} /> : <div className="card" style={{ padding: 16, color: "#69786f", fontSize: 13, fontWeight: 600 }}>This campaign is assigned to another teammate. You can review its status and history, but operational controls are read-only.</div>}
 
-          <div className="metric-grid">
+          <div className="mets">
             {metrics.map(([label, value]) => (
-              <div key={label} className="metric-card">
-                <span className="metric-icon"><Icon name={label === "Sent" ? "send" : "users"} size={16} /></span>
-                <div>
-                  <strong>{value}</strong>
-                  <span>{label}</span>
-                </div>
+              <div key={label} className="met">
+                <small>{label}</small>
+                <b style={label === "Bounced" && value > 0 ? { color: "#b42318" } : undefined}>{value}</b>
               </div>
             ))}
           </div>
 
-          <div className="segmented-control prospects-source-tabs" role="tablist" aria-label="Campaign sections">
-            {[...(emailEnabled ? [["emails", "Emails"]] : []), ["leads", "Leads"], ["settings", "Settings"]].map(([key, label]) => (
-              <button key={key} type="button" role="tab" aria-selected={activeTab === key} className={activeTab === key ? "is-active" : ""} onClick={() => selectTab(key)}>
-                {label}
-              </button>
-            ))}
+          <div>
+            <div className="seg" role="tablist" aria-label="Campaign sections">
+              {[...(emailEnabled ? [["emails", "Emails"]] : []), ["leads", "Leads"], ["settings", "Settings"]].map(([key, label]) => (
+                <button key={key} type="button" role="tab" aria-selected={activeTab === key} className={activeTab === key ? "on" : ""} onClick={() => selectTab(key)}>
+                  {label}{key === "leads" ? <em>{leads.length}</em> : null}
+                </button>
+              ))}
+            </div>
           </div>
 
           {activeTab === "settings" && (
@@ -575,15 +573,15 @@ export default function CampaignDetailPage() {
           )}
 
           {activeTab === "leads" && (
-          <div className="card table-shell" data-tour="campaign-leads">
-            <div className="filter-bar">
+          <div className="card" style={{ overflow: "hidden" }} data-tour="campaign-leads">
+            <div className="card-h">
               <div>
-                <strong style={{ fontSize: 14 }}>Campaign leads</strong>
-                <p className="faint" style={{ fontSize: 12, marginTop: 2 }}>{leads.length} leads attached to this campaign.</p>
+                <b>Campaign leads</b>
+                <small>{leads.length} leads attached to this campaign.</small>
               </div>
             </div>
-            <div className="table-scroll">
-              <table className="data-table" style={{ minWidth: dualChannel ? 1300 : 980, tableLayout: "fixed" }}>
+            <div className="tbl-wrap">
+              <table className="tbl" style={{ minWidth: dualChannel ? 1300 : 980, tableLayout: "fixed" }}>
                 <colgroup>
                   {leadColumns.map(column => <col key={column.header} style={{ width: column.width }} />)}
                 </colgroup>
@@ -592,7 +590,7 @@ export default function CampaignDetailPage() {
                 </thead>
                 <tbody>
                   {leads.length === 0 ? (
-                    <tr><td colSpan={leadColumns.length} className="table-empty">No leads are attached to this campaign.</td></tr>
+                    <tr><td colSpan={leadColumns.length} className="empty">No leads are attached to this campaign.</td></tr>
                   ) : leads.map(lead => (
                     <CampaignLeadRow key={lead.id} lead={lead} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} onOpen={setDetailLeadId} canOperate={canOperate} callNowLimit={callNowLimit} />
                   ))}
@@ -601,7 +599,6 @@ export default function CampaignDetailPage() {
             </div>
           </div>
           )}
-        </div>
       </div>
       {detailLead ? (
         <LeadDetailModal
@@ -613,6 +610,6 @@ export default function CampaignDetailPage() {
           sending={actionKey === `email:${detailLead.id}`}
         />
       ) : null}
-    </div>
+    </main>
   );
 }
