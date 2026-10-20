@@ -57,6 +57,13 @@ export default function BlogIndexPage() {
               "Why agency pipelines stall, what sales automation fixes, and what your team should keep.",
             datePublished: "2026-10-13",
           },
+          {
+            path: "/blog/how-to-automate-lead-generation",
+            headline: "How to Automate Lead Generation, Enrichment, Follow-ups and Cold Calling",
+            description:
+              "Most founders automate outbound in the wrong order. Here is the order that works, stage by stage.",
+            datePublished: "2026-10-20",
+          },
         ]}
       />
       <BreadcrumbSchema trail={[{ name: "Blog", path: "/blog" }]} />
