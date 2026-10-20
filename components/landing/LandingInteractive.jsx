@@ -879,7 +879,7 @@ export function VoiceStage() {
       if (kind === "sys") {
         if (chars < len) chars = len;
       } else if (chars < len) {
-        chars = Math.min(len, chars + 2);
+        chars = Math.min(len, chars + 1);
       }
       if (chars >= len) {
         pause += 30;
