@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import api from "../../../lib/api";
 import { leadPhoto } from "../../../lib/lead-photo";
 import Icon from "../../../components/ui/Icon";
@@ -263,7 +264,7 @@ function LeadPreview({ lead, onOpen, onSendNow, onDelete, sending }) {
         </div>
       </div>
       <div className="pv-acts">
-        <button type="button" className="bt bt-g" onClick={() => onOpen(lead.id)}>Full profile</button>
+        <Link className="bt bt-g" href={`/prospects/${lead.id}`}>Full profile</Link>
         <button
           type="button"
           className="bt bt-p"

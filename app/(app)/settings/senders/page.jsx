@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import api from "@/lib/api";
+import Icon from "@/components/ui/Icon";
 export default function SenderSelectionPage() {
   const [state, setState] = useState(null);
   const [emails, setEmails] = useState([]);
@@ -20,15 +22,46 @@ export default function SenderSelectionPage() {
     finally { setBusy(false); }
   }
   const deadlines = state ? [...state.emailAccounts, ...state.phoneNumbers].map(item => item.disable_after).filter(Boolean).sort() : [];
-  return <main style={{ padding: 24, overflowY: "auto" }}><h1>Choose senders to keep</h1>
-    {error && <p role="alert">{error}</p>}
-    {done ? <p>Your selection was applied. <a href="/settings">Back to Settings</a></p> : state && <>
-      <p>{deadlines.length ? `Choose by ${new Date(deadlines[0]).toLocaleString()}. Otherwise the oldest senders are kept.` : "There is no pending plan-limit selection."}</p>
-      <h2>Inboxes · {emails.length} of {state.emailAccountLimit}</h2>
-      {state.emailAccounts.map(item => <label key={item.id} style={{ display: "block", padding: 10 }}><input type="checkbox" checked={emails.includes(item.id)} onChange={() => toggle(setEmails, item.id)} /> {item.provider_account_id}</label>)}
-      <h2>Phone numbers · {phones.length} of {state.phoneNumberLimit}</h2>
-      {state.phoneNumbers.map(item => <label key={item.id} style={{ display: "block", padding: 10 }}><input type="checkbox" checked={phones.includes(item.id)} onChange={() => toggle(setPhones, item.id)} /> {item.phone_number} · {item.entitlement_kind === "included" ? "Included" : "Extra"}</label>)}
-      <button className="btn btn-primary" disabled={busy || !deadlines.length || emails.length > state.emailAccountLimit || phones.length > state.phoneNumberLimit} onClick={save}>{busy ? "Applying…" : "Keep selected senders"}</button>
+  const overEmail = state && emails.length > state.emailAccountLimit;
+  const overPhone = state && phones.length > state.phoneNumberLimit;
+  return <main className="gx">
+    <div className="ph">
+      <div>
+        <h1>Senders</h1>
+        <p>Choose which inboxes and numbers to keep after a plan change. Unchecked inboxes disconnect and unchecked numbers are released.</p>
+      </div>
+      <div className="acts"><Link className="bt bt-g" href="/settings">Back to settings</Link></div>
+    </div>
+    {error && <div role="alert" className="note">{error}</div>}
+    {done ? <div className="gnote ok"><b>Your selection was applied.</b> <Link className="lnk" href="/settings">Back to Settings</Link></div> : state && <>
+      <div className={`gnote ${deadlines.length ? "warn" : ""}`}>{deadlines.length ? `Choose by ${new Date(deadlines[0]).toLocaleString()}. Otherwise the oldest senders are kept.` : "There is no pending plan-limit selection."}</div>
+      <div className="two">
+        <div className="scol">
+          <section className="card" style={{ overflow: "hidden" }}>
+            <div className="card-h"><div><b>Sending inboxes</b><small>{emails.length} of {state.emailAccountLimit} kept</small></div>{overEmail && <span className="pl pl-bad">Too many</span>}</div>
+            {state.emailAccounts.map(item => <label key={item.id} className="srow" style={{ cursor: "pointer" }}>
+              <input type="checkbox" checked={emails.includes(item.id)} onChange={() => toggle(setEmails, item.id)} />
+              <span className="si"><Icon name="mail" size={16} /></span>
+              <div><b>{item.provider_account_id}</b></div>
+            </label>)}
+          </section>
+          <section className="card" style={{ overflow: "hidden" }}>
+            <div className="card-h"><div><b>Phone numbers</b><small>{phones.length} of {state.phoneNumberLimit} kept</small></div>{overPhone && <span className="pl pl-bad">Too many</span>}</div>
+            {state.phoneNumbers.map(item => <label key={item.id} className="srow" style={{ cursor: "pointer" }}>
+              <input type="checkbox" checked={phones.includes(item.id)} onChange={() => toggle(setPhones, item.id)} />
+              <span className="si"><Icon name="phone" size={16} /></span>
+              <div><b>{item.phone_number}</b><small>{item.entitlement_kind === "included" ? "Included" : "Extra"}</small></div>
+            </label>)}
+          </section>
+        </div>
+        <aside className="scol">
+          <div className="card pad">
+            <h3 className="h3">Apply selection</h3>
+            <p className="sub">Disconnecting an inbox or releasing a number pauses any campaign that uses it.</p>
+            <button type="button" className="bt bt-p" style={{ marginTop: 14, justifyContent: "center", width: "100%" }} disabled={busy || !deadlines.length || overEmail || overPhone} onClick={save}>{busy ? "Applying…" : "Keep selected senders"}</button>
+          </div>
+        </aside>
+      </div>
     </>}
   </main>;
 }

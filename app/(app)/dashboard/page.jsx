@@ -6,6 +6,7 @@ import Icon from "../../../components/ui/Icon";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import SetupChecklist from "../../../components/setup/SetupChecklist";
+import { useSetup } from "../../../providers/SetupProvider";
 import api from "../../../lib/api";
 import { FREE_PLAN, isFreePlan, upgradePlan, useOrg } from "../../../lib/free-plan";
 
@@ -180,6 +181,86 @@ function GoalRing({ current, target }) {
       </svg>
       <b>{current ?? 0}<small>of {target ?? 1}</small></b>
     </div>
+  );
+}
+
+function FreeWelcome({ firstName, organization, router }) {
+  const { steps } = useSetup();
+  const stepDone = id => steps.find(step => step.id === id)?.status === "complete";
+  const welcomeSteps = [
+    { id: "workspace", title: "Create your workspace", body: "Done. Your teammates can join it from Team.", done: true },
+    { id: "email", title: "Connect your inbox", body: `Your agent sends from your own company inbox, up to ${FREE_PLAN.dailyEmailCap} emails a day.`, action: "Connect inbox", icon: "mail", href: "/settings#settings-inboxes" },
+    { id: "leads", title: "Add your leads", body: `Upload a CSV or add them by hand, up to ${FREE_PLAN.maxLeads} leads. Each address's format and domain is checked.`, action: "Import CSV", icon: "doc", href: "/prospects" },
+    { id: "campaign", title: "Start your campaign", body: "Tell your agent who you sell to. Every email waits for your OK until you turn on autopilot.", action: "New campaign", icon: "plus", href: "/campaigns/new" },
+  ].map(step => ({ ...step, done: step.done || stepDone(step.id) }));
+  const nextId = welcomeSteps.find(step => !step.done)?.id;
+  const plan = upgradePlan();
+
+  return (
+    <main className="gx">
+      <div className="ph">
+        <div>
+          <h1>Welcome to GNX, {firstName}</h1>
+          <p>{organization?.name || "Your workspace"} is on the Free plan. Four steps and your agent starts writing to your leads.</p>
+        </div>
+        <div className="acts">
+          <button type="button" className="bt bt-g" onClick={() => router.push("/agent")}><Icon name="spark" size={15} /> Talk to your agent</button>
+        </div>
+      </div>
+
+      <div className="wl">
+        {welcomeSteps.map((step, index) => (
+          <div key={step.id} className={`wstep ${step.done ? "done" : step.id === nextId ? "next" : ""}`}>
+            <i>{step.done ? <Icon name="check" size={14} color="#fff" stroke={3} /> : index + 1}</i>
+            <b>{step.title}</b>
+            <span>{step.body}</span>
+            {!step.done && step.action ? (
+              <button type="button" className={`bt ${step.id === nextId ? "bt-p" : "bt-g"} sm`} onClick={() => router.push(step.href)}>
+                <Icon name={step.icon} size={13} color={step.id === nextId ? "#06231a" : undefined} /> {step.action}
+              </button>
+            ) : null}
+          </div>
+        ))}
+      </div>
+
+      <div className="kpis" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
+        <KpiCard item={{ label: "Emails sent", value: 0, detail: "Starts after your first launch", icon: "send" }} />
+        <KpiCard item={{ label: "Replies", value: 0, detail: "Drafted answers land in Inbox", icon: "chat" }} />
+        <KpiCard item={{ label: "Meetings", value: 0, detail: "Booked from replies", icon: "calendar" }} />
+        <KpiCard item={{ label: "Your leads", value: 0, detail: `0 of ${FREE_PLAN.maxLeads} on Free`, icon: "users" }} />
+      </div>
+
+      <div className="dash-grid">
+        <div className="card">
+          <div className="card-h"><div><b>Activity</b><small>Sends, replies and booked meetings.</small></div></div>
+          <div className="emp">
+            <span className="ei2"><Icon name="trend" size={24} /></span>
+            <b>Nothing here yet</b>
+            <p>Once your campaign is running, every send, reply and meeting shows up here, newest first.</p>
+            {nextId && nextId !== "workspace" ? (
+              <div className="acts">
+                <button type="button" className="bt bt-p" onClick={() => router.push(welcomeSteps.find(step => step.id === nextId).href)}>
+                  {welcomeSteps.find(step => step.id === nextId).action}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+        <div className="card unl">
+          <h3>What Free includes</h3>
+          <p>Enough to see if the agent works for you, on your own leads.</p>
+          {[
+            ["Email campaign", `${FREE_PLAN.emailCampaigns} at a time`],
+            ["Emails a day", String(FREE_PLAN.dailyEmailCap)],
+            ["AI-written emails", `~${FREE_PLAN.monthlyAiEmails} a month`],
+            ["Leads", `Up to ${FREE_PLAN.maxLeads}`],
+          ].map(([label, value]) => (
+            <div key={label} className="lk"><i><Icon name="check" size={13} /></i><span>{label}</span><em>{value}</em></div>
+          ))}
+          <button type="button" className="bt bt-g" onClick={() => router.push("/billing")}>See paid plans · from ${plan.monthly}/mo</button>
+        </div>
+      </div>
+    </main>
   );
 }
 
@@ -377,6 +458,9 @@ export default function DashboardPage() {
   if (showSkeleton) return <RouteSkeleton />;
 
   if (isFreePlan(organization)) {
+    if (!(kpis.emailsSent > 0) && !(kpis.savedLeads > 0) && campaigns.length === 0) {
+      return <FreeWelcome firstName={firstName} organization={organization} router={router} />;
+    }
     return <FreeDashboard firstName={firstName} kpis={kpis} tasks={tasks} activity={activity} campaigns={campaigns} router={router} />;
   }
 
