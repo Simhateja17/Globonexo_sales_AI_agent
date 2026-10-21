@@ -7,6 +7,7 @@ import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import SetupChecklist from "../../../components/setup/SetupChecklist";
 import api from "../../../lib/api";
+import { FREE_PLAN, isFreePlan, upgradePlan, useOrg } from "../../../lib/free-plan";
 
 const ICON_MAP = {
   email_sent: "send",
@@ -182,10 +183,128 @@ function GoalRing({ current, target }) {
   );
 }
 
+function FreeDashboard({ firstName, kpis, tasks, activity, campaigns, router }) {
+  const plan = upgradePlan();
+  const emailsUsed = kpis.emailsSent ?? 0;
+  const leadsUsed = kpis.savedLeads ?? 0;
+  const emailsLeft = Math.max(0, FREE_PLAN.monthlyAiEmails - emailsUsed);
+  const leadsLeft = Math.max(0, FREE_PLAN.maxLeads - leadsUsed);
+  const campaign = campaigns.find(c => c.status === "active") || campaigns[0] || null;
+  const enrolled = Number(campaign?.enrolled || 0);
+  const sent = Number(campaign?.sent || 0);
+  const nearLimit = emailsUsed >= FREE_PLAN.monthlyAiEmails * 0.6;
+
+  return (
+    <main className="gx">
+      <div className="ph">
+        <div>
+          <h1>{timeOfDayGreeting()}, {firstName}</h1>
+          <p>You are on the Free plan. Your agent writes and sends one campaign from your own inbox.</p>
+        </div>
+        <div className="acts">
+          <button type="button" className="bt bt-g" onClick={() => router.push("/prospects")}><Icon name="doc" size={15} /> Import CSV</button>
+          <button type="button" className="bt bt-p" onClick={() => router.push("/billing")}><Icon name="star" size={15} color="#06231a" /> Upgrade</button>
+        </div>
+      </div>
+
+      {nearLimit ? (
+        <div className="lim-banner">
+          <span className="li"><Icon name="alertCircle" size={18} /></span>
+          <div>
+            <b>{emailsUsed} of {FREE_PLAN.monthlyAiEmails} emails used this month</b>
+            <span>{emailsLeft === 0 ? "New drafts are paused until your allowance resets." : `${emailsLeft} left. New drafts pause when you run out,`} or upgrade to keep going today.</span>
+          </div>
+          <div className="acts">
+            <button type="button" className="bt bt-g sm" onClick={() => router.push("/pricing")}>See plans</button>
+            <button type="button" className="bt bt-p sm" onClick={() => router.push("/billing")}>Upgrade to {plan.name}</button>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="needs">
+        {tasks.slice(0, 2).map((task, index) => (
+          <NeedCard
+            key={`${task.type}-${task.title}`}
+            highlight={index === 0}
+            icon={TASK_ICON_MAP[task.type] || "bell"}
+            title={task.title}
+            detail={task.detail}
+            action={task.actionLabel}
+            primary={index === 0}
+            onClick={() => router.push(task.href)}
+          />
+        ))}
+        <NeedCard
+          tone="warn"
+          icon="users"
+          title={`${leadsLeft} leads left on Free`}
+          detail={`${leadsUsed} of ${FREE_PLAN.maxLeads} used. Upload more, or let a paid plan find them for you.`}
+          action={<><Icon name="doc" size={14} /> Import CSV</>}
+          onClick={() => router.push("/prospects")}
+        />
+      </div>
+
+      <div className="kpis" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
+        <KpiCard item={{ label: "Emails sent", value: emailsUsed, detail: `of ${FREE_PLAN.monthlyAiEmails} this month`, icon: "send" }} />
+        <KpiCard item={{ label: "Replies", value: kpis.replies ?? 0, detail: <><span className="up">{kpis.replyRate ?? 0}%</span> reply rate</>, icon: "chat" }} />
+        <KpiCard item={{ label: "Meetings", value: kpis.meetings ?? 0, detail: "booked", icon: "calendar" }} />
+        <KpiCard item={{ label: "Your leads", value: leadsUsed, detail: `of ${FREE_PLAN.maxLeads} on Free`, icon: "users" }} />
+      </div>
+
+      <div className="dash-grid">
+        <div className="card">
+          <div className="card-h">
+            <div><b>Your campaign</b><small>Free runs one email campaign at a time.</small></div>
+            {campaign ? <span className={`pl ${campaign.status === "active" ? "pl-ok" : "pl-mute"}`}><u /> {campaign.status === "active" ? "Active" : campaign.status}</span> : null}
+          </div>
+          {campaign ? (
+            <button type="button" className="cm" style={{ display: "block", width: "100%", textAlign: "left" }} onClick={() => router.push(`/campaigns/${campaign.campaignId}`)}>
+              <div className="cm-top"><b>{campaign.name}</b><span className="pl pl-mute">Email</span></div>
+              <div className="bar"><u style={{ width: `${enrolled ? Math.min(100, Math.round((sent / enrolled) * 100)) : 0}%` }} /></div>
+              <div className="cm-meta"><span>{sent} sent · {enrolled} enrolled</span><span>{campaign.replies} replies · {campaign.meetings} meetings</span></div>
+            </button>
+          ) : (
+            <div className="empty">
+              No campaign yet.{" "}
+              <button type="button" className="lnk" onClick={() => router.push("/campaigns/new")}>Create one</button>
+            </div>
+          )}
+          {activity.map((item, index) => (
+            <div key={`${item.type}-${item.time}-${index}`} className="act">
+              <span className={`act-ic ${ACTIVITY_TONE[item.type] || ""}`}><Icon name={ICON_MAP[item.type] || "send"} size={16} /></span>
+              <div className="act-main"><div className="act-t">{item.text}</div></div>
+              <span className="act-time">{item.timeAgo}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="card unl">
+          <h3>Unlock with {plan.name}</h3>
+          <p>${plan.monthly} a month. Everything on Free, plus your agent finds and verifies your buyers and calls them.</p>
+          {[
+            ["Find leads in the lead database", "Included"],
+            ["Verified work emails", "Included"],
+            ["AI calling", `${plan.voiceCampaigns} voice campaign${plan.voiceCampaigns === 1 ? "" : "s"}`],
+            ["Email campaigns", `${plan.emailCampaigns} at once`],
+            ["Emails a day", String(plan.dailyEmailCap)],
+            ["Monthly credits", plan.monthlyCredits.toLocaleString()],
+          ].map(([label, value]) => (
+            <div key={label} className="lk"><i><Icon name="lock" size={13} /></i><span>{label}</span><em>{value}</em></div>
+          ))}
+          <button type="button" className="bt bt-p" onClick={() => router.push("/billing")}>
+            <Icon name="star" size={14} color="#06231a" /> Upgrade to {plan.name}
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 const CHANNEL_LABEL = { email: "Email", voice: "Voice", both: "Email + Voice", multi: "Email + Voice" };
 
 export default function DashboardPage() {
   const router = useRouter();
+  const organization = useOrg();
   const [data, setData] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [onboardingPreparation, setOnboardingPreparation] = useState(null);
@@ -256,6 +375,10 @@ export default function DashboardPage() {
   const goalRemaining = Math.max(0, (weeklyGoal.target ?? 1) - (weeklyGoal.current ?? 0));
 
   if (showSkeleton) return <RouteSkeleton />;
+
+  if (isFreePlan(organization)) {
+    return <FreeDashboard firstName={firstName} kpis={kpis} tasks={tasks} activity={activity} campaigns={campaigns} router={router} />;
+  }
 
   return (
     <main className="gx">

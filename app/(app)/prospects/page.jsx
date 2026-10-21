@@ -16,6 +16,8 @@ import LeadDetailModal, {
   stageStyle,
 } from "../../../components/leads/LeadDetailModal";
 import { cleanText, isValidEmail } from "../../../lib/validation";
+import { FREE_PLAN, isFreePlan, useOrg } from "../../../lib/free-plan";
+import UpgradeModal from "../../../components/billing/UpgradeModal";
 import {
   audienceDefaultsFromOnboarding,
   normalizeApolloLocations,
@@ -281,6 +283,8 @@ function LeadPreview({ lead, onOpen, onSendNow, onDelete, sending }) {
 }
 
 export default function ProspectsPage() {
+  const freePlan = isFreePlan(useOrg());
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [tab, setTab] = useState("table");
   const [campaigns, setCampaigns] = useState([]);
   const [campaignId, setCampaignId] = useState("");
@@ -674,7 +678,7 @@ export default function ProspectsPage() {
       <div className="ph">
         <div>
           <h1>Prospects</h1>
-          <p>Source, score, filter, and prepare leads for campaigns.</p>
+          <p>{freePlan ? `${leads.length} of ${FREE_PLAN.maxLeads} leads on the Free plan. Bring your own leads by CSV or manual entry.` : "Source, score, filter, and prepare leads for campaigns."}</p>
         </div>
         <div className="acts" data-tour="prospects-sources">
           {tab !== "table" ? (
@@ -682,7 +686,7 @@ export default function ProspectsPage() {
           ) : null}
           <button type="button" className="bt bt-g" onClick={() => switchTab("csv")}><Icon name="doc" size={15} /> Import CSV</button>
           <button type="button" className="bt bt-g" onClick={() => switchTab("manual")}><Icon name="plus" size={15} /> Add manually</button>
-          <button type="button" className="bt bt-p" onClick={() => switchTab("apollo")}><Icon name="search" size={15} color="#06231a" /> Find new leads</button>
+          <button type="button" className="bt bt-p" onClick={() => freePlan ? setUpgradeOpen(true) : switchTab("apollo")}><Icon name="search" size={15} color="#06231a" /> Find new leads</button>
         </div>
       </div>
 
@@ -965,6 +969,14 @@ export default function ProspectsPage() {
           </div>
         )}
       </div>
+
+      {upgradeOpen ? (
+        <UpgradeModal
+          title="Finding new leads is on paid plans"
+          body="On Free you bring your own leads. Paid plans search the lead database for buyers who fit, verify their work emails, and check fit before spending any credits."
+          onClose={() => setUpgradeOpen(false)}
+        />
+      ) : null}
 
       {detailLead ? (
         <LeadDetailModal

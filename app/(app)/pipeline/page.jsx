@@ -1,12 +1,15 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Icon from "../../../components/ui/Icon";
 import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import api from "../../../lib/api";
 import { leadPhoto } from "../../../lib/lead-photo";
+import { isValidEmail } from "../../../lib/validation";
 
 const STAGES = [
   { id: "new", label: "New leads", tint: "#9aa8a0" },
@@ -21,78 +24,41 @@ function leadName(lead) {
   return lead.name || [lead.firstName, lead.lastName].filter(Boolean).join(" ") || "Unknown";
 }
 
+const SOURCE_LABELS = { apollo: "Lead database", csv: "CSV", manual: "Manual" };
+
 function LeadCard({ lead }) {
+  const router = useRouter();
   const name = leadName(lead);
   const score = lead.score ?? 0;
   const isHot = score >= 80 || lead.status === "engaged";
-  const signal = isHot ? "High intent" : lead.source || "manual";
-  const stage = STAGES.find(item => item.id === lead.status) || STAGES[0];
+  const email = isValidEmail(lead.email || "") ? lead.email : "";
 
   return (
-    <article className="pipeline-lead-card">
-      <div className="pipeline-lead-card-head">
-        <div className="pipeline-lead-person row">
-          <Avatar name={name} src={leadPhoto(lead) || undefined} size={44} />
-          <div className="col pipeline-lead-copy">
-            <span className="pipeline-lead-name ellip">{name}</span>
-            <span className="pipeline-lead-company ellip">{lead.title ? `${lead.title} · ` : ""}{lead.company || "No company"}</span>
-          </div>
+    <article className="pc">
+      {isHot ? <span className="hot"><Icon name="flame" size={11} /> Hot</span> : null}
+      <div className="who">
+        <Avatar name={name} src={leadPhoto(lead) || undefined} size={32} />
+        <div>
+          <b className="ellip" style={{ display: "block", paddingRight: isHot ? 44 : 0 }}>{name}</b>
+          <small className="ellip">{lead.company || "No company"}</small>
         </div>
-        {isHot ? <span className="pipeline-hot-badge"><Icon name="flame" size={12} /> Hot</span> : null}
       </div>
-
-      <div className="pipeline-card-meta">
-        <span className="pipeline-stage-badge"><span className="stage-dot" style={{ background: stage.tint }} />{stage.label}</span>
-        <span className="pipeline-source">{lead.source || "Manual"}</span>
+      <div className="pc-s">
+        <span className={isHot ? "hi" : ""}>
+          {isHot ? <><Icon name="flame" size={11} /> High intent</> : SOURCE_LABELS[lead.source] || lead.source || "Manual"}
+        </span>
+        <b>{score}</b>
       </div>
-
-      <div className="pipeline-intent-panel">
-        <div className="row spread">
-          <span className={isHot ? "pipeline-intent-hot" : "pipeline-intent-label"}>
-            {isHot ? <Icon name="flame" size={13} /> : <Icon name="bolt" size={13} />} {signal}
-          </span>
-          <strong>{score}</strong>
-        </div>
-        <div className="score-bar"><span style={{ width: `${Math.min(100, score)}%` }} /></div>
-      </div>
-
-      <div className="pipeline-card-actions">
-        <button className="mini-action" type="button"><Icon name="mail" size={14} /> Email</button>
-        <button className="mini-action" type="button"><Icon name="calendar" size={14} /> Book</button>
+      <div className="bar" style={{ marginTop: 5, height: 5 }}><u style={{ width: `${Math.min(100, score)}%` }} /></div>
+      <div className="pc-a">
+        <button type="button" disabled={!email} title={email ? `Email ${email}` : "No email yet"} onClick={() => { window.location.href = `mailto:${email}`; }}>
+          <Icon name="mail" size={13} /> Email
+        </button>
+        <button type="button" onClick={() => router.push("/calendar")}>
+          <Icon name="calendar" size={13} /> Book
+        </button>
       </div>
     </article>
-  );
-}
-
-function StageContainer({ stage, leads }) {
-  return (
-    <section className="pipeline-stage-container">
-      <div className="pipeline-stage-container-head">
-        <div className="row" style={{ gap: 8, minWidth: 0 }}>
-          <span className="stage-dot" style={{ background: stage.tint }} />
-          <strong className="ellip">{stage.label}</strong>
-        </div>
-        <span>{leads.length}</span>
-      </div>
-      {leads.length === 0 ? (
-        <div className="pipeline-empty">
-          <Icon name="funnel" size={18} />
-          <span>No leads here</span>
-        </div>
-      ) : (
-        <div className="pipeline-card-stack">
-          {leads.map(lead => <LeadCard key={lead.id} lead={lead} />)}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function AllLeadsGrid({ leads }) {
-  return (
-    <div className="pipeline-lead-card-grid">
-      {leads.map(lead => <LeadCard key={lead.id} lead={lead} />)}
-    </div>
   );
 }
 
@@ -102,7 +68,6 @@ export default function PipelinePage() {
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [hotOnly, setHotOnly] = useState(false);
-  const [selectedStage, setSelectedStage] = useState("all");
   const showSkeleton = useFirstLoad(loading);
 
   useEffect(() => {
@@ -140,86 +105,67 @@ export default function PipelinePage() {
     contacted: visibleLeads.filter(lead => ["contacted", "engaged", "meeting_booked"].includes(lead.status)).length,
   }), [visibleLeads]);
 
-  const displayedLeads = selectedStage === "all" ? visibleLeads : grouped[selectedStage] || [];
 
   if (showSkeleton) return <RouteSkeleton />;
 
   return (
-    <div className="scroll grow app-page">
-      <div className="row spread page-head">
+    <main className="gx">
+      <div className="ph">
         <div>
-          <h1 className="display page-title">Pipeline</h1>
-          <p className="muted page-subtitle">{metrics.total} active leads · {metrics.hot} high-intent accounts</p>
+          <h1>Pipeline</h1>
+          <p>{metrics.total} active leads · {metrics.hot} high-intent accounts</p>
         </div>
-        <div className="row page-actions">
-          <button className={hotOnly ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm"} type="button" onClick={() => setHotOnly(value => !value)}>
-            <Icon name="flame" size={15} color={hotOnly ? "#06231a" : "currentColor"} /> Hot only
+        <div className="acts">
+          <button type="button" className={`bt ${hotOnly ? "bt-p" : "bt-g"}`} aria-pressed={hotOnly} onClick={() => setHotOnly(value => !value)}>
+            <Icon name="flame" size={15} /> Hot only
           </button>
-          <a className="btn btn-dark btn-sm" href="/prospects">
+          <Link className="bt bt-d" href="/prospects">
             <Icon name="plus" size={15} color="#fff" /> Add leads
-          </a>
+          </Link>
         </div>
       </div>
 
-      <div className="metric-grid" data-tour="pipeline-metrics">
-        <div className="metric-card"><span className="metric-icon"><Icon name="users" size={16} /></span><div><strong>{metrics.total}</strong><span>visible leads</span></div></div>
-        <div className="metric-card"><span className="metric-icon" data-tone="warn"><Icon name="flame" size={16} /></span><div><strong>{metrics.hot}</strong><span>hot leads</span></div></div>
-        <div className="metric-card"><span className="metric-icon"><Icon name="chat" size={16} /></span><div><strong>{metrics.contacted}</strong><span>in conversation</span></div></div>
-        <div className="metric-card"><span className="metric-icon"><Icon name="calendar" size={16} /></span><div><strong>{metrics.meetings}</strong><span>meetings set</span></div></div>
-      </div>
-
-      {error ? <div className="notice-warn">{error}</div> : null}
-
-      <div className="card pipeline-filter-card">
-        <div className="input-wrap">
-          <span className="lead-ico"><Icon name="search" size={16} /></span>
-          <input className="input has-ico" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search pipeline by lead, company, title, or email..." />
-        </div>
-        <div className="pipeline-stage-tabs" role="tablist" aria-label="Filter pipeline stages">
-          <button className={selectedStage === "all" ? "is-active" : ""} type="button" onClick={() => setSelectedStage("all")}>
-            All stages <span>{visibleLeads.length}</span>
-          </button>
-          {STAGES.map(stage => (
-            <button key={stage.id} className={selectedStage === stage.id ? "is-active" : ""} type="button" onClick={() => setSelectedStage(stage.id)}>
-              <span className="stage-dot" style={{ background: stage.tint }} />
-              {stage.label} <span>{grouped[stage.id]?.length ?? 0}</span>
-            </button>
-          ))}
+      <div className="card" style={{ padding: "16px 20px" }} data-tour="pipeline-metrics">
+        <div className="minis">
+          <div className="mini"><b>{metrics.total}</b><small>visible leads</small></div>
+          <span className="mini-sep" />
+          <div className="mini"><b style={{ color: "#c2410c" }}>{metrics.hot}</b><small>high intent</small></div>
+          <span className="mini-sep" />
+          <div className="mini"><b>{metrics.contacted}</b><small>contacted or engaged</small></div>
+          <span className="mini-sep" />
+          <div className="mini"><b>{metrics.meetings}</b><small>meetings set</small></div>
+          <label className="inp" style={{ marginLeft: "auto", width: 360, maxWidth: "100%" }}>
+            <Icon name="search" size={15} />
+            <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search by lead, company, title or email…" aria-label="Search pipeline" />
+          </label>
         </div>
       </div>
+
+      {error ? <div className="note">{error}</div> : null}
 
       {leads.length === 0 ? (
-        <div className="empty-state">
-          <Icon name="funnel" size={42} color="var(--faint)" />
-          <p className="muted">Your pipeline is empty</p>
-          <span className="faint">Add leads from Prospects to start building the board.</span>
+        <div className="card empty" style={{ padding: 48 }}>
+          <span className="need-ic" style={{ margin: "0 auto 12px" }}><Icon name="funnel" size={20} /></span>
+          <div style={{ fontWeight: 800, color: "#0a1712" }}>Your pipeline is empty</div>
+          <div style={{ marginTop: 4 }}>Add leads from Prospects to start building the board.</div>
         </div>
       ) : (
-        <section className="card pipeline-list-card">
-          <div className="pipeline-list-head row spread">
-            <div>
-              <span className="eyebrow">Lead list</span>
-              <h2 className="display">Your active conversations</h2>
-            </div>
-            <span className="chip subtle-chip">{displayedLeads.length} shown</span>
+        <div className="board-wrap">
+          <div className="board">
+            {STAGES.map(stage => (
+              <section key={stage.id} className="pcol" aria-label={stage.label}>
+                <div className="pcol-h"><i style={{ background: stage.tint }} />{stage.label}<span>{grouped[stage.id]?.length ?? 0}</span></div>
+                {(grouped[stage.id] || []).map(lead => <LeadCard key={lead.id} lead={lead} />)}
+                {stage.id === "new" ? (
+                  <Link className="pcol-add" href="/prospects"><Icon name="plus" size={13} /> Add leads</Link>
+                ) : (grouped[stage.id] || []).length === 0 ? (
+                  <div className="pcol-add" style={{ borderStyle: "dashed" }}>No leads here</div>
+                ) : null}
+              </section>
+            ))}
           </div>
-          {displayedLeads.length === 0 ? (
-            <div className="pipeline-list-empty">
-              <Icon name="search" size={22} color="var(--faint)" />
-              <strong>No leads match these filters.</strong>
-              <span>Try another search or view all stages.</span>
-            </div>
-          ) : (
-            selectedStage === "all" ? (
-              <div className="pipeline-stage-container-grid">
-                {STAGES.map(stage => <StageContainer key={stage.id} stage={stage} leads={grouped[stage.id] || []} />)}
-              </div>
-            ) : (
-              <AllLeadsGrid leads={displayedLeads} />
-            )
-          )}
-        </section>
+        </div>
       )}
-    </div>
+    </main>
   );
 }

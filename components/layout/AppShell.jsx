@@ -7,6 +7,35 @@ import Avatar from "../ui/Avatar";
 import api from "../../lib/api";
 import { hasWorkspaceAccess } from "../../lib/billingAccess";
 import { canSee, pageKeyForPath, RoleContext } from "../../lib/access";
+import { FREE_PLAN, isFreePlan, OrgContext, upgradePlan } from "../../lib/free-plan";
+
+function FreePlanUsage({ usage, onUpgrade }) {
+  const meters = [
+    ["Emails sent", usage?.emailsSent, FREE_PLAN.monthlyAiEmails],
+    ["Leads", usage?.savedLeads, FREE_PLAN.maxLeads],
+  ];
+  return (
+    <div style={{ margin: '10px 0 4px', padding: 14, borderRadius: 14, background: 'var(--bg)', border: '1px solid var(--line)', flex: 'none' }}>
+      <div className="row spread" style={{ alignItems: 'baseline' }}>
+        <strong style={{ fontSize: 13 }}>Free plan</strong>
+      </div>
+      {meters.map(([label, used, limit]) => (
+        <div key={label} style={{ marginTop: 10 }}>
+          <div className="row spread" style={{ fontSize: 12 }}>
+            <span style={{ color: 'var(--muted)', fontWeight: 700 }}>{label}</span>
+            <strong>{used ?? '–'} / {limit}</strong>
+          </div>
+          <div style={{ height: 6, borderRadius: 99, background: '#e3ebe6', overflow: 'hidden', marginTop: 5 }}>
+            <div style={{ height: '100%', width: `${Math.min(100, ((used ?? 0) / limit) * 100)}%`, borderRadius: 99, background: 'linear-gradient(90deg,#29d68f,#00a86b)' }} />
+          </div>
+        </div>
+      ))}
+      <button type="button" className="btn btn-primary btn-sm btn-block" style={{ marginTop: 12, height: 34, fontSize: 12.5 }} onClick={onUpgrade}>
+        <Icon name="star" size={13} color="#06231a" /> Upgrade to {upgradePlan()?.name}
+      </button>
+    </div>
+  );
+}
 
 const NAV_GROUPS = [
   {
@@ -65,6 +94,7 @@ export default function AppShell({ children }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [notifications, setNotifications] = useState({ items: [], unreadCount: 0 });
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [freeUsage, setFreeUsage] = useState(null);
   const notificationsRef = useRef(null);
 
   useEffect(() => {
@@ -148,11 +178,23 @@ export default function AppShell({ children }) {
     return () => window.removeEventListener('gnx:tour:nav', handleTourNav);
   }, []);
 
+  const freePlan = isFreePlan(org);
+
+  useEffect(() => {
+    if (!freePlan) return undefined;
+    let active = true;
+    api.get('/dashboard')
+      .then(res => { if (active) setFreeUsage(res.data?.kpis ?? null); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [freePlan, pathname]);
+
   const paymentRequired = Boolean(
     authChecked
       && user
       && org
       && user.membership_status !== 'plan_suspended'
+      && !freePlan
       && !hasWorkspaceAccess(user, org),
   );
   const billingRouteAllowed = BILLING_ALLOWED_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -250,6 +292,7 @@ export default function AppShell({ children }) {
 
   return (
     <RoleContext.Provider value={role}>
+    <OrgContext.Provider value={org}>
     <div className="screen app-shell-screen" style={{ background: 'var(--bg)' }}>
       <aside className="app-shell-sidebar" style={{ background: '#fff', borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', padding: '18px 14px' }}>
         <div className="app-shell-brand" style={{ padding: '4px 6px 16px' }}><Logo size={28} /></div>
@@ -320,6 +363,7 @@ export default function AppShell({ children }) {
           </div>
         </div>
 
+        {freePlan ? <div className="app-shell-logout" style={{ display: 'block' }}><FreePlanUsage usage={freeUsage} onUpgrade={() => goTo('/billing')} /></div> : null}
         <button className="row nw app-shell-logout" onClick={handleLogout} style={{ gap: 9, marginTop: 10, padding: '0 6px', height: 36, color: 'var(--muted)', fontWeight: 700, fontSize: 13.5, flex: 'none' }}>
           <Icon name="logout" size={17} /> Log out
         </button>
@@ -428,6 +472,7 @@ export default function AppShell({ children }) {
         <div className="grow" style={{ minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>{children}</div>
       </div>
     </div>
+    </OrgContext.Provider>
     </RoleContext.Provider>
   );
 }
