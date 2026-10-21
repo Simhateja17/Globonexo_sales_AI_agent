@@ -7,6 +7,9 @@ import { leadPhoto } from "../../../lib/lead-photo";
 import Icon from "../../../components/ui/Icon";
 import Avatar from "../../../components/ui/Avatar";
 import Spinner from "../../../components/ui/Spinner";
+import EmptyState from "../../../components/ui/EmptyState";
+import StateNote from "../../../components/ui/StateNote";
+import { useConfirm } from "../../../components/ui/ConfirmDialog";
 import LeadDetailModal, {
   SOURCE_LABELS,
   STAGE_LABELS,
@@ -284,6 +287,7 @@ function LeadPreview({ lead, onOpen, onSendNow, onDelete, sending }) {
 }
 
 export default function ProspectsPage() {
+  const confirm = useConfirm();
   const freePlan = isFreePlan(useOrg());
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [tab, setTab] = useState("table");
@@ -602,6 +606,15 @@ export default function ProspectsPage() {
   };
 
   const deleteLead = async id => {
+    const lead = leads.find(item => item.id === id);
+    const ok = await confirm({
+      title: `Delete ${lead ? leadName(lead) : "this lead"}?`,
+      body: "They are removed from Prospects and from any campaign. Nothing more is sent to them.",
+      keeps: "Emails already sent and replies in Inbox.",
+      confirmLabel: "Delete lead",
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api.delete(`/leads/${id}`);
       setLeads(current => current.filter(lead => lead.id !== id));
@@ -739,9 +752,36 @@ export default function ProspectsPage() {
                     </thead>
                     <tbody>
                       {leadLoading && filteredLeads.length === 0 ? (
-                        <tr><td colSpan={5} className="empty"><Spinner size={16} /></td></tr>
+                        Array.from({ length: 6 }, (_, index) => (
+                          <tr key={`sk-${index}`} aria-hidden="true" style={{ cursor: "default" }}>
+                            <td><div className="who"><span className="sk" style={{ width: 34, height: 34, borderRadius: "50%" }} /><div style={{ flex: 1 }}><span className="sk" style={{ width: "60%" }} /><span className="sk" style={{ width: "40%", marginTop: 6, height: 8 }} /></div></div></td>
+                            <td><span className="sk" style={{ width: 70, height: 22, borderRadius: 99 }} /></td>
+                            <td><span className="sk" style={{ width: 80, height: 22, borderRadius: 99 }} /></td>
+                            <td><span className="sk" style={{ width: 60 }} /></td>
+                            <td><span className="sk" style={{ width: "70%" }} /></td>
+                          </tr>
+                        ))
                       ) : filteredLeads.length === 0 ? (
-                        <tr><td colSpan={5} className="empty">No prospects match the current filters.</td></tr>
+                        <tr><td colSpan={5} style={{ height: "auto", whiteSpace: "normal" }}>
+                          {leads.length === 0 ? (
+                            <EmptyState
+                              icon="users"
+                              title="No leads yet"
+                              text="Find buyers who fit, or bring your own list. Every lead is checked before any credits are spent."
+                              actions={[
+                                { label: "Import CSV", icon: "doc", onClick: () => switchTab("csv") },
+                                { label: "Find new leads", icon: "search", primary: true, onClick: () => freePlan ? setUpgradeOpen(true) : switchTab("apollo") },
+                              ]}
+                            />
+                          ) : (
+                            <EmptyState
+                              icon="search"
+                              title="No leads match these filters"
+                              text={`Try another stage or source, or remove the search term. Your ${leads.length} lead${leads.length === 1 ? " is" : "s are"} still here.`}
+                              actions={[{ label: "Clear filters", primary: true, onClick: () => { setSearch(""); setStageFilter("all"); setSourceFilter("all"); } }]}
+                            />
+                          )}
+                        </td></tr>
                       ) : filteredLeads.map(lead => (
                         <LeadRow key={lead.id} lead={lead} selected={previewLead?.id === lead.id} onSelect={setSelectedLeadId} />
                       ))}
@@ -941,9 +981,18 @@ export default function ProspectsPage() {
                   <label className="apollo-checkbox-row"><input type="checkbox" checked={voiceConfirmed} onChange={event => setVoiceConfirmed(event.target.checked)} /> I confirm these numbers were DNC-checked, have not opted out, and may lawfully be called.</label>
                 </div> : null}
               </div>
+              {freePlan && csvLeads.length > 0 && leads.length + csvLeads.length > FREE_PLAN.maxLeads ? (
+                <StateNote
+                  tone="warn"
+                  title={`This file has ${csvLeads.length} leads. You have room for ${Math.max(0, FREE_PLAN.maxLeads - leads.length)}.`}
+                  text={`The Free plan holds up to ${FREE_PLAN.maxLeads} leads. ${leads.length} are already in your workspace.`}
+                  secondary={{ label: "Upgrade", onClick: () => setUpgradeOpen(true) }}
+                  action={FREE_PLAN.maxLeads - leads.length > 0 ? { label: `Import the first ${FREE_PLAN.maxLeads - leads.length}`, onClick: () => setCsvLeads(current => current.slice(0, FREE_PLAN.maxLeads - leads.length)) } : null}
+                />
+              ) : null}
               <div className="row spread source-actions">
                 <span className="faint">{csvLeads.length} parsed rows. Maximum 1000 rows per upload.</span>
-                <button className="btn btn-primary btn-sm" type="button" disabled={csvLeads.length === 0 || uploading} onClick={uploadCsv}>
+                <button className="btn btn-primary btn-sm" type="button" disabled={csvLeads.length === 0 || uploading || (freePlan && leads.length + csvLeads.length > FREE_PLAN.maxLeads)} onClick={uploadCsv}>
                   <Icon name="plus" size={15} color="#06231a" /> {uploading ? "Importing..." : "Import leads"}
                 </button>
               </div>

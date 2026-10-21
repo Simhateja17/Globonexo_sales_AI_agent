@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useConfirm } from "../../../components/ui/ConfirmDialog";
 import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
 import { canSee } from "../../../lib/access";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
+import { campaignLifecycle } from "../../../lib/campaign-state";
 
 const STATUS_STYLES = {
   active: { label: "Active", cls: "pl-ok" },
@@ -158,6 +161,7 @@ function CampaignSettingsDrawer({
 }
 
 export default function CampaignsPage() {
+  const confirm = useConfirm();
   const router = useRouter();
   const [campaigns, setCampaigns] = useState([]);
   const [summary, setSummary] = useState({ total: 0, active: 0, enrolled: 0, sent: 0, meetings: 0 });
@@ -263,7 +267,7 @@ export default function CampaignsPage() {
 
   const removeLeadFromCampaign = async lead => {
     if (!settingsCampaign) return;
-    const ok = window.confirm(`Remove ${leadLabel(lead)} from "${settingsCampaign.name}"? The prospect record will stay in Prospects.`);
+    const ok = await confirm({ title: `Remove ${leadLabel(lead)} from this campaign?`, body: `No more emails or calls go to them from "${settingsCampaign.name}".`, keeps: 'The prospect, in Prospects.', confirmLabel: 'Remove from campaign', danger: true });
     if (!ok) return;
     setSettingsBusy(true);
     setSettingsError("");
@@ -308,7 +312,7 @@ export default function CampaignsPage() {
   };
 
   const deleteCampaign = async campaign => {
-    const ok = window.confirm(`Delete "${campaign.name}"? This cannot be undone.`);
+    const ok = await confirm({ title: `Delete "${campaign.name}"?`, body: 'The campaign, its sequence and drafts are deleted. This cannot be undone.', keeps: 'Your leads, in Prospects.', confirmLabel: 'Delete campaign', danger: true });
     if (!ok) return;
 
     setBusyId(campaign.id + "delete");
@@ -324,7 +328,7 @@ export default function CampaignsPage() {
   };
 
   const archiveCampaign = async campaign => {
-    if (!window.confirm(`Archive "${campaign.name}"? Its history will stay available, but outreach will stop.`)) return;
+    if (!(await confirm({ title: `Archive "${campaign.name}"?`, body: 'Outreach stops.', keeps: 'Its history, replies and leads.', confirmLabel: 'Archive campaign' }))) return;
     setBusyId(campaign.id + "archive");
     setError("");
     try {
@@ -397,15 +401,22 @@ export default function CampaignsPage() {
       {loading ? (
         <CampaignSkeleton />
       ) : filteredCampaigns.length === 0 ? (
-        <div className="card empty" style={{ padding: 40 }}>
-          <span className="need-ic" style={{ margin: "0 auto" }}><Icon name="send" size={20} /></span>
-          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 22, color: "#0a1712", margin: "14px 0 0" }}>No campaigns found</h2>
-          <p style={{ margin: "8px auto 0", maxWidth: 420, lineHeight: 1.5 }}>
-            Create a campaign with a channel, name, ICP source, send cap, and working hours.
-          </p>
-          <button type="button" className="bt bt-p" style={{ marginTop: 18 }} onClick={() => router.push("/campaigns/new")}>
-            <Icon name="plus" size={15} color="#06231a" /> New campaign
-          </button>
+        <div className="card">
+          {campaigns.length === 0 ? (
+            <EmptyState
+              icon="send"
+              title="Start your first campaign"
+              text="Tell your agent who you sell to. It finds qualified leads each week, writes each email and waits for your OK."
+              actions={[{ label: "New campaign", icon: "plus", primary: true, onClick: () => router.push("/campaigns/new") }]}
+            />
+          ) : (
+            <EmptyState
+              icon="search"
+              title="No campaigns match"
+              text="Try another status or owner, or clear the search."
+              actions={[{ label: "Clear filters", primary: true, onClick: () => { setSearch(""); setStatusFilter("all"); setAssignmentFilter("all"); } }]}
+            />
+          )}
         </div>
       ) : (
         filteredCampaigns.map(campaign => {
@@ -485,6 +496,16 @@ export default function CampaignsPage() {
                   )}
                 </div>
               </div>
+
+              {(() => {
+                const lifecycle = campaignLifecycle(campaign, { readyCount: ready });
+                return lifecycle && !["active", "draft", "completed", "paused"].includes(lifecycle.key) ? (
+                  <div className="cc-state">
+                    <span className={`pl ${lifecycle.tone === "bad" ? "pl-bad" : lifecycle.tone === "warn" ? "pl-warn" : lifecycle.tone === "ok" ? "pl-ok" : "pl-mute"}`}>{lifecycle.title}</span>
+                    <span className="ellip">{lifecycle.text}</span>
+                  </div>
+                ) : null;
+              })()}
 
               <div className="cc-body">
                 <div>

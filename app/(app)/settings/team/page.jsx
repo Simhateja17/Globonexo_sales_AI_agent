@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useConfirm } from "../../../../components/ui/ConfirmDialog";
 import Link from 'next/link';
 import { api } from '../../../../lib/api';
 import Icon from '../../../../components/ui/Icon';
@@ -20,6 +21,7 @@ function auditLabel(event) {
 }
 
 export default function TeamPage() {
+  const confirm = useConfirm();
   const [team, setTeam] = useState(null);
   const [audit, setAudit] = useState([]);
   const [email, setEmail] = useState('');
@@ -63,14 +65,14 @@ export default function TeamPage() {
     catch (err) {
       const impacted = err.response?.data?.details?.impactedUsers;
       if (err.response?.status !== 409 || !Array.isArray(impacted)) { setError(err.response?.data?.error || 'Role change failed.'); return; }
-      confirmed = window.confirm(`This may suspend ${impacted.map(item => item.email).join(', ')} because the plan is full. Continue?`);
+      confirmed = await confirm({ title: 'Change this role?', body: `The plan is full, so this may suspend ${impacted.map(item => item.email).join(', ')}.`, keeps: 'Their history and assigned work.', confirmLabel: 'Change role' });
       if (!confirmed) return;
     }
     await run(() => api.patch(`/team/members/${member.id}/role`, { role, confirmImpact: confirmed }), 'Role updated.');
   };
   const remove = async member => {
     const replacement = activeMembers.find(candidate => candidate.id !== member.id);
-    if (!window.confirm(`Remove ${nameOf(member)}${replacement ? ` and reassign their work to ${nameOf(replacement)}` : ''}?`)) return;
+    if (!(await confirm({ title: `Remove ${nameOf(member)}?`, body: 'They lose access to this workspace straight away.', keeps: replacement ? `Their campaigns and leads, reassigned to ${nameOf(replacement)}.` : 'Their campaigns and leads.', confirmLabel: 'Remove teammate', danger: true }))) return;
     await run(() => api.delete(`/team/members/${member.id}`, { data: { replacementUserId: replacement?.id } }), 'Teammate removed.');
   };
   const loadAudit = async () => {
@@ -80,16 +82,16 @@ export default function TeamPage() {
   const startTransfer = async () => {
     if (!transferTargetId) return;
     const target = activeAdmins.find(member => member.id === transferTargetId);
-    if (!target || !window.confirm(`Transfer ownership to ${nameOf(target)}? You will become an Admin after they accept.`)) return;
+    if (!target || !(await confirm({ title: `Transfer ownership to ${nameOf(target)}?`, body: 'You become an Admin once they accept. Only the Owner manages billing.', confirmLabel: 'Request transfer' }))) return;
     await run(() => api.post('/team/ownership-transfer', { targetUserId: transferTargetId }), 'Ownership transfer request sent.');
     setTransferTargetId('');
   };
   const acceptTransfer = async () => {
-    if (!incomingTransfer || !window.confirm('Accept ownership of this workspace? The current Owner will become an Admin.')) return;
+    if (!incomingTransfer || !(await confirm({ title: 'Accept ownership of this workspace?', body: 'You take over billing and the plan. The current Owner becomes an Admin.', confirmLabel: 'Accept ownership' }))) return;
     await run(() => api.post(`/team/ownership-transfer/${incomingTransfer.id}/accept`), 'You are now the Owner.');
   };
   const cancelTransfer = async () => {
-    if (!pendingTransfer || !window.confirm('Cancel this ownership transfer?')) return;
+    if (!pendingTransfer || !(await confirm({ title: 'Cancel this ownership transfer?', body: 'The request is withdrawn and you stay the Owner.', confirmLabel: 'Cancel transfer' }))) return;
     await run(() => api.delete(`/team/ownership-transfer/${pendingTransfer.id}`), 'Ownership transfer cancelled.');
   };
 

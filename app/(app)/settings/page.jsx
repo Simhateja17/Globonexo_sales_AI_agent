@@ -6,6 +6,8 @@ import { api } from '../../../lib/api';
 import PhoneNumbers from '@/components/settings/PhoneNumbers';
 import { Field } from '../../../components/ui/Input';
 import Icon from '../../../components/ui/Icon';
+import { useConfirm } from "../../../components/ui/ConfirmDialog";
+import { isFreePlan, isPersonalEmail, useOrg } from '../../../lib/free-plan';
 import RouteSkeleton from '../../../components/ui/RouteSkeleton';
 import { useFirstLoad } from '../../../hooks/useFirstLoad';
 import { clampNumber, cleanText, normalizeUrl } from '../../../lib/validation';
@@ -94,6 +96,10 @@ const inferSmtpSecure = port => String(port) === '465';
 const inferImapSecure = port => String(port) !== '143';
 
 export default function SettingsPage() {
+  const confirm = useConfirm();
+  const organization = useOrg();
+  const freePlan = isFreePlan(organization);
+  const organizationDomain = String(organization?.website || '').replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
   const { startTour } = useSetup();
   const [form, setForm] = useState({
     firstName: '',
@@ -244,6 +250,10 @@ export default function SettingsPage() {
 
   const [editingInboxId, setEditingInboxId] = useState(null);
   const addInbox = async () => {
+    if (freePlan && isPersonalEmail(smtpForm.email)) {
+      setError(`Connect your company inbox. The Free plan sends from your own work inbox, like you@${organizationDomain || 'yourcompany.com'}. Personal addresses such as Gmail.com or Outlook.com cannot be connected.`);
+      return;
+    }
     setError('');
     setSuccess(false);
     setSmtpBusy(true);
@@ -302,6 +312,15 @@ export default function SettingsPage() {
   };
 
   const removeInbox = async (accountId) => {
+    const account = inboxes.accounts?.find(item => item.id === accountId);
+    const ok = await confirm({
+      title: `Disconnect ${account?.provider_account_id || account?.email || 'this inbox'}?`,
+      body: 'Nothing more sends from it and replies stop arriving. Campaigns that use it pause until you pick another sender.',
+      keeps: 'Every email already sent and every reply received.',
+      confirmLabel: 'Disconnect inbox',
+      danger: true,
+    });
+    if (!ok) return;
     setError('');
     setInboxBusyId(accountId);
     try {

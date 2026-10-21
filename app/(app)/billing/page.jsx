@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useConfirm } from "../../../components/ui/ConfirmDialog";
 import { useRouter, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
@@ -42,6 +43,7 @@ function formatMoney(amount, currency = 'USD') {
 }
 
 export default function BillingPage() {
+  const confirm = useConfirm();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [annual, setAnnual] = useState(true);
@@ -195,7 +197,7 @@ export default function BillingPage() {
 
   const handleCancel = async () => {
     if (!canManageBilling || subscription?.cancelAtCycleEnd) return;
-    if (!window.confirm('Cancel future renewals at the end of the current paid period?')) return;
+    if (!(await confirm({ title: 'Cancel your plan?', body: `It stays active until ${formatDate(subscription?.currentPeriodEnd)} and does not renew. Campaigns pause when it ends.`, keeps: 'Your leads, campaigns and history.', confirmLabel: 'Cancel plan', danger: true }))) return;
     setBusy('cancel');
     try {
       await api.post('/billing/cancel');

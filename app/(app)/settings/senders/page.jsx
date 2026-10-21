@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 import Link from "next/link";
 import api from "@/lib/api";
 import Icon from "@/components/ui/Icon";
 export default function SenderSelectionPage() {
+  const confirm = useConfirm();
   const [state, setState] = useState(null);
   const [emails, setEmails] = useState([]);
   const [phones, setPhones] = useState([]);
@@ -15,7 +17,7 @@ export default function SenderSelectionPage() {
   }).catch(err => setError(err.response?.data?.error || "Only the Owner or an Admin can choose senders to keep.")); }, []);
   const toggle = (setter, id) => setter(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]);
   async function save() {
-    if (!window.confirm("Disconnect unchecked inboxes and permanently release unchecked phone numbers? Campaigns using them will pause.")) return;
+    if (!(await confirm({ title: "Keep only the selected senders?", body: "Unchecked inboxes disconnect and unchecked phone numbers are released for good. Campaigns using them pause.", keeps: "The checked inboxes and numbers, and every campaign's history.", confirmLabel: "Keep selected senders", danger: true }))) return;
     setBusy(true); setError("");
     try { await api.post("/senders/keep", { emailAccountIds: emails, phoneNumberIds: phones }, { timeout: 60000 }); setDone(true); }
     catch (err) { setError(err.response?.data?.error || "Could not apply selection"); }

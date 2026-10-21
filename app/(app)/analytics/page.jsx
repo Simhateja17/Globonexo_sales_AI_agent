@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import api from "../../../lib/api";
@@ -150,6 +151,17 @@ export default function AnalyticsPage() {
         <div className="kpi"><div className="kpi-top">Emails sent<span className="kpi-ic"><Icon name="send" size={16} /></span></div><b>{summary.emailsSent ?? 0}</b><small>last 30 days</small></div>
         <div className="kpi"><div className="kpi-top">Calls made<span className="kpi-ic"><Icon name="phone" size={16} /></span></div><b>{calls?.total ?? 0}</b><small>{calls?.answerRate ?? 0}% answered</small></div>
       </div>
+
+      {!(summary.emailsSent > 0) && !(calls?.total > 0) ? (
+        <div className="card">
+          <EmptyState
+            icon="trend"
+            title="Not enough data yet"
+            text="Charts fill in after your first week of sending. You will see emails, replies and meetings by campaign."
+            actions={[{ label: "View campaigns", onClick: () => router.push("/campaigns") }]}
+          />
+        </div>
+      ) : null}
 
       <div className="an2">
         <BarChart title="Emails sent" data={data.dailyEmails?.length ? data.dailyEmails : [summary.emailsSent ?? 0]} labels={labels} />

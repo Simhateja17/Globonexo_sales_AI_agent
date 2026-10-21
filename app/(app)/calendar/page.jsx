@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
 import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
@@ -419,7 +420,13 @@ export default function CalendarPage() {
           <div className="card">
             <div className="card-h"><div><b>Coming up</b><small>{upcoming.length ? `Next ${Math.min(3, upcoming.length)} meeting${upcoming.length === 1 ? "" : "s"}` : "Nothing scheduled"}</small></div></div>
             {upcoming.length === 0 ? (
-              <div className="empty">Once a call or reply leads to a booking, it shows up here.</div>
+              <EmptyState
+                compact
+                icon="calendar"
+                title="No meetings coming up"
+                text="Meetings booked from replies and calls land here, with the lead's context attached."
+                actions={settings.defaultMeetingUrl ? [] : [{ label: "Add a meeting link", icon: "link", onClick: () => setEditingSettings(true) }]}
+              />
             ) : upcoming.slice(0, 3).map(meeting => (
               <div key={meeting.id} className="upc">
                 <div className="upc-t">
