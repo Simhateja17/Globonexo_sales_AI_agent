@@ -10,6 +10,7 @@ import Icon from "../../../../components/ui/Icon";
 import Avatar from "../../../../components/ui/Avatar";
 import { isValidEmail } from "../../../../lib/validation";
 import { leadPhoto } from "../../../../lib/lead-photo";
+import { FREE_PLAN, isFreePlan, upgradePlan, useOrg } from "../../../../lib/free-plan";
 import DraftReview from "../../../../components/campaigns/DraftReview";
 import LeadDetailModal from "../../../../components/leads/LeadDetailModal";
 import CampaignPreparationPanel from "./CampaignPreparationPanel";
@@ -200,6 +201,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
 }
 
 export default function CampaignDetailPage() {
+  const freePlan = isFreePlan(useOrg());
   const { id } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -537,6 +539,19 @@ export default function CampaignDetailPage() {
       </div>
 
       {error ? <div className="note">{error}</div> : null}
+
+      {freePlan && emailEnabled ? (
+        <div className="lim-banner">
+          <span className="li"><Icon name="clock" size={18} /></span>
+          <div>
+            <b>Free sends up to {FREE_PLAN.dailyEmailCap} emails a day</b>
+            <span>Anything over the daily limit sends the next day inside your sending window. Paid plans send up to {upgradePlan().dailyEmailCap} a day and more.</span>
+          </div>
+          <button type="button" className="bt bt-p sm" onClick={() => router.push("/billing")}>
+            <Icon name="star" size={13} color="#06231a" /> Upgrade to {upgradePlan().name}
+          </button>
+        </div>
+      ) : null}
 
       <div className="col" style={{ gap: 16 }}>
           {canOperate ? <CampaignPreparationPanel campaignId={campaign.id} channel={campaign.channel} campaignStatus={campaign.status} onChanged={handlePreparationChanged} /> : <div className="card" style={{ padding: 16, color: "#69786f", fontSize: 13, fontWeight: 600 }}>This campaign is assigned to another teammate. You can review its status and history, but operational controls are read-only.</div>}

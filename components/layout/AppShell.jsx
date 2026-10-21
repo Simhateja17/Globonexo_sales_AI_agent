@@ -80,6 +80,14 @@ const NAV_GROUPS = [
   },
 ];
 
+// Phone-width bottom bar. Everything else stays in the More drawer.
+const MOBILE_TABS = [
+  { id: 'dashboard', label: 'Home', ico: 'grid' },
+  { id: 'prospects', label: 'Leads', ico: 'users' },
+  { id: 'inbox', label: 'Inbox', ico: 'inbox' },
+  { id: 'campaigns', label: 'Campaigns', ico: 'send' },
+];
+
 // Routes an unpaid account may still reach inside the shell. /billing is not
 // one of them anymore. Accounts without entitlement are sent to the
 // standalone /subscribe checkout, which renders outside this shell entirely.
@@ -392,11 +400,12 @@ export default function AppShell({ children }) {
             {canSee(role, 'page.agent') ? (
               <button
                 type="button"
-                className="row nw"
+                className="row nw app-shell-ask"
+                aria-label={`Ask ${agentName}`}
                 onClick={() => setAskOpen(true)}
                 style={{ gap: 7, height: 38, padding: '0 15px', borderRadius: 999, background: '#0a5d3f', color: '#fff', fontSize: 13, fontWeight: 800 }}
               >
-                <Icon name="spark" size={15} color="#6fe7b0" /> Ask {agentName}
+                <Icon name="spark" size={15} color="#6fe7b0" /> <span className="app-shell-ask-label">Ask {agentName}</span>
               </button>
             ) : null}
             <div ref={notificationsRef} style={{ position: 'relative' }}>
@@ -460,7 +469,7 @@ export default function AppShell({ children }) {
             {userName && (
               <div className="row" style={{ gap: 9 }}>
                 <Avatar name={userName} size={34} />
-                <div className="col" style={{ lineHeight: 1.2 }}>
+                <div className="col app-shell-user-text" style={{ lineHeight: 1.2 }}>
                   <span style={{ fontWeight: 800, fontSize: 13.5 }} className="nw">{userName}</span>
                   <span className="faint nw" style={{ fontSize: 11.5 }}>{orgName}</span>
                 </div>
@@ -469,6 +478,29 @@ export default function AppShell({ children }) {
           </div>
         </header>
         <div className="grow" style={{ minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>{children}</div>
+        <nav className="app-shell-tabs" aria-label="Main">
+          {MOBILE_TABS.filter(tab => canSee(role, `page.${tab.id}`)).map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              className={activeTab === tab.id ? 'is-on' : ''}
+              aria-current={activeTab === tab.id ? 'page' : undefined}
+              onClick={() => goTo('/' + tab.id)}
+            >
+              <Icon name={tab.ico} size={20} />
+              <span>{tab.label}</span>
+            </button>
+          ))}
+          <button
+            type="button"
+            className={mobileNavOpen ? 'is-on' : ''}
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen(open => !open)}
+          >
+            <Icon name="menu" size={20} />
+            <span>More</span>
+          </button>
+        </nav>
         {askOpen ? <AskNexoDrawer agentName={agentName} onClose={() => setAskOpen(false)} /> : null}
       </div>
     </div>
