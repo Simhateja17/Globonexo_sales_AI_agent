@@ -11,6 +11,8 @@ import Avatar from "../../../../components/ui/Avatar";
 import { isValidEmail } from "../../../../lib/validation";
 import { leadPhoto } from "../../../../lib/lead-photo";
 import { FREE_PLAN, isFreePlan, upgradePlan, useOrg } from "../../../../lib/free-plan";
+import { campaignLifecycle } from "../../../../lib/campaign-state";
+import StateNote from "../../../../components/ui/StateNote";
 import DraftReview from "../../../../components/campaigns/DraftReview";
 import LeadDetailModal from "../../../../components/leads/LeadDetailModal";
 import CampaignPreparationPanel from "./CampaignPreparationPanel";
@@ -476,6 +478,7 @@ export default function CampaignDetailPage() {
   if (!campaign) return null;
 
   const emailEnabled = usesEmail(campaign.channel);
+  const lifecycle = campaignLifecycle(campaign, { readyCount: Number(metrics.find(([label]) => label === "Ready")?.[1] ?? 0) });
   const activeTab = ["leads", "settings"].includes(requestedTab) ? requestedTab : emailEnabled ? "emails" : "leads";
   const voiceEnabled = usesVoice(campaign.channel);
   const dualChannel = emailEnabled && voiceEnabled;
@@ -539,6 +542,21 @@ export default function CampaignDetailPage() {
       </div>
 
       {error ? <div className="note">{error}</div> : null}
+
+      {lifecycle && lifecycle.key !== "active" && lifecycle.key !== "draft" ? (
+        <StateNote
+          tone={lifecycle.tone}
+          title={lifecycle.title}
+          text={lifecycle.text}
+          action={lifecycle.fix
+            ? { label: "Fix connection", onClick: () => router.push(lifecycle.fix) }
+            : lifecycle.key === "audience_exhausted" || lifecycle.key === "credit_limit"
+              ? { label: "Edit settings", onClick: () => selectTab("settings") }
+              : (lifecycle.key === "ready" || lifecycle.key === "ready_partly") && emailEnabled
+                ? { label: "Review emails", onClick: () => selectTab("emails") }
+                : null}
+        />
+      ) : null}
 
       {freePlan && emailEnabled ? (
         <div className="lim-banner">

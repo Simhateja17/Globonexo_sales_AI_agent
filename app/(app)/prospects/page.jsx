@@ -8,6 +8,7 @@ import Icon from "../../../components/ui/Icon";
 import Avatar from "../../../components/ui/Avatar";
 import Spinner from "../../../components/ui/Spinner";
 import EmptyState from "../../../components/ui/EmptyState";
+import { useConfirm } from "../../../components/ui/ConfirmDialog";
 import LeadDetailModal, {
   SOURCE_LABELS,
   STAGE_LABELS,
@@ -285,6 +286,7 @@ function LeadPreview({ lead, onOpen, onSendNow, onDelete, sending }) {
 }
 
 export default function ProspectsPage() {
+  const confirm = useConfirm();
   const freePlan = isFreePlan(useOrg());
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [tab, setTab] = useState("table");
@@ -603,6 +605,15 @@ export default function ProspectsPage() {
   };
 
   const deleteLead = async id => {
+    const lead = leads.find(item => item.id === id);
+    const ok = await confirm({
+      title: `Delete ${lead ? leadName(lead) : "this lead"}?`,
+      body: "They are removed from Prospects and from any campaign. Nothing more is sent to them.",
+      keeps: "Emails already sent and replies in Inbox.",
+      confirmLabel: "Delete lead",
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api.delete(`/leads/${id}`);
       setLeads(current => current.filter(lead => lead.id !== id));
