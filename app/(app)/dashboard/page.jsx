@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "../../../components/ui/Icon";
+import InboxHealthNote from "../../../components/ui/InboxHealthNote";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import SetupChecklist from "../../../components/setup/SetupChecklist";
@@ -485,6 +486,8 @@ export default function DashboardPage() {
       </div>
 
       {error && <div className="note">{error}</div>}
+
+      <InboxHealthNote />
 
       <OnboardingPreparationCard
         preparation={onboardingPreparation}

@@ -5,6 +5,7 @@ import Logo from "../ui/Logo";
 import Icon from "../ui/Icon";
 import Avatar from "../ui/Avatar";
 import AskNexoDrawer from "./AskNexoDrawer";
+import ConnectionBanner from "../ui/ConnectionBanner";
 import api from "../../lib/api";
 import { hasWorkspaceAccess } from "../../lib/billingAccess";
 import { canSee, pageKeyForPath, RoleContext } from "../../lib/access";
@@ -501,6 +502,7 @@ export default function AppShell({ children }) {
             <span>More</span>
           </button>
         </nav>
+        <ConnectionBanner />
         {askOpen ? <AskNexoDrawer agentName={agentName} onClose={() => setAskOpen(false)} /> : null}
       </div>
     </div>

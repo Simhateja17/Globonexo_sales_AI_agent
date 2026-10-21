@@ -8,6 +8,7 @@ import Icon from "../../../components/ui/Icon";
 import Avatar from "../../../components/ui/Avatar";
 import Spinner from "../../../components/ui/Spinner";
 import EmptyState from "../../../components/ui/EmptyState";
+import StateNote from "../../../components/ui/StateNote";
 import { useConfirm } from "../../../components/ui/ConfirmDialog";
 import LeadDetailModal, {
   SOURCE_LABELS,
@@ -751,7 +752,15 @@ export default function ProspectsPage() {
                     </thead>
                     <tbody>
                       {leadLoading && filteredLeads.length === 0 ? (
-                        <tr><td colSpan={5} className="empty"><Spinner size={16} /></td></tr>
+                        Array.from({ length: 6 }, (_, index) => (
+                          <tr key={`sk-${index}`} aria-hidden="true" style={{ cursor: "default" }}>
+                            <td><div className="who"><span className="sk" style={{ width: 34, height: 34, borderRadius: "50%" }} /><div style={{ flex: 1 }}><span className="sk" style={{ width: "60%" }} /><span className="sk" style={{ width: "40%", marginTop: 6, height: 8 }} /></div></div></td>
+                            <td><span className="sk" style={{ width: 70, height: 22, borderRadius: 99 }} /></td>
+                            <td><span className="sk" style={{ width: 80, height: 22, borderRadius: 99 }} /></td>
+                            <td><span className="sk" style={{ width: 60 }} /></td>
+                            <td><span className="sk" style={{ width: "70%" }} /></td>
+                          </tr>
+                        ))
                       ) : filteredLeads.length === 0 ? (
                         <tr><td colSpan={5} style={{ height: "auto", whiteSpace: "normal" }}>
                           {leads.length === 0 ? (
@@ -972,9 +981,18 @@ export default function ProspectsPage() {
                   <label className="apollo-checkbox-row"><input type="checkbox" checked={voiceConfirmed} onChange={event => setVoiceConfirmed(event.target.checked)} /> I confirm these numbers were DNC-checked, have not opted out, and may lawfully be called.</label>
                 </div> : null}
               </div>
+              {freePlan && csvLeads.length > 0 && leads.length + csvLeads.length > FREE_PLAN.maxLeads ? (
+                <StateNote
+                  tone="warn"
+                  title={`This file has ${csvLeads.length} leads. You have room for ${Math.max(0, FREE_PLAN.maxLeads - leads.length)}.`}
+                  text={`The Free plan holds up to ${FREE_PLAN.maxLeads} leads. ${leads.length} are already in your workspace.`}
+                  secondary={{ label: "Upgrade", onClick: () => setUpgradeOpen(true) }}
+                  action={FREE_PLAN.maxLeads - leads.length > 0 ? { label: `Import the first ${FREE_PLAN.maxLeads - leads.length}`, onClick: () => setCsvLeads(current => current.slice(0, FREE_PLAN.maxLeads - leads.length)) } : null}
+                />
+              ) : null}
               <div className="row spread source-actions">
                 <span className="faint">{csvLeads.length} parsed rows. Maximum 1000 rows per upload.</span>
-                <button className="btn btn-primary btn-sm" type="button" disabled={csvLeads.length === 0 || uploading} onClick={uploadCsv}>
+                <button className="btn btn-primary btn-sm" type="button" disabled={csvLeads.length === 0 || uploading || (freePlan && leads.length + csvLeads.length > FREE_PLAN.maxLeads)} onClick={uploadCsv}>
                   <Icon name="plus" size={15} color="#06231a" /> {uploading ? "Importing..." : "Import leads"}
                 </button>
               </div>

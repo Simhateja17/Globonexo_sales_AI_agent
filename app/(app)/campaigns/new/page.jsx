@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SenderPicker from "@/components/campaigns/SenderPicker";
 import { useRouter } from "next/navigation";
+import { isFreePlan, upgradePlan, useOrg } from "../../../../lib/free-plan";
+import StateNote from "../../../../components/ui/StateNote";
 import api from "../../../../lib/api";
 import Icon from "../../../../components/ui/Icon";
 import Avatar from "../../../../components/ui/Avatar";
@@ -186,6 +188,17 @@ function Field({ label, children, hint, ...rest }) {
 
 export default function NewCampaignPage() {
   const router = useRouter();
+  const freePlan = isFreePlan(useOrg());
+  const [runningCampaign, setRunningCampaign] = useState(null);
+
+  // Free runs one campaign at a time, so a second one is held until the
+  // first is paused or finished.
+  useEffect(() => {
+    if (!freePlan) return;
+    api.get("/campaigns")
+      .then(({ data }) => setRunningCampaign((data?.items ?? []).find(item => item.status === "active" || item.status === "draft") ?? null))
+      .catch(() => {});
+  }, [freePlan]);
   const setupRef = useRef(null);
   const controlsRef = useRef(null);
   const voicePermissionRef = useRef(null);
@@ -611,13 +624,22 @@ export default function NewCampaignPage() {
         </div>
         <div className="acts">
           <button type="button" className="bt bt-g" onClick={() => { clearDraftStorage(); router.push("/campaigns"); }}>Cancel</button>
-          <button type="submit" className="bt bt-p" disabled={saving}>
+          <button type="submit" className="bt bt-p" disabled={saving || Boolean(freePlan && runningCampaign)}>
             <Icon name="check" size={15} color="#06231a" /> {saving ? "Creating..." : "Create draft"}
           </button>
         </div>
       </div>
 
       {error && <div className="note">{error}</div>}
+      {freePlan && runningCampaign ? (
+        <StateNote
+          tone="warn"
+          title="Free runs one campaign at a time"
+          text={`"${runningCampaign.name}" is ${runningCampaign.status === "active" ? "running" : "in draft"}. Pause or finish it to start this one, or upgrade to run up to ${upgradePlan().emailCampaigns} at once.`}
+          secondary={{ label: `Open ${runningCampaign.name}`, onClick: () => router.push(`/campaigns/${runningCampaign.id}`) }}
+          action={{ label: "Upgrade", onClick: () => router.push("/billing") }}
+        />
+      ) : null}
       {validationErrors.length > 0 && <div className="note">{validationErrors[0]}</div>}
 
         <div className="nc campaign-new-layout">
@@ -1190,7 +1212,7 @@ export default function NewCampaignPage() {
             </div>
             <div className="acts">
               <button type="button" className="bt bt-g" onClick={() => { clearDraftStorage(); router.push("/campaigns"); }}>Cancel</button>
-              <button type="submit" className="bt bt-p" disabled={saving}>{saving ? "Creating..." : "Create draft"}</button>
+              <button type="submit" className="bt bt-p" disabled={saving || Boolean(freePlan && runningCampaign)}>{saving ? "Creating..." : "Create draft"}</button>
             </div>
           </aside>
         </div>

@@ -326,7 +326,15 @@ export default function CallsPage() {
             </div>
           )}
           {loading && calls.length === 0 ? (
-            <div className="empty"><Spinner size={20} /></div>
+            <div aria-hidden="true">
+              {Array.from({ length: 6 }, (_, index) => (
+                <div key={index} className="srow">
+                  <span className="sk" style={{ width: 32, height: 32, borderRadius: "50%" }} />
+                  <div><span className="sk" style={{ width: "40%" }} /><span className="sk" style={{ width: "25%", marginTop: 6, height: 8 }} /></div>
+                  <span className="sk" style={{ width: 80, height: 22, borderRadius: 99 }} />
+                </div>
+              ))}
+            </div>
           ) : error ? (
             <div className="empty" style={{ color: "var(--stop)" }}>
               {error} <button type="button" className="bt bt-g sm" onClick={load} style={{ marginLeft: 8 }}>Retry</button>

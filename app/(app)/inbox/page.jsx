@@ -3,6 +3,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Icon from "../../../components/ui/Icon";
 import EmptyState from "../../../components/ui/EmptyState";
+import InboxHealthNote from "../../../components/ui/InboxHealthNote";
 import { useRouter } from "next/navigation";
 import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
@@ -295,6 +296,8 @@ export default function InboxPage() {
           </select>
         </div>
       </div>
+
+      <InboxHealthNote />
 
       <div className="card ib" data-view={mobileView}>
         <aside data-tour="inbox-threads" className="il">

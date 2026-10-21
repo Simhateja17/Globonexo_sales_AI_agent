@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Icon from "../ui/Icon";
+import StateNote from "../ui/StateNote";
 import api from "@/lib/api";
 
 export default function PhoneNumbers({ teamMembers = [] }) {
@@ -42,6 +43,19 @@ export default function PhoneNumbers({ teamMembers = [] }) {
       {state?.canManage && <button type="button" className="bt bt-g sm" disabled={busy || state.used >= state.limit} onClick={() => start("buy")}><Icon name="plus" size={13} /> Buy a number</button>}
     </div>
     {state?.numbers.length === 0 && <div className="empty">No phone numbers yet.</div>}
+    {state?.numbers.some(row => row.status === "provisioning") && <div style={{ padding: "0 18px 14px" }}><StateNote
+      tone="info"
+      icon="phone"
+      title="Your number is still being set up"
+      text="The purchase is pending. Refresh before trying another purchase, so you are not charged twice."
+      action={{ label: "Refresh", onClick: () => { load().catch(() => {}); }, disabled: busy }}
+    /></div>}
+    {state?.numbers.some(row => row.status === "failed") && <div style={{ padding: "0 18px 14px" }}><StateNote
+      tone="bad"
+      icon="phone"
+      title="A number purchase failed"
+      text="No number was added. Try again, or contact Support if it keeps failing."
+    /></div>}
     {state?.numbers.map(row => <div key={row.id} className="srow" style={{ flexWrap: "wrap" }}>
       <span className="si"><Icon name="phone" size={17} /></span>
       <div>
