@@ -96,6 +96,8 @@ export default function InboxPage() {
   const [sentMessages, setSentMessages] = useState({});
   const [activeFilter, setActiveFilter] = useState("all");
   const [senderFilter, setSenderFilter] = useState("");
+  // Phones show the thread list or one open thread, never both.
+  const [mobileView, setMobileView] = useState("list");
   const showSkeleton = useFirstLoad(loading);
 
   // Grow the reply box with what is typed (or drafted), up to the CSS
@@ -291,7 +293,7 @@ export default function InboxPage() {
         </div>
       </div>
 
-      <div className="card ib">
+      <div className="card ib" data-view={mobileView}>
         <aside data-tour="inbox-threads" className="il">
           <div className="il-h">
             <div className="seg" style={{ display: "flex" }} role="tablist" aria-label="Email filters">
@@ -317,7 +319,7 @@ export default function InboxPage() {
                   key={item.id}
                   type="button"
                   className={`th ${selectedId === item.id ? "on" : ""}`}
-                  onClick={() => setSelectedId(item.id)}
+                  onClick={() => { setSelectedId(item.id); setMobileView("thread"); }}
                 >
                   <Avatar name={item.name} src={item.photoUrl || undefined} size={36} />
                   <div className="th-m">
@@ -344,7 +346,8 @@ export default function InboxPage() {
         <section className="cv">
           {thread ? (
             <div className="cv-h">
-              <div style={{ minWidth: 0 }}>
+              <button type="button" className="ibt cv-back" aria-label="Back to inbox" onClick={() => setMobileView("list")}><Icon name="arrowLeft" size={15} /></button>
+              <div style={{ minWidth: 0, flex: 1 }}>
                 <b className="ellip" style={{ display: "block" }}>{originalMessage.subject || thread.subject || displayName}</b>
                 <small className="ellip">{[thread.company, thread.inboxAddress ? `via ${thread.inboxAddress}` : null].filter(Boolean).join(" · ") || lead.email || thread.email}</small>
               </div>
