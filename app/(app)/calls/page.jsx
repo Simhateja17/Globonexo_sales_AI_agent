@@ -54,15 +54,13 @@ const EMPTY_STATE_COPY = {
   busy:        { title: "No busy calls",             body: "Calls that reached a busy destination will show up here." },
 };
 
-function StatCard({ label, value, icon, tone }) {
+function StatCard({ label, value, icon, tone, detail }) {
   const warn = tone === "warn";
   return (
-    <div className="card kpi-card-accent" data-tone={warn ? "warn" : undefined} style={{ padding: "15px 16px", borderRadius: 14 }}>
-      <div className="row spread">
-        <span className="faint nw" style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".04em" }}>{label}</span>
-        <span className="kpi-icon-badge" data-tone={warn ? "warn" : undefined}><Icon name={icon} size={15} /></span>
-      </div>
-      <strong className="display" style={{ display: "block", fontSize: 28, marginTop: 10, color: "var(--ink)" }}>{value}</strong>
+    <div className="kpi">
+      <div className="kpi-top">{label}<span className={`kpi-ic ${warn ? "warn" : ""}`}><Icon name={icon} size={16} /></span></div>
+      <b>{value}</b>
+      {detail ? <small>{detail}</small> : null}
     </div>
   );
 }
@@ -70,8 +68,8 @@ function StatCard({ label, value, icon, tone }) {
 function StatusBadge({ status }) {
   const s = STATUS_STYLES[status] ?? STATUS_STYLES.queued;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 99, background: s.bg, color: s.color, fontSize: 11, fontWeight: 700 }}>
-      <span className="calls-status-dot" style={{ "--dot-color": s.dot, width: 5, height: 5, borderRadius: "50%", background: s.dot }} />
+    <span className="pl" style={{ background: s.bg, color: s.color }}>
+      <u style={{ background: s.dot }} />
       {s.label}
     </span>
   );
@@ -83,14 +81,14 @@ function DispositionBadge({ disposition, status }) {
     // terminal non-connected states now receive a provider disposition from
     // call_ended and should not look as if analysis is pending.
     if (status === "completed") {
-      return <span style={{ fontSize: 11, color: "var(--faint)" }}>Analyzing…</span>;
+      return <span className="pl pl-mute">Analyzing…</span>;
     }
-    return <span style={{ fontSize: 11, color: "var(--faint)" }}>Not available</span>;
+    return <span className="muted" style={{ fontSize: 12 }}>Not available</span>;
   }
   const d = DISPOSITION_STYLES[disposition];
-  if (!d) return <span style={{ fontSize: 11, color: "var(--muted)" }}>{disposition}</span>;
+  if (!d) return <span className="pl pl-mute">{disposition}</span>;
   return (
-    <span style={{ padding: "3px 9px", borderRadius: 99, background: d.bg, color: d.color, fontSize: 11, fontWeight: 600 }}>
+    <span className="pl" style={{ background: d.bg, color: d.color }}>
       {d.label}
     </span>
   );
@@ -121,9 +119,9 @@ function leadName(lead) {
 function DetailRow({ label, value }) {
   if (value === null || value === undefined || value === "") return null;
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "120px minmax(0, 1fr)", gap: 12, padding: "7px 0", borderBottom: "1px solid var(--line-2)" }}>
-      <span style={{ color: "var(--muted)", fontSize: 12 }}>{label}</span>
-      <span style={{ color: "var(--ink)", fontSize: 12, overflowWrap: "anywhere" }}>{String(value)}</span>
+    <div>
+      <small>{label}</small>
+      <b style={{ overflowWrap: "anywhere" }}>{String(value)}</b>
     </div>
   );
 }
@@ -138,86 +136,83 @@ function formatAnalysisLabel(value) {
   return String(value).replace(/_/g, " ").replace(/\b\w/g, letter => letter.toUpperCase());
 }
 
-function CallDetailsModal({ call, onClose }) {
+function CallDetailPanel({ call }) {
   const analysis = call.retell_analysis_data && typeof call.retell_analysis_data === "object"
     ? call.retell_analysis_data
     : {};
   const analysisEntries = Object.entries(analysis).filter(([, value]) => value !== null && value !== undefined && value !== "");
-  const hasRecording = call.direction !== "inbound" && (call.recording_url || call.recording_multi_channel_url);
+  const inbound = call.direction === "inbound";
+  const hasRecording = !inbound && (call.recording_url || call.recording_multi_channel_url);
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(10,23,18,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={onClose}>
-      <div style={{ background: "#fff", borderRadius: 20, padding: 26, maxWidth: 720, width: "100%", maxHeight: "82vh", overflow: "auto", boxShadow: "var(--sh-lg)" }} onClick={e => e.stopPropagation()}>
-        <div className="row spread" style={{ marginBottom: 18 }}>
-          <div className="row" style={{ gap: 12 }}>
-            <Avatar name={leadName(call.leads)} size={38} />
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 15.5 }}>{leadName(call.leads)}</div>
-              <div style={{ fontSize: 12, color: "var(--muted)" }}>{call.leads?.company || ""}</div>
-            </div>
-          </div>
-          <button className="btn btn-ghost btn-sm" style={{ width: 34, height: 34, padding: 0, fontSize: 18, lineHeight: 1, borderRadius: "50%" }} onClick={onClose} aria-label="Close">
-            ×
-          </button>
+    <aside className="card cd">
+      <div className="cd-h">
+        <Avatar name={leadName(call.leads)} size={40} />
+        <div style={{ minWidth: 0 }}>
+          <b className="ellip">{leadName(call.leads)}</b>
+          <small className="ellip">{[call.leads?.company, call.campaigns?.name].filter(Boolean).join(" · ") || (inbound ? call.from_number : call.to_number)}</small>
         </div>
-        <div className="row" style={{ gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-          <StatusBadge status={call.status} />
-          <DispositionBadge disposition={call.disposition} status={call.status} />
-          <span className="chip" style={{ fontSize: 11.5, height: 24 }}>{formatDuration(call.started_at, call.ended_at, call.duration_seconds)}</span>
+        <DispositionBadge disposition={call.disposition} status={call.status} />
+      </div>
+
+      {hasRecording && (
+        <div className="rec">
+          <audio controls preload="none" src={call.recording_multi_channel_url || call.recording_url} style={{ width: "100%", height: 38 }} />
         </div>
+      )}
 
-        {call.call_summary && (
-          <section style={{ marginBottom: 18, padding: 14, background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 12 }}>
-            <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 6 }}>Call summary</div>
-            <div style={{ fontSize: 13, lineHeight: 1.55 }}>{call.call_summary}</div>
-          </section>
-        )}
+      {call.call_summary && (
+        <div className="cd-sec">
+          <small>Summary</small>
+          <p>{call.call_summary}</p>
+        </div>
+      )}
 
-        <section style={{ marginBottom: 18 }}>
+      <div className="cd-sec">
+        <small>Details</small>
+        <div className="g2k">
+          <DetailRow label="Status" value={STATUS_STYLES[call.status]?.label || call.status} />
+          <DetailRow label="Duration" value={formatDuration(call.started_at, call.ended_at, call.duration_seconds)} />
           <DetailRow label="Direction" value={call.direction || "outbound"} />
+          <DetailRow label="Date" value={formatDate(call.created_at)} />
           <DetailRow label="Connection" value={call.disconnection_reason ? formatAnalysisLabel(call.disconnection_reason) : call.status === "completed" ? "Connected" : null} />
           <DetailRow label="Sentiment" value={call.user_sentiment} />
           <DetailRow label="Call success" value={typeof call.call_successful === "boolean" ? (call.call_successful ? "Yes" : "No") : null} />
           <DetailRow label="Callback" value={call.callback_requested_at ? formatDate(call.callback_requested_at) : null} />
           <DetailRow label="Provider cost" value={formatProviderCost(call.call_cost)} />
           <DetailRow label="Agent version" value={call.agent_version ? `${call.agent_id || "Retell agent"} · v${call.agent_version}` : null} />
-        </section>
+        </div>
+      </div>
 
-        {analysisEntries.length > 0 && (
-          <section style={{ marginBottom: 18 }}>
-            <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 6 }}>Sales analysis</div>
-            <div style={{ borderTop: "1px solid var(--line-2)" }}>
-              {analysisEntries.map(([key, value]) => <DetailRow key={key} label={formatAnalysisLabel(key)} value={typeof value === "boolean" ? (value ? "Yes" : "No") : value} />)}
-            </div>
-          </section>
-        )}
+      {analysisEntries.length > 0 && (
+        <div className="cd-sec">
+          <small>Sales analysis</small>
+          <div className="g2k">
+            {analysisEntries.map(([key, value]) => <DetailRow key={key} label={formatAnalysisLabel(key)} value={typeof value === "boolean" ? (value ? "Yes" : "No") : value} />)}
+          </div>
+        </div>
+      )}
 
-        {hasRecording && (
-          <section style={{ marginBottom: 18 }}>
-            <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 6 }}>Recording</div>
-            <audio controls preload="none" src={call.recording_multi_channel_url || call.recording_url} style={{ width: "100%" }} />
-          </section>
-        )}
-
-        <section>
-          <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 6 }}>Transcript</div>
-          {call.direction === "inbound" ? (
-            <div style={{ color: "var(--muted)", fontSize: 13, padding: "18px 0" }}>Inbound transcripts and recordings are not retained.</div>
-          ) : call.transcript ? (
-            <pre style={{ fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap", color: "var(--ink)", fontFamily: "inherit", margin: 0, padding: 14, background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 12 }}>{call.transcript}</pre>
-          ) : (
-            <div style={{ color: "var(--muted)", fontSize: 13, padding: "18px 0" }}>Transcript is still being processed, or this call did not connect.</div>
-          )}
-        </section>
-
-        {call.direction !== "inbound" && call.transcript_with_tool_calls?.length > 0 && (
-          <details style={{ marginTop: 18 }}>
-            <summary style={{ cursor: "pointer", color: "var(--muted)", fontSize: 12 }}>Show tool activity ({call.transcript_with_tool_calls.length} events)</summary>
-            <pre style={{ fontSize: 11, lineHeight: 1.45, whiteSpace: "pre-wrap", color: "var(--muted)", marginTop: 8 }}>{JSON.stringify(call.transcript_with_tool_calls, null, 2)}</pre>
-          </details>
+      <div className="cd-sec">
+        <small>Transcript</small>
+        {inbound ? (
+          <p className="muted">Inbound transcripts and recordings are not retained.</p>
+        ) : call.transcript ? (
+          <pre style={{ fontSize: 12.5, lineHeight: 1.6, whiteSpace: "pre-wrap", color: "#2c3b33", fontFamily: "inherit", fontWeight: 600, margin: 0, maxHeight: 360, overflow: "auto" }}>{call.transcript}</pre>
+        ) : (
+          <p className="muted">Transcript is still being processed, or this call did not connect.</p>
         )}
       </div>
-    </div>
+
+      {!inbound && call.transcript_with_tool_calls?.length > 0 && (
+        <div className="cd-sec">
+          <details>
+            <summary style={{ cursor: "pointer", color: "#69786f", fontSize: 12, fontWeight: 700 }}>Show tool activity ({call.transcript_with_tool_calls.length} events)</summary>
+            <pre style={{ fontSize: 11, lineHeight: 1.45, whiteSpace: "pre-wrap", color: "#69786f", marginTop: 8 }}>{JSON.stringify(call.transcript_with_tool_calls, null, 2)}</pre>
+          </details>
+        </div>
+      )}
+    </aside>
   );
 }
 
@@ -230,7 +225,7 @@ export default function CallsPage() {
   const [numbers, setNumbers] = useState([]);
   useEffect(() => { api.get('/phone-numbers').then(({ data }) => setNumbers(data.numbers || [])).catch(() => {}); }, []);
   const [toast, setToast]           = useState("");
-  const [selectedCall, setSelectedCall] = useState(null);
+  const [selectedCallId, setSelectedCallId] = useState("");
   const [retrying, setRetrying]     = useState("");
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 4000); };
@@ -277,8 +272,10 @@ export default function CallsPage() {
 
   const emptyCopy = EMPTY_STATE_COPY[filter] ?? EMPTY_STATE_COPY.all;
 
+  const selectedCall = calls.find(call => call.id === selectedCallId) || calls[0] || null;
+
   return (
-    <div className="col" style={{ gap: 20 }}>
+    <main className="gx">
       {toast && (
         <div className="row" style={{ position: "fixed", bottom: 24, right: 24, gap: 8, background: "var(--ink)", color: "#fff", padding: "12px 18px", borderRadius: 12, fontSize: 13, fontWeight: 600, zIndex: 9999, maxWidth: 360, boxShadow: "var(--sh-lg)" }}>
           <Icon name="checkCircle" size={15} color="var(--g-300)" />
@@ -286,149 +283,109 @@ export default function CallsPage() {
         </div>
       )}
 
-      {selectedCall && <CallDetailsModal call={selectedCall} onClose={() => setSelectedCall(null)} />}
-
-      {/* Header */}
-      <div className="row spread" style={{ flexWrap: "wrap", gap: 12 }}>
-        <div className="row" style={{ gap: 12 }}>
-          <span style={{ width: 42, height: 42, borderRadius: 13, background: "linear-gradient(140deg,#29d68f,#15c4c0)", display: "grid", placeItems: "center", boxShadow: "var(--sh-green)", flex: "none" }}>
-            <Icon name="phone" size={20} color="#06231a" />
-          </span>
-          <div>
-            <h1 className="display" style={{ fontSize: 20, margin: 0 }}>Call History</h1>
-            <p className="faint" style={{ fontSize: 13, marginTop: 4 }}>Inbound and outbound outcomes. Privacy-protected inbound calls do not retain transcripts or recordings.</p>
-          </div>
+      <div className="ph">
+        <div>
+          <h1>Call History</h1>
+          <p>Inbound and outbound outcomes. Privacy-protected inbound calls do not retain transcripts or recordings.</p>
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={load} disabled={loading}>
-          <Icon name="refresh" size={14} /> {loading ? "Refreshing…" : "Refresh"}
-        </button>
-      </div>
-
-      <div className="calls-kpi-grid">
-        <StatCard label="total calls" value={metrics.total} icon="phone" />
-        <StatCard label="connected" value={metrics.connected} icon="checkCircle" />
-        <StatCard label="in progress" value={metrics.inProgress} icon="clock" tone="warn" />
-        <StatCard label="not connected" value={metrics.notConnected} icon="alertCircle" tone="warn" />
-      </div>
-
-      {/* Filter chips */}
-      <select className="input" aria-label="Filter by phone number" value={numberFilter} onChange={event => setNumberFilter(event.target.value)}>
-        <option value="">All phone numbers</option>{numbers.map(number => <option key={number.id} value={number.id}>{number.phone_number || number.label || 'Pending number'}</option>)}
-      </select>
-      <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-        {FILTERS.map(f => (
-          <button
-            key={f}
-            type="button"
-            className="btn calls-filter-chip"
-            onClick={() => setFilter(f)}
-            style={{
-              height: 32,
-              padding: "0 15px",
-              fontSize: 12,
-              fontWeight: 700,
-              whiteSpace: "nowrap",
-              flex: "none",
-              border: filter === f ? "none" : "1px solid var(--line)",
-              background: filter === f ? "linear-gradient(180deg,var(--g-400),var(--g-500))" : "#fff",
-              color: filter === f ? "#06231a" : "var(--ink-2)",
-              boxShadow: filter === f ? "var(--sh-green)" : "var(--sh-xs)",
-            }}
-          >
-            {FILTER_LABELS[f]}
+        <div className="acts">
+          <select className="sel-box" style={{ background: "#fff" }} aria-label="Filter by phone number" value={numberFilter} onChange={event => setNumberFilter(event.target.value)}>
+            <option value="">All phone numbers</option>
+            {numbers.map(number => <option key={number.id} value={number.id}>{number.phone_number || number.label || "Pending number"}</option>)}
+          </select>
+          <button type="button" className="bt bt-g" onClick={load} disabled={loading}>
+            <Icon name="refresh" size={14} /> {loading ? "Refreshing…" : "Refresh"}
           </button>
-        ))}
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="card" style={{ padding: 0, overflow: "hidden", position: "relative", borderRadius: 16 }}>
-        {loading && calls.length > 0 && (
-          <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,.6)", display: "grid", placeItems: "center", zIndex: 1 }}>
-            <Spinner size={22} />
+      <div className="kpis" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
+        <StatCard label="Total calls" value={metrics.total} icon="phone" />
+        <StatCard label="Connected" value={metrics.connected} icon="checkCircle" detail={metrics.total ? `${Math.round((metrics.connected / metrics.total) * 100)}% connect rate` : null} />
+        <StatCard label="In progress" value={metrics.inProgress} icon="clock" />
+        <StatCard label="Not connected" value={metrics.notConnected} icon="alertCircle" tone="warn" />
+      </div>
+
+      <div className="cg">
+        <div className="card" style={{ overflow: "hidden", position: "relative" }}>
+          <div className="tools">
+            <div className="seg" role="tablist" aria-label="Call status" style={{ flexWrap: "wrap" }}>
+              {FILTERS.map(f => (
+                <button key={f} type="button" role="tab" aria-selected={filter === f} className={filter === f ? "on" : ""} onClick={() => setFilter(f)}>
+                  {FILTER_LABELS[f]}
+                </button>
+              ))}
+            </div>
           </div>
-        )}
-        {loading && calls.length === 0 ? (
-          <div style={{ padding: 32, textAlign: "center" }}>
-            <Spinner size={20} />
-          </div>
-        ) : error ? (
-          <div style={{ padding: 24, textAlign: "center", color: "var(--stop)", fontSize: 13 }}>
-            {error} <button className="btn btn-ghost btn-sm" onClick={load} style={{ marginLeft: 8 }}>Retry</button>
-          </div>
-        ) : calls.length === 0 ? (
-          <div style={{ padding: 56, textAlign: "center" }}>
-            <span style={{ width: 52, height: 52, borderRadius: 16, display: "inline-grid", placeItems: "center", background: "var(--g-50)", color: "var(--g-600)", marginBottom: 14 }}>
-              <Icon name="phone" size={24} />
-            </span>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{emptyCopy.title}</div>
-            <div style={{ fontSize: 13, color: "var(--muted)" }}>{emptyCopy.body}</div>
-          </div>
-        ) : (
-          <div className="scroll" style={{ overflowX: "auto", opacity: loading ? 0.5 : 1, pointerEvents: loading ? "none" : "auto", transition: "opacity .15s" }}>
-            <table className="calls-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-              <thead>
-                <tr>
-                  {["Lead", "Direction", "Campaign", "Status", "Outcome", "Duration", "Date", ""].map((h, i) => (
-                    <th key={i} style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {calls.map((call, i) => (
-                  <tr key={call.id} style={{ borderTop: i === 0 ? "none" : "1px solid var(--line-2)" }}>
-                    <td style={{ padding: "10px 16px" }}>
-                      <div className="row" style={{ gap: 9 }}>
-                        <Avatar name={leadName(call.leads)} size={28} />
-                        <div className="col" style={{ minWidth: 0 }}>
-                          <div style={{ fontWeight: 700 }}>{leadName(call.leads)}</div>
-                          <div style={{ fontSize: 11, color: "var(--muted)" }}>{call.leads?.company || (call.direction === "inbound" ? call.from_number : call.to_number)}</div>
-                          <div className="faint">{call.direction === 'inbound' ? `To ${call.to_number}` : `From ${call.from_number}`}</div>
+          {loading && calls.length > 0 && (
+            <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,.6)", display: "grid", placeItems: "center", zIndex: 1 }}>
+              <Spinner size={22} />
+            </div>
+          )}
+          {loading && calls.length === 0 ? (
+            <div className="empty"><Spinner size={20} /></div>
+          ) : error ? (
+            <div className="empty" style={{ color: "var(--stop)" }}>
+              {error} <button type="button" className="bt bt-g sm" onClick={load} style={{ marginLeft: 8 }}>Retry</button>
+            </div>
+          ) : calls.length === 0 ? (
+            <div className="empty" style={{ padding: 56 }}>
+              <span className="need-ic" style={{ margin: "0 auto 14px" }}><Icon name="phone" size={20} /></span>
+              <div style={{ fontWeight: 800, fontSize: 15, color: "#0a1712", marginBottom: 6 }}>{emptyCopy.title}</div>
+              <div>{emptyCopy.body}</div>
+            </div>
+          ) : (
+            <div className="tbl-wrap" style={{ opacity: loading ? 0.5 : 1, pointerEvents: loading ? "none" : "auto", transition: "opacity .15s" }}>
+              <table className="tbl">
+                <thead>
+                  <tr>{["Lead", "Campaign", "Status", "Outcome", "Duration", "Date", ""].map((h, i) => <th key={i}>{h}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {calls.map(call => (
+                    <tr
+                      key={call.id}
+                      className={selectedCall?.id === call.id ? "sel" : ""}
+                      tabIndex={0}
+                      aria-selected={selectedCall?.id === call.id}
+                      onClick={() => setSelectedCallId(call.id)}
+                      onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); setSelectedCallId(call.id); } }}
+                    >
+                      <td>
+                        <div className="who">
+                          <Avatar name={leadName(call.leads)} size={32} />
+                          <div style={{ minWidth: 0 }}>
+                            <b>{leadName(call.leads)}</b>
+                            <small>
+                              <Icon name="arrow" size={11} style={call.direction === "inbound" ? { transform: "rotate(135deg)" } : { transform: "rotate(-45deg)" }} />{" "}
+                              {call.direction === "inbound" ? `Inbound · to ${call.to_number}` : `Outbound · from ${call.from_number}`}
+                            </small>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: "12px 16px", color: "var(--muted)" }}>
-                      <span className="row" style={{ gap: 5, textTransform: "capitalize" }}>
-                        <Icon name="arrow" size={12} color="var(--faint)" style={call.direction === "inbound" ? { transform: "rotate(135deg)" } : { transform: "rotate(-45deg)" }} />
-                        {call.direction || "outbound"}
-                      </span>
-                    </td>
-                    <td style={{ padding: "12px 16px", color: "var(--muted)" }}>{call.campaigns?.name || "Campaign not provided"}</td>
-                    <td style={{ padding: "12px 16px" }}><StatusBadge status={call.status} /></td>
-                    <td style={{ padding: "12px 16px" }}><DispositionBadge disposition={call.disposition} status={call.status} /></td>
-                    <td style={{ padding: "12px 16px", color: "var(--muted)" }}>{formatDuration(call.started_at, call.ended_at, call.duration_seconds)}</td>
-                    <td style={{ padding: "12px 16px", color: "var(--muted)", whiteSpace: "nowrap" }}>{formatDate(call.created_at)}</td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <div className="row" style={{ gap: 6 }}>
-                        {call.direction === "inbound" ? (
-                          <span title="Inbound recordings and transcripts are not retained" style={{ fontSize: 11, color: "var(--faint)", whiteSpace: "nowrap" }}>Privacy protected</span>
-                        ) : (
-                          <button
-                            className="btn btn-ghost btn-sm"
-                            onClick={() => setSelectedCall(call)}
-                            style={{ fontSize: 11 }}
-                          >
-                            Details
-                          </button>
-                        )}
-                        {call.status === "failed" && call.direction !== "inbound" && (
-                          <button
-                            className="btn btn-outline btn-sm"
-                            onClick={() => handleRetry(call.id)}
-                            disabled={retrying === call.id}
-                            style={{ fontSize: 11 }}
-                          >
+                      </td>
+                      <td className="muted">{call.campaigns?.name || "No campaign"}</td>
+                      <td><StatusBadge status={call.status} /></td>
+                      <td><DispositionBadge disposition={call.disposition} status={call.status} /></td>
+                      <td className="muted">{formatDuration(call.started_at, call.ended_at, call.duration_seconds)}</td>
+                      <td className="muted">{formatDate(call.created_at)}</td>
+                      <td onClick={event => event.stopPropagation()}>
+                        {call.status === "failed" && call.direction !== "inbound" ? (
+                          <button type="button" className="bt bt-g sm" onClick={() => handleRetry(call.id)} disabled={retrying === call.id}>
                             {retrying === call.id ? "…" : "Retry"}
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        ) : null}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {selectedCall ? <CallDetailPanel call={selectedCall} /> : (
+          <aside className="card cd"><div className="empty">Select a call to see its summary and transcript.</div></aside>
         )}
       </div>
-    </div>
+    </main>
   );
 }

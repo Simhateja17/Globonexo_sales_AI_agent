@@ -4,9 +4,39 @@ import { usePathname, useRouter } from "next/navigation";
 import Logo from "../ui/Logo";
 import Icon from "../ui/Icon";
 import Avatar from "../ui/Avatar";
+import AskNexoDrawer from "./AskNexoDrawer";
 import api from "../../lib/api";
 import { hasWorkspaceAccess } from "../../lib/billingAccess";
 import { canSee, pageKeyForPath, RoleContext } from "../../lib/access";
+import { FREE_PLAN, isFreePlan, OrgContext, upgradePlan } from "../../lib/free-plan";
+
+function FreePlanUsage({ usage, onUpgrade }) {
+  const meters = [
+    ["Emails sent", usage?.emailsSent, FREE_PLAN.monthlyAiEmails],
+    ["Leads", usage?.savedLeads, FREE_PLAN.maxLeads],
+  ];
+  return (
+    <div style={{ margin: '10px 0 4px', padding: 14, borderRadius: 14, background: 'var(--bg)', border: '1px solid var(--line)', flex: 'none' }}>
+      <div className="row spread" style={{ alignItems: 'baseline' }}>
+        <strong style={{ fontSize: 13 }}>Free plan</strong>
+      </div>
+      {meters.map(([label, used, limit]) => (
+        <div key={label} style={{ marginTop: 10 }}>
+          <div className="row spread" style={{ fontSize: 12 }}>
+            <span style={{ color: 'var(--muted)', fontWeight: 700 }}>{label}</span>
+            <strong>{used ?? '–'} / {limit}</strong>
+          </div>
+          <div style={{ height: 6, borderRadius: 99, background: '#e3ebe6', overflow: 'hidden', marginTop: 5 }}>
+            <div style={{ height: '100%', width: `${Math.min(100, ((used ?? 0) / limit) * 100)}%`, borderRadius: 99, background: 'linear-gradient(90deg,#29d68f,#00a86b)' }} />
+          </div>
+        </div>
+      ))}
+      <button type="button" className="btn btn-primary btn-sm btn-block" style={{ marginTop: 12, height: 34, fontSize: 12.5 }} onClick={onUpgrade}>
+        <Icon name="star" size={13} color="#06231a" /> Upgrade to {upgradePlan()?.name}
+      </button>
+    </div>
+  );
+}
 
 const NAV_GROUPS = [
   {
@@ -65,6 +95,9 @@ export default function AppShell({ children }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [notifications, setNotifications] = useState({ items: [], unreadCount: 0 });
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [freeUsage, setFreeUsage] = useState(null);
+  const [askOpen, setAskOpen] = useState(false);
+  const [agentName, setAgentName] = useState('Nexo');
   const notificationsRef = useRef(null);
 
   useEffect(() => {
@@ -101,7 +134,25 @@ export default function AppShell({ children }) {
   useEffect(() => {
     setMobileNavOpen(false);
     setNotificationsOpen(false);
+    setAskOpen(false);
   }, [pathname]);
+
+  // One dashboard read feeds both the agent's display name and, on the Free
+  // plan, the sidebar usage meters. Re-read on navigation so the meters move.
+  const userId = user?.id;
+  const orgPlanId = org?.plan_id;
+  useEffect(() => {
+    if (!userId) return undefined;
+    let active = true;
+    api.get('/dashboard')
+      .then(res => {
+        if (!active) return;
+        if (res.data?.agentName) setAgentName(res.data.agentName);
+        if (orgPlanId === 'free') setFreeUsage(res.data?.kpis ?? null);
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [userId, orgPlanId, orgPlanId === 'free' ? pathname : null]);
 
   // Polled rather than pushed. The feed is derived from the drafts themselves,
   // so a poll is always current and a send made in another tab clears the bell
@@ -148,11 +199,15 @@ export default function AppShell({ children }) {
     return () => window.removeEventListener('gnx:tour:nav', handleTourNav);
   }, []);
 
+  const freePlan = isFreePlan(org);
+
+
   const paymentRequired = Boolean(
     authChecked
       && user
       && org
       && user.membership_status !== 'plan_suspended'
+      && !freePlan
       && !hasWorkspaceAccess(user, org),
   );
   const billingRouteAllowed = BILLING_ALLOWED_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -250,6 +305,7 @@ export default function AppShell({ children }) {
 
   return (
     <RoleContext.Provider value={role}>
+    <OrgContext.Provider value={org}>
     <div className="screen app-shell-screen" style={{ background: 'var(--bg)' }}>
       <aside className="app-shell-sidebar" style={{ background: '#fff', borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', padding: '18px 14px' }}>
         <div className="app-shell-brand" style={{ padding: '4px 6px 16px' }}><Logo size={28} /></div>
@@ -320,6 +376,7 @@ export default function AppShell({ children }) {
           </div>
         </div>
 
+        {freePlan ? <div className="app-shell-logout" style={{ display: 'block' }}><FreePlanUsage usage={freeUsage} onUpgrade={() => goTo('/billing')} /></div> : null}
         <button className="row nw app-shell-logout" onClick={handleLogout} style={{ gap: 9, marginTop: 10, padding: '0 6px', height: 36, color: 'var(--muted)', fontWeight: 700, fontSize: 13.5, flex: 'none' }}>
           <Icon name="logout" size={17} /> Log out
         </button>
@@ -332,6 +389,16 @@ export default function AppShell({ children }) {
             <input className="input has-ico" style={{ height: 40, background: 'var(--bg)', fontSize: 14 }} placeholder="Search leads, accounts, replies…" />
           </div>
           <div className="row" style={{ gap: 14 }}>
+            {canSee(role, 'page.agent') ? (
+              <button
+                type="button"
+                className="row nw"
+                onClick={() => setAskOpen(true)}
+                style={{ gap: 7, height: 38, padding: '0 15px', borderRadius: 999, background: '#0a5d3f', color: '#fff', fontSize: 13, fontWeight: 800 }}
+              >
+                <Icon name="spark" size={15} color="#6fe7b0" /> Ask {agentName}
+              </button>
+            ) : null}
             <div ref={notificationsRef} style={{ position: 'relative' }}>
               <button
                 type="button"
@@ -345,7 +412,7 @@ export default function AppShell({ children }) {
                   ? `Notifications: ${notifications.unreadCount} email${notifications.unreadCount === 1 ? '' : 's'} need your OK`
                   : 'Notifications'}
               >
-                <Icon name="inbox" size={20} />
+                <Icon name="bell" size={20} />
                 {notifications.unreadCount > 0 && (
                   <span
                     style={{
@@ -360,57 +427,33 @@ export default function AppShell({ children }) {
               </button>
 
               {notificationsOpen && (
-                <div
-                  className="card"
-                  role="menu"
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    right: 0,
-                    marginTop: 10,
-                    width: 380,
-                    maxWidth: 'calc(100vw - 28px)',
-                    maxHeight: 420,
-                    overflowY: 'auto',
-                    padding: 6,
-                    zIndex: 90,
-                    isolation: 'isolate',
-                  }}
-                >
-                  <div style={{ padding: '8px 10px 6px' }}>
-                    <strong style={{ fontSize: 13 }}>Notifications</strong>
-                  </div>
-
-                  {notifications.items.length === 0 ? (
-                    <p className="faint" style={{ fontSize: 12.5, padding: '2px 10px 12px', margin: 0, lineHeight: 1.5 }}>
-                      Nothing needs you right now. Emails your agent can send on its own never appear here.
-                    </p>
-                  ) : (
-                    notifications.items.map(item => (
+                <div className="gx gx-layer">
+                  <div className="pop" role="menu" style={{ top: 62, right: 16 }}>
+                    <div className="pop-h">
+                      <b>Notifications</b>
+                      {notifications.unreadCount > 0 ? <span className="pl pl-ok">{notifications.unreadCount} need you</span> : null}
+                    </div>
+                    {notifications.items.length === 0 ? (
+                      <div className="empty" style={{ padding: '22px 18px' }}>
+                        Nothing needs you right now. Emails your agent can send on its own never appear here.
+                      </div>
+                    ) : notifications.items.map(item => (
                       <button
                         key={item.id}
                         type="button"
                         role="menuitem"
+                        className="nt unread"
                         onClick={() => { setNotificationsOpen(false); goTo(item.href); }}
-                        style={{
-                          display: 'block', width: '100%', textAlign: 'left', padding: '10px',
-                          borderRadius: 8, background: 'transparent',
-                        }}
                       >
-                        <span className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
-                          <span style={{ flex: 'none', marginTop: 2, color: '#b45309' }}>
-                            <Icon name="alertCircle" size={14} />
-                          </span>
-                          <span className="col" style={{ gap: 3, minWidth: 0 }}>
-                            <strong style={{ fontSize: 13 }}>{item.title}</strong>
-                            <span className="faint" style={{ fontSize: 12, lineHeight: 1.5, whiteSpace: 'normal' }}>
-                              {item.body}
-                            </span>
-                          </span>
-                        </span>
+                        <span className="ni warn"><Icon name="alertCircle" size={15} /></span>
+                        <div><b>{item.title}</b><span>{item.body}</span></div>
+                        <span className="dotu" aria-hidden="true" />
                       </button>
-                    ))
-                  )}
+                    ))}
+                    <div className="pop-f">
+                      <button type="button" className="lnk" onClick={() => { setNotificationsOpen(false); goTo('/inbox'); }}>Open Inbox</button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -426,8 +469,10 @@ export default function AppShell({ children }) {
           </div>
         </header>
         <div className="grow" style={{ minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>{children}</div>
+        {askOpen ? <AskNexoDrawer agentName={agentName} onClose={() => setAskOpen(false)} /> : null}
       </div>
     </div>
+    </OrgContext.Provider>
     </RoleContext.Provider>
   );
 }

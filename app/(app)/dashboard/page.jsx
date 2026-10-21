@@ -3,11 +3,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "../../../components/ui/Icon";
-import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import SetupChecklist from "../../../components/setup/SetupChecklist";
+import { useSetup } from "../../../providers/SetupProvider";
 import api from "../../../lib/api";
+import { FREE_PLAN, isFreePlan, upgradePlan, useOrg } from "../../../lib/free-plan";
 
 const ICON_MAP = {
   email_sent: "send",
@@ -25,15 +26,13 @@ const TASK_ICON_MAP = {
 
 function KpiCard({ item }) {
   return (
-    <div className="card" style={{ padding: "14px 16px", borderRadius: 8 }}>
-      <div className="row spread">
-        <span className="faint nw" style={{ fontSize: 12, fontWeight: 800 }}>{item.label}</span>
-        <span style={{ width: 30, height: 30, borderRadius: 8, display: "grid", placeItems: "center", background: item.tone === "warn" ? "#fff7ed" : "var(--g-50)", color: item.tone === "warn" ? "#c2410c" : "var(--g-700)" }}>
-          <Icon name={item.icon} size={16} />
-        </span>
+    <div className="kpi">
+      <div className="kpi-top">
+        {item.label}
+        <span className={`kpi-ic ${item.tone === "warn" ? "warn" : ""}`}><Icon name={item.icon} size={16} /></span>
       </div>
-      <div className="display" style={{ fontSize: 28, marginTop: 8, color: "var(--ink)" }}>{item.value}</div>
-      <span style={{ fontSize: 12, fontWeight: 800, color: item.tone === "warn" ? "#c2410c" : "var(--g-700)", marginTop: 4, display: "block" }}>{item.detail}</span>
+      <b>{item.value}</b>
+      <small>{item.detail}</small>
     </div>
   );
 }
@@ -74,7 +73,7 @@ function OnboardingPreparationCard({ preparation, onOpenCampaign, onOpenProspect
         : "GNX is searching our lead database and enriching the audience in the background. You can keep working.";
 
   return (
-    <div className="card" data-tour="dashboard-preparation" style={{ padding: 18, marginBottom: 18, borderRadius: 8, background: ready ? "linear-gradient(160deg,#fff,#f4fdf8)" : "#fff" }}>
+    <div className={`need ${ready ? "hi" : ""}`} data-tour="dashboard-preparation" style={{ display: "block" }}>
       <div className="row spread" style={{ gap: 14, alignItems: "flex-start" }}>
         <div className="row" style={{ gap: 11, alignItems: "flex-start" }}>
           <span style={{ width: 34, height: 34, borderRadius: 10, display: "grid", placeItems: "center", flex: "none", background: attention ? "#fff7ed" : "var(--g-50)", color: attention ? "#c2410c" : "var(--g-700)" }}>
@@ -107,7 +106,7 @@ function OnboardingPreparationCard({ preparation, onOpenCampaign, onOpenProspect
 
       {(ready || partial || attention) && (
         <button
-          className={ready || partial ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm"}
+          className={ready || partial ? "bt bt-p sm" : "bt bt-g sm"}
           type="button"
           style={{ marginTop: 13 }}
           onClick={ready || partial ? onOpenCampaign : onOpenProspects}
@@ -139,68 +138,260 @@ function formatMeetingTime(value) {
   return `${day} at ${time}`;
 }
 
-function NextMeetingCard({ meeting, onViewMeetings }) {
-  if (!meeting) {
-    return (
-      <div className="card" style={{ padding: 18, borderRadius: 8 }}>
-        <div className="row spread">
-          <div>
-            <span style={{ fontWeight: 800, fontSize: 15 }}>Next meeting</span>
-            <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Your nearest scheduled call.</p>
-          </div>
-          <Icon name="calendar" size={20} color="var(--g-700)" />
-        </div>
-        <div style={{ padding: "22px 0 10px", textAlign: "center" }}>
-          <p className="muted" style={{ fontSize: 13, fontWeight: 800 }}>No upcoming meetings.</p>
-          <button className="btn btn-ghost btn-sm" type="button" style={{ marginTop: 10 }} onClick={onViewMeetings}>
-            View meetings
-          </button>
-        </div>
-      </div>
-    );
-  }
 
-  const attendee = meeting.attendee ?? {};
-  const attendeeDetail = [attendee.title, attendee.company].filter(Boolean).join(" · ");
+const ACTIVITY_TABS = [
+  { id: "all", label: "All" },
+  { id: "reply", label: "Replies" },
+  { id: "meeting", label: "Meetings" },
+  { id: "email_sent", label: "Sends" },
+];
 
+const ACTIVITY_TONE = { reply: "reply", meeting: "mtg", call: "call" };
+
+function timeOfDayGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+function NeedCard({ tone, icon, title, detail, action, primary, onClick, highlight }) {
   return (
-    <div className="card" style={{ padding: 18, borderRadius: 8, background: "linear-gradient(160deg,#fff,#f4fdf8)" }}>
-      <div className="row spread">
-        <span className="eyebrow">Next meeting</span>
-        <Icon name="calendar" size={20} color="var(--g-700)" />
+    <div className={`need ${highlight ? "hi" : ""}`}>
+      <span className={`need-ic ${tone || ""}`}><Icon name={icon} size={19} /></span>
+      <div>
+        <b>{title}</b>
+        {detail ? <p>{detail}</p> : null}
+        {action ? (
+          <button type="button" className={`bt ${primary ? "bt-p" : "bt-g"} sm`} onClick={onClick}>{action}</button>
+        ) : null}
       </div>
-      <div style={{ marginTop: 12 }}>
-        <div style={{ fontWeight: 800, fontSize: 15 }}>{meeting.title}</div>
-        <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>
-          {formatMeetingTime(meeting.scheduledAt)} · {meeting.durationMinutes ?? 30} min
-        </div>
-      </div>
-      <div className="row" style={{ gap: 9, marginTop: 14 }}>
-        <Avatar name={attendee.name || "Guest"} size={30} />
-        <div className="col" style={{ minWidth: 0 }}>
-          <span style={{ fontSize: 13, fontWeight: 800 }}>{attendee.name || "Guest"}</span>
-          {attendeeDetail ? <span className="faint" style={{ fontSize: 12 }}>{attendeeDetail}</span> : null}
-        </div>
-      </div>
-      {meeting.attendeePhone ? (
-        <a className="btn btn-primary btn-sm btn-block" style={{ marginTop: 14 }} href={`tel:${meeting.attendeePhone}`}>
-          <Icon name="phone" size={14} color="#06231a" /> Call {attendee.name || "Guest"}
-        </a>
-      ) : (
-        <button className="btn btn-ghost btn-sm btn-block" type="button" style={{ marginTop: 14 }} onClick={onViewMeetings}>
-          View meeting
-        </button>
-      )}
     </div>
   );
 }
 
+function GoalRing({ current, target }) {
+  const circumference = 2 * Math.PI * 40;
+  const ratio = Math.min(1, (current || 0) / Math.max(target || 1, 1));
+  return (
+    <div className="ring">
+      <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+        <circle cx="48" cy="48" r="40" fill="none" stroke="#eef3f0" strokeWidth="9" />
+        <circle cx="48" cy="48" r="40" fill="none" stroke="#00a86b" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${(ratio * circumference).toFixed(1)} ${circumference.toFixed(1)}`} transform="rotate(-90 48 48)" />
+      </svg>
+      <b>{current ?? 0}<small>of {target ?? 1}</small></b>
+    </div>
+  );
+}
+
+function FreeWelcome({ firstName, organization, router }) {
+  const { steps } = useSetup();
+  const stepDone = id => steps.find(step => step.id === id)?.status === "complete";
+  const welcomeSteps = [
+    { id: "workspace", title: "Create your workspace", body: "Done. Your teammates can join it from Team.", done: true },
+    { id: "email", title: "Connect your inbox", body: `Your agent sends from your own company inbox, up to ${FREE_PLAN.dailyEmailCap} emails a day.`, action: "Connect inbox", icon: "mail", href: "/settings#settings-inboxes" },
+    { id: "leads", title: "Add your leads", body: `Upload a CSV or add them by hand, up to ${FREE_PLAN.maxLeads} leads. Each address's format and domain is checked.`, action: "Import CSV", icon: "doc", href: "/prospects" },
+    { id: "campaign", title: "Start your campaign", body: "Tell your agent who you sell to. Every email waits for your OK until you turn on autopilot.", action: "New campaign", icon: "plus", href: "/campaigns/new" },
+  ].map(step => ({ ...step, done: step.done || stepDone(step.id) }));
+  const nextId = welcomeSteps.find(step => !step.done)?.id;
+  const plan = upgradePlan();
+
+  return (
+    <main className="gx">
+      <div className="ph">
+        <div>
+          <h1>Welcome to GNX, {firstName}</h1>
+          <p>{organization?.name || "Your workspace"} is on the Free plan. Four steps and your agent starts writing to your leads.</p>
+        </div>
+        <div className="acts">
+          <button type="button" className="bt bt-g" onClick={() => router.push("/agent")}><Icon name="spark" size={15} /> Talk to your agent</button>
+        </div>
+      </div>
+
+      <div className="wl">
+        {welcomeSteps.map((step, index) => (
+          <div key={step.id} className={`wstep ${step.done ? "done" : step.id === nextId ? "next" : ""}`}>
+            <i>{step.done ? <Icon name="check" size={14} color="#fff" stroke={3} /> : index + 1}</i>
+            <b>{step.title}</b>
+            <span>{step.body}</span>
+            {!step.done && step.action ? (
+              <button type="button" className={`bt ${step.id === nextId ? "bt-p" : "bt-g"} sm`} onClick={() => router.push(step.href)}>
+                <Icon name={step.icon} size={13} color={step.id === nextId ? "#06231a" : undefined} /> {step.action}
+              </button>
+            ) : null}
+          </div>
+        ))}
+      </div>
+
+      <div className="kpis" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
+        <KpiCard item={{ label: "Emails sent", value: 0, detail: "Starts after your first launch", icon: "send" }} />
+        <KpiCard item={{ label: "Replies", value: 0, detail: "Drafted answers land in Inbox", icon: "chat" }} />
+        <KpiCard item={{ label: "Meetings", value: 0, detail: "Booked from replies", icon: "calendar" }} />
+        <KpiCard item={{ label: "Your leads", value: 0, detail: `0 of ${FREE_PLAN.maxLeads} on Free`, icon: "users" }} />
+      </div>
+
+      <div className="dash-grid">
+        <div className="card">
+          <div className="card-h"><div><b>Activity</b><small>Sends, replies and booked meetings.</small></div></div>
+          <div className="emp">
+            <span className="ei2"><Icon name="trend" size={24} /></span>
+            <b>Nothing here yet</b>
+            <p>Once your campaign is running, every send, reply and meeting shows up here, newest first.</p>
+            {nextId && nextId !== "workspace" ? (
+              <div className="acts">
+                <button type="button" className="bt bt-p" onClick={() => router.push(welcomeSteps.find(step => step.id === nextId).href)}>
+                  {welcomeSteps.find(step => step.id === nextId).action}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+        <div className="card unl">
+          <h3>What Free includes</h3>
+          <p>Enough to see if the agent works for you, on your own leads.</p>
+          {[
+            ["Email campaign", `${FREE_PLAN.emailCampaigns} at a time`],
+            ["Emails a day", String(FREE_PLAN.dailyEmailCap)],
+            ["AI-written emails", `~${FREE_PLAN.monthlyAiEmails} a month`],
+            ["Leads", `Up to ${FREE_PLAN.maxLeads}`],
+          ].map(([label, value]) => (
+            <div key={label} className="lk"><i><Icon name="check" size={13} /></i><span>{label}</span><em>{value}</em></div>
+          ))}
+          <button type="button" className="bt bt-g" onClick={() => router.push("/billing")}>See paid plans · from ${plan.monthly}/mo</button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function FreeDashboard({ firstName, kpis, tasks, activity, campaigns, router }) {
+  const plan = upgradePlan();
+  const emailsUsed = kpis.emailsSent ?? 0;
+  const leadsUsed = kpis.savedLeads ?? 0;
+  const emailsLeft = Math.max(0, FREE_PLAN.monthlyAiEmails - emailsUsed);
+  const leadsLeft = Math.max(0, FREE_PLAN.maxLeads - leadsUsed);
+  const campaign = campaigns.find(c => c.status === "active") || campaigns[0] || null;
+  const enrolled = Number(campaign?.enrolled || 0);
+  const sent = Number(campaign?.sent || 0);
+  const nearLimit = emailsUsed >= FREE_PLAN.monthlyAiEmails * 0.6;
+
+  return (
+    <main className="gx">
+      <div className="ph">
+        <div>
+          <h1>{timeOfDayGreeting()}, {firstName}</h1>
+          <p>You are on the Free plan. Your agent writes and sends one campaign from your own inbox.</p>
+        </div>
+        <div className="acts">
+          <button type="button" className="bt bt-g" onClick={() => router.push("/prospects")}><Icon name="doc" size={15} /> Import CSV</button>
+          <button type="button" className="bt bt-p" onClick={() => router.push("/billing")}><Icon name="star" size={15} color="#06231a" /> Upgrade</button>
+        </div>
+      </div>
+
+      {nearLimit ? (
+        <div className="lim-banner">
+          <span className="li"><Icon name="alertCircle" size={18} /></span>
+          <div>
+            <b>{emailsUsed} of {FREE_PLAN.monthlyAiEmails} emails used this month</b>
+            <span>{emailsLeft === 0 ? "New drafts are paused until your allowance resets." : `${emailsLeft} left. New drafts pause when you run out,`} or upgrade to keep going today.</span>
+          </div>
+          <div className="acts">
+            <button type="button" className="bt bt-g sm" onClick={() => router.push("/pricing")}>See plans</button>
+            <button type="button" className="bt bt-p sm" onClick={() => router.push("/billing")}>Upgrade to {plan.name}</button>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="needs">
+        {tasks.slice(0, 2).map((task, index) => (
+          <NeedCard
+            key={`${task.type}-${task.title}`}
+            highlight={index === 0}
+            icon={TASK_ICON_MAP[task.type] || "bell"}
+            title={task.title}
+            detail={task.detail}
+            action={task.actionLabel}
+            primary={index === 0}
+            onClick={() => router.push(task.href)}
+          />
+        ))}
+        <NeedCard
+          tone="warn"
+          icon="users"
+          title={`${leadsLeft} leads left on Free`}
+          detail={`${leadsUsed} of ${FREE_PLAN.maxLeads} used. Upload more, or let a paid plan find them for you.`}
+          action={<><Icon name="doc" size={14} /> Import CSV</>}
+          onClick={() => router.push("/prospects")}
+        />
+      </div>
+
+      <div className="kpis" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
+        <KpiCard item={{ label: "Emails sent", value: emailsUsed, detail: `of ${FREE_PLAN.monthlyAiEmails} this month`, icon: "send" }} />
+        <KpiCard item={{ label: "Replies", value: kpis.replies ?? 0, detail: <><span className="up">{kpis.replyRate ?? 0}%</span> reply rate</>, icon: "chat" }} />
+        <KpiCard item={{ label: "Meetings", value: kpis.meetings ?? 0, detail: "booked", icon: "calendar" }} />
+        <KpiCard item={{ label: "Your leads", value: leadsUsed, detail: `of ${FREE_PLAN.maxLeads} on Free`, icon: "users" }} />
+      </div>
+
+      <div className="dash-grid">
+        <div className="card">
+          <div className="card-h">
+            <div><b>Your campaign</b><small>Free runs one email campaign at a time.</small></div>
+            {campaign ? <span className={`pl ${campaign.status === "active" ? "pl-ok" : "pl-mute"}`}><u /> {campaign.status === "active" ? "Active" : campaign.status}</span> : null}
+          </div>
+          {campaign ? (
+            <button type="button" className="cm" style={{ display: "block", width: "100%", textAlign: "left" }} onClick={() => router.push(`/campaigns/${campaign.campaignId}`)}>
+              <div className="cm-top"><b>{campaign.name}</b><span className="pl pl-mute">Email</span></div>
+              <div className="bar"><u style={{ width: `${enrolled ? Math.min(100, Math.round((sent / enrolled) * 100)) : 0}%` }} /></div>
+              <div className="cm-meta"><span>{sent} sent · {enrolled} enrolled</span><span>{campaign.replies} replies · {campaign.meetings} meetings</span></div>
+            </button>
+          ) : (
+            <div className="empty">
+              No campaign yet.{" "}
+              <button type="button" className="lnk" onClick={() => router.push("/campaigns/new")}>Create one</button>
+            </div>
+          )}
+          {activity.map((item, index) => (
+            <div key={`${item.type}-${item.time}-${index}`} className="act">
+              <span className={`act-ic ${ACTIVITY_TONE[item.type] || ""}`}><Icon name={ICON_MAP[item.type] || "send"} size={16} /></span>
+              <div className="act-main"><div className="act-t">{item.text}</div></div>
+              <span className="act-time">{item.timeAgo}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="card unl">
+          <h3>Unlock with {plan.name}</h3>
+          <p>${plan.monthly} a month. Everything on Free, plus your agent finds and verifies your buyers and calls them.</p>
+          {[
+            ["Find leads in the lead database", "Included"],
+            ["Verified work emails", "Included"],
+            ["AI calling", `${plan.voiceCampaigns} voice campaign${plan.voiceCampaigns === 1 ? "" : "s"}`],
+            ["Email campaigns", `${plan.emailCampaigns} at once`],
+            ["Emails a day", String(plan.dailyEmailCap)],
+            ["Monthly credits", plan.monthlyCredits.toLocaleString()],
+          ].map(([label, value]) => (
+            <div key={label} className="lk"><i><Icon name="lock" size={13} /></i><span>{label}</span><em>{value}</em></div>
+          ))}
+          <button type="button" className="bt bt-p" onClick={() => router.push("/billing")}>
+            <Icon name="star" size={14} color="#06231a" /> Upgrade to {plan.name}
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+const CHANNEL_LABEL = { email: "Email", voice: "Voice", both: "Email + Voice", multi: "Email + Voice" };
+
 export default function DashboardPage() {
   const router = useRouter();
+  const organization = useOrg();
   const [data, setData] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
   const [onboardingPreparation, setOnboardingPreparation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activityTab, setActivityTab] = useState("all");
   const showSkeleton = useFirstLoad(loading);
 
   useEffect(() => {
@@ -208,6 +399,10 @@ export default function DashboardPage() {
       .then(res => setData(res.data))
       .catch(() => setError("Dashboard data could not be loaded."))
       .finally(() => setLoading(false));
+    // The campaign progress card is secondary; the dashboard renders without it.
+    api.get("/analytics/campaigns")
+      .then(res => setCampaigns(res.data?.campaigns ?? []))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -250,39 +445,46 @@ export default function DashboardPage() {
 
   const kpiItems = useMemo(() => ([
     { label: "Emails sent", value: kpis.emailsSent ?? 0, detail: "total sent", icon: "send" },
-    { label: "Replies", value: kpis.replies ?? 0, detail: `${kpis.replyRate ?? 0}% reply rate`, icon: "chat" },
+    { label: "Replies", value: kpis.replies ?? 0, detail: <><span className="up">{kpis.replyRate ?? 0}%</span> reply rate</>, icon: "chat" },
     { label: "Meetings", value: kpis.meetings ?? 0, detail: "booked", icon: "calendar" },
-    { label: "Hot leads", value: kpis.hotLeads ?? 0, detail: "needs attention", icon: "flame", tone: "warn" },
+    { label: "Hot leads", value: kpis.hotLeads ?? 0, detail: "need attention", icon: "flame", tone: "warn" },
     { label: "Saved leads", value: kpis.savedLeads ?? 0, detail: `${kpis.activeCampaigns ?? 0} active campaigns`, icon: "users" },
   ]), [kpis]);
 
+  const visibleActivity = activityTab === "all" ? activity : activity.filter(item => item.type === activityTab);
+  const activeCampaigns = campaigns.filter(c => c.status === "active").slice(0, 3);
+  const goalRemaining = Math.max(0, (weeklyGoal.target ?? 1) - (weeklyGoal.current ?? 0));
+
   if (showSkeleton) return <RouteSkeleton />;
 
+  if (isFreePlan(organization)) {
+    if (!(kpis.emailsSent > 0) && !(kpis.savedLeads > 0) && campaigns.length === 0) {
+      return <FreeWelcome firstName={firstName} organization={organization} router={router} />;
+    }
+    return <FreeDashboard firstName={firstName} kpis={kpis} tasks={tasks} activity={activity} campaigns={campaigns} router={router} />;
+  }
+
   return (
-    <div className="scroll grow" style={{ padding: "22px 24px", minHeight: 0 }}>
-      <div className="row spread" style={{ marginBottom: 20, gap: 16, alignItems: "flex-start" }}>
+    <main className="gx">
+      <div className="ph">
         <div>
-          <h1 className="display" style={{ fontSize: 26 }}>Good morning, {firstName}</h1>
-          <p className="muted" style={{ fontSize: 14, marginTop: 3 }}>Pipeline health, reply work, and weekly progress.</p>
+          <h1>{timeOfDayGreeting()}, {firstName}</h1>
+          <p>{tasks.length > 0 ? `${tasks.length} thing${tasks.length === 1 ? "" : "s"} need${tasks.length === 1 ? "s" : ""} you today.` : "Pipeline health, reply work, and weekly progress."}</p>
         </div>
-        <div className="row" style={{ gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => router.push("/prospects")}>
+        <div className="acts">
+          <button type="button" className="bt bt-g" onClick={() => router.push("/prospects")}>
             <Icon name="users" size={15} /> Add leads
           </button>
-          <button className="btn btn-primary btn-sm" onClick={() => router.push("/campaigns/new")}>
-            <Icon name="plus" size={15} color="#06231a" /> New campaign
+          <button type="button" className="bt bt-g" onClick={() => router.push("/campaigns/new")}>
+            <Icon name="plus" size={15} /> New campaign
           </button>
-          <button className="btn btn-primary btn-sm" onClick={() => router.push("/agent")}>
-            <Icon name="spark" size={16} color="#06231a" /> Talk to {agentName}
+          <button type="button" className="bt bt-p" onClick={() => router.push("/agent")}>
+            <Icon name="spark" size={15} color="#06231a" /> Talk to {agentName}
           </button>
         </div>
       </div>
 
-      {error && (
-        <div style={{ padding: "12px 14px", marginBottom: 16, background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 8, color: "#9a3412", fontSize: 13, fontWeight: 800 }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="note">{error}</div>}
 
       <OnboardingPreparationCard
         preparation={onboardingPreparation}
@@ -292,94 +494,105 @@ export default function DashboardPage() {
 
       <SetupChecklist variant="compact" />
 
-      <div className="dashboard-kpi-grid" data-tour="dashboard-kpis">
+      {(tasks.length > 0 || nextMeeting) && (
+        <div className="needs">
+          {tasks.slice(0, nextMeeting ? 2 : 3).map((task, index) => (
+            <NeedCard
+              key={`${task.type}-${task.title}`}
+              highlight={index === 0}
+              tone={task.priority === "high" && index !== 0 ? "warn" : ""}
+              icon={TASK_ICON_MAP[task.type] || "bell"}
+              title={task.title}
+              detail={task.detail}
+              action={task.actionLabel}
+              primary={index === 0}
+              onClick={() => router.push(task.href)}
+            />
+          ))}
+          {nextMeeting && (
+            <NeedCard
+              tone="dark"
+              icon="calendar"
+              title={`${nextMeeting.attendee?.name || nextMeeting.title} · ${formatMeetingTime(nextMeeting.scheduledAt)}`}
+              detail={[nextMeeting.attendee?.title, nextMeeting.attendee?.company, `${nextMeeting.durationMinutes ?? 30} min`].filter(Boolean).join(" · ")}
+              action={nextMeeting.attendeePhone ? <><Icon name="phone" size={14} /> Call {nextMeeting.attendee?.name || "guest"}</> : "View meeting"}
+              onClick={() => nextMeeting.attendeePhone ? window.location.assign(`tel:${nextMeeting.attendeePhone}`) : router.push("/calendar")}
+            />
+          )}
+        </div>
+      )}
+
+      <div className="kpis" data-tour="dashboard-kpis" style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }}>
         {kpiItems.map(item => <KpiCard key={item.label} item={item} />)}
       </div>
 
-      <div className="dashboard-main-grid">
-        <div className="card" data-tour="dashboard-activity" style={{ padding: 0, overflow: "hidden", borderRadius: 8 }}>
-          <div className="row spread" style={{ padding: "14px 18px", borderBottom: "1px solid var(--line)" }}>
+      <div className="dash-grid">
+        <div className="card" data-tour="dashboard-activity">
+          <div className="card-h">
             <div>
-              <span style={{ fontWeight: 800, fontSize: 15 }}>Activity feed</span>
-              <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Latest sends, replies, and booked meetings.</p>
+              <b>Activity</b>
+              <small>Sends, replies and booked meetings.</small>
             </div>
-            <button className="btn btn-ghost btn-sm" type="button" onClick={() => router.push("/agent")}>Open agent</button>
+            <div className="tabs-mini" role="tablist">
+              {ACTIVITY_TABS.map(tab => (
+                <button key={tab.id} type="button" role="tab" aria-selected={activityTab === tab.id} className={activityTab === tab.id ? "on" : ""} onClick={() => setActivityTab(tab.id)}>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
-          {activity.length === 0 ? (
-            <div style={{ padding: "32px 18px", textAlign: "center" }}>
-              <p className="muted" style={{ fontSize: 14 }}>No activity yet. Start a campaign to see activity here.</p>
-            </div>
+          {visibleActivity.length === 0 ? (
+            <div className="empty">{activity.length === 0 ? "No activity yet. Start a campaign to see activity here." : "Nothing of this type yet."}</div>
           ) : (
-            activity.map((item, index) => (
-              <div key={`${item.type}-${item.time}-${index}`} className="row" style={{ gap: 12, padding: "12px 18px", borderBottom: index < activity.length - 1 ? "1px solid var(--line-2)" : "none" }}>
-                <span style={{ width: 34, height: 34, borderRadius: 8, flex: "none", display: "grid", placeItems: "center", background: item.hot ? "var(--g-50)" : "var(--bg-2)", color: item.hot ? "var(--g-700)" : "var(--muted)" }}>
-                  <Icon name={ICON_MAP[item.type] || "send"} size={17} />
-                </span>
-                <span className="grow" style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-2)" }}>{item.text}</span>
-                <span className="faint nw" style={{ fontSize: 12, fontWeight: 800 }}>{item.timeAgo}</span>
+            visibleActivity.map((item, index) => (
+              <div key={`${item.type}-${item.time}-${index}`} className="act">
+                <span className={`act-ic ${ACTIVITY_TONE[item.type] || ""}`}><Icon name={ICON_MAP[item.type] || "send"} size={16} /></span>
+                <div className="act-main"><div className="act-t">{item.text}</div></div>
+                {item.hot && <span className="pl pl-ok">Hot</span>}
+                <span className="act-time">{item.timeAgo}</span>
               </div>
             ))
           )}
         </div>
 
-        <div className="col" style={{ gap: 16 }}>
-          <div className="card" style={{ padding: 18, borderRadius: 8 }}>
-            <div className="row spread" style={{ marginBottom: 14 }}>
-              <div>
-                <span style={{ fontWeight: 800, fontSize: 15 }}>Tasks</span>
-                <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Work that needs attention.</p>
-              </div>
-              <span className="chip" style={{ fontSize: 12 }}>{tasks.length} open</span>
-            </div>
-            {tasks.length === 0 ? (
-              <div style={{ padding: "18px 0", textAlign: "center" }}>
-                <Icon name="checkCircle" size={28} color="var(--g-700)" />
-                <p className="muted" style={{ fontSize: 13, fontWeight: 800, marginTop: 8 }}>No priority tasks.</p>
-              </div>
-            ) : (
-              <div className="col" style={{ gap: 10 }}>
-                {tasks.map(task => (
-                  <button key={`${task.type}-${task.title}`} type="button" onClick={() => router.push(task.href)} style={{ textAlign: "left", padding: 12, border: "1px solid var(--line)", borderRadius: 8, background: "#fff" }}>
-                    <div className="row" style={{ gap: 10, alignItems: "flex-start" }}>
-                      <span style={{ width: 30, height: 30, borderRadius: 8, display: "grid", placeItems: "center", background: task.priority === "high" ? "#fff7ed" : "var(--bg-2)", color: task.priority === "high" ? "#c2410c" : "var(--ink-2)", flex: "none" }}>
-                        <Icon name={TASK_ICON_MAP[task.type] || "bell"} size={15} />
-                      </span>
-                      <span className="grow" style={{ minWidth: 0 }}>
-                        <span style={{ display: "block", fontWeight: 800, fontSize: 13.5 }}>{task.title}</span>
-                        <span className="faint" style={{ display: "block", fontSize: 12.5, lineHeight: 1.35, marginTop: 2 }}>{task.detail}</span>
-                        <span style={{ display: "block", color: "var(--g-700)", fontWeight: 800, fontSize: 12.5, marginTop: 8 }}>{task.actionLabel}</span>
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="card" style={{ padding: 18, borderRadius: 8 }}>
-            <div className="row spread" style={{ marginBottom: 14 }}>
-              <div>
-                <span style={{ fontWeight: 800, fontSize: 15 }}>Weekly meeting goal</span>
-                <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Based on {weeklyGoal.monthlyTarget || 0} meetings per month.</p>
-              </div>
-              <Icon name="target" size={20} color="var(--g-700)" />
-            </div>
-            <div className="row baseline" style={{ gap: 8 }}>
-              <span className="display" style={{ fontSize: 32 }}>{weeklyGoal.current ?? 0}</span>
-              <span className="muted" style={{ fontSize: 14, fontWeight: 800 }}>/ {weeklyGoal.target ?? 1} meetings</span>
-            </div>
-            <div style={{ height: 9, borderRadius: 999, background: "var(--bg-2)", overflow: "hidden", marginTop: 12 }}>
-              <div style={{ width: `${weeklyGoal.progress ?? 0}%`, height: "100%", background: "var(--g-600)", borderRadius: 999 }} />
-            </div>
-            <div className="row spread" style={{ marginTop: 10 }}>
-              <span className="faint" style={{ fontSize: 12, fontWeight: 800 }}>{weeklyGoal.progress ?? 0}% complete</span>
-              <button type="button" style={{ color: "var(--g-700)", fontSize: 12.5, fontWeight: 800 }} onClick={() => router.push("/analytics")}>View analytics</button>
+        <div className="dash-right">
+          <div className="card goal">
+            <GoalRing current={weeklyGoal.current} target={weeklyGoal.target} />
+            <div className="goal-t">
+              <b>Weekly meeting goal</b>
+              <p>
+                {goalRemaining > 0 ? `${goalRemaining} more to hit this week's target` : "This week's target is hit"}
+                {weeklyGoal.monthlyTarget ? `, based on ${weeklyGoal.monthlyTarget} meetings a month.` : "."}
+              </p>
+              <button type="button" className="lnk" onClick={() => router.push("/analytics")}>View analytics <Icon name="arrow" size={14} /></button>
             </div>
           </div>
 
-          <NextMeetingCard meeting={nextMeeting} onViewMeetings={() => router.push("/calendar")} />
+          <div className="card">
+            <div className="card-h">
+              <div>
+                <b>Active campaigns</b>
+                <small>Progress through each audience.</small>
+              </div>
+              <button type="button" className="lnk" onClick={() => router.push("/campaigns")}>All <Icon name="arrow" size={14} /></button>
+            </div>
+            {activeCampaigns.length === 0 ? (
+              <div className="empty">No active campaigns.</div>
+            ) : activeCampaigns.map(campaign => {
+              const enrolled = Number(campaign.enrolled || 0);
+              const sent = Number(campaign.sent || 0);
+              const pct = enrolled > 0 ? Math.min(100, Math.round((sent / enrolled) * 100)) : 0;
+              return (
+                <button key={campaign.campaignId} type="button" className="cm" style={{ display: "block", width: "100%", textAlign: "left" }} onClick={() => router.push(`/campaigns/${campaign.campaignId}`)}>
+                  <div className="cm-top"><b>{campaign.name}</b><span className="pl pl-mute">{CHANNEL_LABEL[campaign.channel] || "Email"}</span></div>
+                  <div className="bar"><u style={{ width: `${pct}%` }} /></div>
+                  <div className="cm-meta"><span>{sent} sent · {enrolled} enrolled</span><span>{campaign.replies} replies · {campaign.meetings} meetings</span></div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

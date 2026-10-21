@@ -67,57 +67,89 @@ const DEFAULT_SETTINGS = {
   defaultMeetingUrl: "",
 };
 
-function MeetingCard({ meeting, onCancel, canceling }) {
+const GRID_START_HOUR = 8;
+const GRID_END_HOUR = 19;
+const HOUR_PX = 56;
+
+function formatHour(hour) {
+  const suffix = hour >= 12 ? "PM" : "AM";
+  return `${hour % 12 || 12} ${suffix}`;
+}
+
+function formatClock(value) {
+  const [h, m] = String(value || "00:00").split(":").map(Number);
+  const d = new Date();
+  d.setHours(h, m || 0, 0, 0);
+  return formatTime(d);
+}
+
+function blockTop(date) {
+  const hours = date.getHours() + date.getMinutes() / 60;
+  const clamped = Math.min(Math.max(hours, GRID_START_HOUR), GRID_END_HOUR - 1);
+  return (clamped - GRID_START_HOUR) * HOUR_PX + 2;
+}
+
+function MeetingDetail({ meeting, onCancel, canceling, onClose }) {
   const style = STATUS_STYLES[meeting.status] ?? STATUS_STYLES.scheduled;
   return (
-    <div className="cal-meeting-card">
-      <div className="row spread" style={{ gap: 8, alignItems: "flex-start" }}>
-        <div className="row" style={{ gap: 8, minWidth: 0 }}>
-          <Avatar name={meeting.name} size={28} />
-          <div className="col" style={{ minWidth: 0 }}>
-            <span style={{ fontWeight: 800, fontSize: 13 }} className="ellip">{meeting.name}</span>
-            <span className="muted ellip" style={{ fontSize: 11.5 }}>{meeting.companyLine || "Company not provided"}</span>
-          </div>
+    <div className="card">
+      <div className="card-h">
+        <div style={{ minWidth: 0 }}>
+          <b className="ellip" style={{ display: "block" }}>{meeting.title || meeting.name}</b>
+          <small>{meeting.scheduled.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · {formatTime(meeting.scheduled)} · {meeting.duration} min</small>
         </div>
-        <span className="badge" style={{ background: style.bg, color: style.color, fontSize: 10.5, flex: "none" }}>{style.label}</span>
+        <button type="button" className="ibt" aria-label="Close meeting details" onClick={onClose}><Icon name="close" size={14} /></button>
       </div>
-      <div className="row spread" style={{ marginTop: 8 }}>
-        <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ink-2)" }}>
-          {formatTime(meeting.scheduled)} · {meeting.duration} min
-        </span>
-        {meeting.attendeePhone ? (
-          <a className="row" style={{ gap: 4, fontSize: 12, color: "var(--g-700)", fontWeight: 700 }} href={`tel:${meeting.attendeePhone}`}>
-            <Icon name="phone" size={13} /> Call
-          </a>
-        ) : null}
+      <div style={{ padding: "14px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="who">
+          <Avatar name={meeting.name} size={34} />
+          <div style={{ minWidth: 0 }}>
+            <b className="ellip">{meeting.name}</b>
+            <small className="ellip">{meeting.companyLine || "Company not provided"}</small>
+          </div>
+          <span className="pl" style={{ marginLeft: "auto", background: style.bg, color: style.color }}>{style.label}</span>
+        </div>
+        <div className="acts">
+          {meeting.joinUrl ? <a className="bt bt-p sm" href={meeting.joinUrl} target="_blank" rel="noreferrer"><Icon name="link" size={13} color="#06231a" /> Join</a> : null}
+          {meeting.attendeePhone ? <a className="bt bt-g sm" href={`tel:${meeting.attendeePhone}`}><Icon name="phone" size={13} /> Call</a> : null}
+          {meeting.status === "scheduled" ? (
+            <button type="button" className="bt bt-x sm" disabled={canceling} onClick={() => onCancel(meeting.id)}>
+              {canceling ? "Cancelling…" : "Cancel meeting"}
+            </button>
+          ) : null}
+        </div>
       </div>
-      {meeting.joinUrl ? (
-        <a
-          className="row"
-          style={{ gap: 4, marginTop: 8, fontSize: 12, color: "var(--g-700)", fontWeight: 700 }}
-          href={meeting.joinUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <Icon name="link" size={13} /> Join meeting
-        </a>
-      ) : null}
-      {meeting.status === "scheduled" && (
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm btn-block"
-          style={{ marginTop: 10, height: 30, fontSize: 12 }}
-          disabled={canceling}
-          onClick={() => onCancel(meeting.id)}
-        >
-          {canceling ? "Cancelling…" : "Cancel"}
-        </button>
-      )}
     </div>
   );
 }
 
-function SettingsPanel({ settings, onSave, saving }) {
+function AvailabilitySummary({ settings, onEdit }) {
+  return (
+    <div className="card">
+      <div className="card-h">
+        <div><b>Availability</b><small>What your agent books against</small></div>
+        <button type="button" className="lnk" onClick={onEdit}>Edit</button>
+      </div>
+      <div className="av-rows" style={{ padding: "6px 18px 16px" }}>
+        <span className="muted" style={{ fontSize: 12, fontWeight: 800 }}>Working days</span>
+        <div className="days">
+          {WEEKDAY_SHORT.map((label, dow) => (
+            <span key={label} className={settings.workingDays.includes(dow) ? "" : "off"}>{label.slice(0, 2)}</span>
+          ))}
+        </div>
+        <div className="kv"><span>Hours</span><b>{formatClock(settings.dayStartTime)} to {formatClock(settings.dayEndTime)}</b></div>
+        <div className="kv"><span>Timezone</span><b>{settings.timezone}</b></div>
+        <div className="kv"><span>Meeting length</span><b>{settings.meetingDurationMinutes} min</b></div>
+        <div className="kv"><span>Buffer</span><b>{settings.bufferMinutes} min</b></div>
+        <div className="kv"><span>Minimum notice</span><b>{settings.minNoticeMinutes >= 60 && settings.minNoticeMinutes % 60 === 0 ? `${settings.minNoticeMinutes / 60} hours` : `${settings.minNoticeMinutes} min`}</b></div>
+        <div className="kv"><span>Book within</span><b>{settings.bookingWindowDays} days</b></div>
+        <div className="kv"><span>Meeting link</span><b className="ellip" style={{ maxWidth: 170 }}>{settings.defaultMeetingUrl ? settings.defaultMeetingUrl.replace(/^https?:\/\//, "") : "Not set"}</b></div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsPanel({ settings, onSave, saving, onDone }) {
   const [form, setForm] = useState(settings);
   const [dirty, setDirty] = useState(false);
 
@@ -141,14 +173,11 @@ function SettingsPanel({ settings, onSave, saving }) {
   };
 
   return (
-    <div className="card cal-settings-card">
-      <div className="row" style={{ gap: 8, marginBottom: 4 }}>
-        <Icon name="sliders" size={16} color="var(--g-700)" />
-        <strong style={{ fontSize: 14 }}>Availability</strong>
+    <div className="card cal-settings-card" style={{ padding: 18 }}>
+      <div className="card-h" style={{ padding: "0 0 12px", marginBottom: 14 }}>
+        <div><b>Availability</b><small>What the AI agent offers leads when it books a meeting.</small></div>
+        <button type="button" className="lnk" onClick={onDone}>Done</button>
       </div>
-      <p className="muted" style={{ fontSize: 12, marginBottom: 16 }}>
-        What the AI agent offers leads when it books a meeting live on a call.
-      </p>
 
       <div className="col" style={{ gap: 14 }}>
         <div className="field">
@@ -226,7 +255,8 @@ function SettingsPanel({ settings, onSave, saving }) {
 
         <button
           type="button"
-          className="btn btn-primary btn-sm btn-block"
+          className="bt bt-p"
+          style={{ justifyContent: "center" }}
           disabled={!dirty || saving}
           onClick={() => { onSave(form); setDirty(false); }}
         >
@@ -245,6 +275,8 @@ export default function CalendarPage() {
   const [error, setError] = useState("");
   const [savingSettings, setSavingSettings] = useState(false);
   const [cancelingId, setCancelingId] = useState(null);
+  const [editingSettings, setEditingSettings] = useState(false);
+  const [selectedMeetingId, setSelectedMeetingId] = useState(null);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const showSkeleton = useFirstLoad(loading || settingsLoading);
 
@@ -302,84 +334,132 @@ export default function CalendarPage() {
   if (showSkeleton) return <RouteSkeleton />;
 
   const today = new Date();
+  const now = Date.now();
+  const upcoming = allMeetings.filter(m => m.status === "scheduled" && m.scheduled.getTime() + m.duration * 60000 >= now).sort((a, b) => a.scheduled - b.scheduled);
+  const nextId = upcoming[0]?.id;
+  const selectedMeeting = [...allMeetings, ...pastMeetings].find(m => m.id === selectedMeetingId) || null;
+  const weekEnd = new Date(weekStart.getTime() + 6 * DAY_MS);
+  const shortDate = date => date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const rangeLabel = `${shortDate(weekStart)} to ${weekEnd.getMonth() === weekStart.getMonth() ? weekEnd.getDate() : shortDate(weekEnd)}, ${weekEnd.getFullYear()}`;
+  const hours = Array.from({ length: GRID_END_HOUR - GRID_START_HOUR }, (_, i) => GRID_START_HOUR + i);
+  const nowHours = today.getHours() + today.getMinutes() / 60;
+  const showNow = nowHours >= GRID_START_HOUR && nowHours < GRID_END_HOUR;
 
   return (
-    <div className="scroll grow app-page">
-      <div className="row spread page-head">
+    <main className="gx">
+      <div className="ph">
         <div>
-          <h1 className="display page-title">Calendar</h1>
-          <p className="muted page-subtitle">{meetingCount} meeting{meetingCount === 1 ? "" : "s"} booked by your AI agent</p>
+          <h1>Calendar</h1>
+          <p>{meetingCount} meeting{meetingCount === 1 ? "" : "s"} booked by your AI agent. It only books into your free time.</p>
         </div>
-        <div className="row" style={{ gap: 8 }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => setWeekStart(startOfWeek(new Date(weekStart.getTime() - 7 * DAY_MS)))}>
+        <div className="acts">
+          <button type="button" className="ibt" aria-label="Previous week" onClick={() => setWeekStart(startOfWeek(new Date(weekStart.getTime() - 7 * DAY_MS)))}>
             <Icon name="arrowLeft" size={15} />
           </button>
-          <button className="btn btn-ghost btn-sm" onClick={() => setWeekStart(startOfWeek(new Date()))}>Today</button>
-          <button className="btn btn-ghost btn-sm" onClick={() => setWeekStart(startOfWeek(new Date(weekStart.getTime() + 7 * DAY_MS)))}>
+          <button type="button" className="ibt" aria-label="Next week" onClick={() => setWeekStart(startOfWeek(new Date(weekStart.getTime() + 7 * DAY_MS)))}>
             <Icon name="arrow" size={15} />
           </button>
+          <button type="button" className="bt bt-g sm" onClick={() => setWeekStart(startOfWeek(new Date()))}>Today</button>
+          <span className="sel-box" style={{ background: "#fff" }}>{rangeLabel}</span>
+          <button type="button" className="bt bt-g" onClick={() => setEditingSettings(true)}><Icon name="sliders" size={14} /> Availability</button>
         </div>
       </div>
 
-      {error ? <div className="notice-warn">{error}</div> : null}
+      {error ? <div className="note">{error}</div> : null}
 
-      <div className="cal-layout" data-tour="calendar-hero">
-        <div className="cal-grid">
-          {weekDays.map((day) => {
-            const isToday = sameDay(day, today);
-            const dayMeetings = meetingsByDay.get(day.toDateString()) || [];
-            return (
-              <div key={day.toISOString()} className="cal-day-col">
-                <div className={`cal-day-head ${isToday ? "is-today" : ""}`}>
-                  <span className="faint">{WEEKDAY_SHORT[day.getDay()]}</span>
-                  <strong>{day.getDate()}</strong>
+      <div className="cal-grid" data-tour="calendar-hero">
+        <div className="card wk-scroll" style={{ overflow: "hidden" }}>
+          <div>
+            <div className="wk-h">
+              <div />
+              {weekDays.map(day => (
+                <div key={day.toISOString()} className={sameDay(day, today) ? "today" : ""}>
+                  {WEEKDAY_SHORT[day.getDay()]}<b>{day.getDate()}</b>
                 </div>
-                <div className="cal-day-body">
-                  {dayMeetings.length === 0 ? (
-                    <span className="faint" style={{ fontSize: 11.5 }}>No meetings</span>
-                  ) : (
-                    dayMeetings.map((meeting) => (
-                      <MeetingCard key={meeting.id} meeting={meeting} onCancel={handleCancel} canceling={cancelingId === meeting.id} />
-                    ))
-                  )}
-                </div>
+              ))}
+            </div>
+            <div className="wk-b">
+              <div className="hrs">
+                {hours.map(hour => <div key={hour} className="hr"><span>{hour === GRID_START_HOUR ? "" : formatHour(hour)}</span></div>)}
               </div>
-            );
-          })}
+              {weekDays.map(day => {
+                const isToday = sameDay(day, today);
+                const weekend = !settings.workingDays.includes(day.getDay());
+                const dayMeetings = meetingsByDay.get(day.toDateString()) || [];
+                return (
+                  <div key={day.toISOString()} className={`dcol ${weekend ? "wk" : ""} ${isToday ? "today" : ""}`} style={{ height: hours.length * HOUR_PX }}>
+                    {dayMeetings.map(meeting => {
+                      const past = meeting.status !== "scheduled" || meeting.scheduled.getTime() + meeting.duration * 60000 < now;
+                      return (
+                        <button
+                          key={meeting.id}
+                          type="button"
+                          className={`mb ${past ? "done" : meeting.id === nextId ? "next" : ""}`}
+                          style={{ top: blockTop(meeting.scheduled), textAlign: "left" }}
+                          onClick={() => setSelectedMeetingId(meeting.id)}
+                        >
+                          <b>{meeting.name}</b>
+                          <span>{formatTime(meeting.scheduled)}{meeting.companyLine ? ` · ${meeting.companyLine}` : ""}</span>
+                        </button>
+                      );
+                    })}
+                    {isToday && showNow ? <div className="now" style={{ top: (nowHours - GRID_START_HOUR) * HOUR_PX }}><i /></div> : null}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        <SettingsPanel settings={settings} onSave={handleSaveSettings} saving={savingSettings} />
+        <div className="col" style={{ gap: 16 }}>
+          {selectedMeeting ? (
+            <MeetingDetail meeting={selectedMeeting} onCancel={handleCancel} canceling={cancelingId === selectedMeeting.id} onClose={() => setSelectedMeetingId(null)} />
+          ) : null}
+
+          <div className="card">
+            <div className="card-h"><div><b>Coming up</b><small>{upcoming.length ? `Next ${Math.min(3, upcoming.length)} meeting${upcoming.length === 1 ? "" : "s"}` : "Nothing scheduled"}</small></div></div>
+            {upcoming.length === 0 ? (
+              <div className="empty">Once a call or reply leads to a booking, it shows up here.</div>
+            ) : upcoming.slice(0, 3).map(meeting => (
+              <div key={meeting.id} className="upc">
+                <div className="upc-t">
+                  <small>{sameDay(meeting.scheduled, today) ? "Today" : WEEKDAY_SHORT[meeting.scheduled.getDay()]}</small>
+                  <b>{meeting.scheduled.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }).replace(/\s?[AP]M$/i, "")}</b>
+                </div>
+                <div>
+                  <button type="button" className="nm" style={{ textAlign: "left" }} onClick={() => setSelectedMeetingId(meeting.id)}>{meeting.name}</button>
+                  <div className="co">{meeting.companyLine ? `${meeting.companyLine} · ` : ""}{meeting.duration} min</div>
+                </div>
+                {meeting.joinUrl ? <a className="bt bt-g sm" href={meeting.joinUrl} target="_blank" rel="noreferrer">Join</a> : null}
+              </div>
+            ))}
+          </div>
+
+          {editingSettings ? (
+            <SettingsPanel settings={settings} onSave={handleSaveSettings} saving={savingSettings} onDone={() => setEditingSettings(false)} />
+          ) : (
+            <AvailabilitySummary settings={settings} onEdit={() => setEditingSettings(true)} />
+          )}
+        </div>
       </div>
 
       {pastMeetings.length > 0 && (
-        <section className="col" style={{ gap: 10, marginTop: 24 }}>
-          <strong style={{ fontSize: 14 }}>Past</strong>
-          {pastMeetings.slice(0, 10).map((meeting) => (
-            <div key={meeting.id} className="row spread meeting-row">
-              <div className="row" style={{ gap: 10, minWidth: 0 }}>
-                <Avatar name={meeting.name} size={32} />
-                <div className="col" style={{ minWidth: 0 }}>
-                  <span style={{ fontWeight: 800, fontSize: 13.5 }} className="ellip">{meeting.title}</span>
-                  <span className="muted ellip" style={{ fontSize: 12 }}>
-                    {meeting.name}{meeting.companyLine ? ` · ${meeting.companyLine}` : ""} · {meeting.scheduled.toLocaleDateString()}
-                  </span>
-                </div>
+        <div className="card">
+          <div className="card-h"><div><b>Past meetings</b><small>Most recent first</small></div></div>
+          {pastMeetings.slice(0, 10).map(meeting => (
+            <div key={meeting.id} className="act">
+              <Avatar name={meeting.name} size={32} />
+              <div className="act-main">
+                <div className="act-t"><b>{meeting.title}</b></div>
+                <div className="act-s">{meeting.name}{meeting.companyLine ? ` · ${meeting.companyLine}` : ""} · {meeting.scheduled.toLocaleDateString()}</div>
               </div>
-              <span className="badge" style={{ background: STATUS_STYLES[meeting.status]?.bg, color: STATUS_STYLES[meeting.status]?.color }}>
+              <span className="pl" style={{ background: STATUS_STYLES[meeting.status]?.bg, color: STATUS_STYLES[meeting.status]?.color }}>
                 {STATUS_STYLES[meeting.status]?.label ?? meeting.status}
               </span>
             </div>
           ))}
-        </section>
-      )}
-
-      {meetingCount === 0 && (
-        <div className="empty-state">
-          <Icon name="calendar" size={42} color="var(--faint)" />
-          <p>No meetings booked yet</p>
-          <span>Once a call leads to a booking, it'll show up here automatically.</span>
         </div>
       )}
-    </div>
+    </main>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Icon from "../../../components/ui/Icon";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import api from "../../../lib/api";
@@ -44,27 +46,31 @@ function buildFallbackAnalytics(campaignsPayload, callsPayload) {
 
 async function loadAnalytics() {
   try {
-    const res = await api.get('/dashboard/analytics');
-    return res.data;
+    const [res, campaignsRes] = await Promise.all([
+      api.get('/dashboard/analytics'),
+      api.get('/analytics/campaigns').catch(() => ({ data: null })),
+    ]);
+    return { ...res.data, campaigns: campaignsRes.data?.campaigns ?? [] };
   } catch {
     const [campaignsRes, callsRes] = await Promise.all([
       api.get('/analytics/campaigns'),
       api.get('/analytics/calls'),
     ]);
-    return buildFallbackAnalytics(campaignsRes.data, callsRes.data);
+    return { ...buildFallbackAnalytics(campaignsRes.data, callsRes.data), campaigns: campaignsRes.data?.campaigns ?? [] };
   }
 }
 
-function BarChart({ title, data, labels, color, max }) {
-  const actualMax = max || Math.max(...data, 1);
+function BarChart({ title, data, labels }) {
+  const actualMax = Math.max(...data, 1);
   return (
-    <div className="card" style={{ padding: 18 }}>
-      <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 16 }}>{title}</div>
-      <div className="row" style={{ gap: 8, alignItems: 'flex-end', height: 100 }}>
+    <div className="card">
+      <div className="card-h"><div><b>{title}</b><small>{labels.length > 1 ? "Last 7 days" : "Total"}</small></div></div>
+      <div className="bc">
         {data.map((v, i) => (
-          <div key={i} className="col center grow" style={{ gap: 4 }}>
-            <div style={{ width: '100%', height: (v / actualMax) * 90, background: color, borderRadius: '4px 4px 0 0', minHeight: 4, transition: 'height .5s ease' }} />
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--faint)' }}>{labels[i]}</span>
+          <div key={i} className="bcc">
+            <span className="bv">{v}</span>
+            <i style={{ height: `${Math.max((v / actualMax) * 130, 4)}px`, opacity: v ? 1 : 0.25 }} />
+            <small>{labels[i]}</small>
           </div>
         ))}
       </div>
@@ -74,32 +80,34 @@ function BarChart({ title, data, labels, color, max }) {
 
 function FunnelChart({ funnel }) {
   const stages = [
-    { label: 'Prospects found', v: funnel.prospects, color: '#d1fae5' },
-    { label: 'Emailed', v: funnel.emailed, color: 'var(--g-300)' },
-    { label: 'Replied', v: funnel.replied, color: 'var(--g-400)' },
-    { label: 'Meeting booked', v: funnel.meetingsBooked, color: 'var(--g-500)' },
-    { label: 'Closed', v: funnel.closed, color: 'var(--g-700)' },
+    { label: 'Prospects found', v: funnel.prospects },
+    { label: 'Emailed', v: funnel.emailed },
+    { label: 'Replied', v: funnel.replied },
+    { label: 'Meeting booked', v: funnel.meetingsBooked },
+    { label: 'Closed', v: funnel.closed },
   ];
   const maxVal = Math.max(...stages.map(s => s.v), 1);
   return (
-    <div className="card" style={{ padding: 18 }}>
-      <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 14 }}>Conversion funnel</div>
-      <div className="col" style={{ gap: 8 }}>
-        {stages.map((s, i) => (
-          <div key={i} className="row" style={{ gap: 12, alignItems: 'center' }}>
-            <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--muted)', width: 130, flex: 'none', textAlign: 'right' }}>{s.label}</span>
-            <div style={{ flex: 1, height: 22, background: 'var(--bg-2)', borderRadius: 6, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: Math.max((s.v / maxVal) * 100, 1) + '%', background: s.color, borderRadius: 6, transition: 'width .6s ease' }} />
+    <div className="card">
+      <div className="card-h"><div><b>Conversion funnel</b><small>From prospect found to closed</small></div></div>
+      <div className="fn">
+        {stages.map((s, i) => {
+          const prev = i > 0 ? stages[i - 1].v : 0;
+          return (
+            <div key={s.label} className="fr">
+              <span>{s.label}</span>
+              <div className="fb"><u style={{ width: `${Math.max((s.v / maxVal) * 100, 1)}%` }}>{s.v.toLocaleString()}</u></div>
+              <em>{i > 0 && prev > 0 ? `${Math.round((s.v / prev) * 100)}% of prev` : ""}</em>
             </div>
-            <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink-2)', width: 40 }}>{s.v.toLocaleString()}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
 export default function AnalyticsPage() {
+  const router = useRouter();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const showSkeleton = useFirstLoad(loading);
@@ -115,58 +123,80 @@ export default function AnalyticsPage() {
 
   if (!data) {
     return (
-      <div style={{ padding: '48px 24px', textAlign: 'center' }}>
-        <p className="muted" style={{ fontSize: 15 }}>Unable to load analytics. Please try again.</p>
-      </div>
+      <main className="gx">
+        <div className="card empty">Unable to load analytics. Please try again.</div>
+      </main>
     );
   }
 
   const summary = data.summary ?? {};
   const funnel = data.funnel ?? { prospects: 0, emailed: 0, replied: 0, meetingsBooked: 0, closed: 0 };
   const calls = data.calls ?? null;
+  const campaigns = data.campaigns ?? [];
+  const labels = data.dayLabels?.length ? data.dayLabels : ['Total'];
 
   return (
-    <div className="scroll grow analytics-page" style={{ minHeight: 0 }}>
-      <div style={{ marginBottom: 20 }}>
-        <h1 className="display" style={{ fontSize: 22 }} data-tour="analytics-header">Analytics</h1>
-        <p className="muted" style={{ fontSize: 13, marginTop: 2 }}>Performance over the last 30 days</p>
+    <main className="gx analytics-page">
+      <div className="ph">
+        <div>
+          <h1 data-tour="analytics-header">Analytics</h1>
+          <p>Performance over the last 30 days.</p>
+        </div>
       </div>
-      <div className="analytics-summary-grid">
-        {[
-          { k: 'Meetings booked', v: summary.meetings ?? 0 },
-          { k: 'Reply rate', v: `${summary.replyRate ?? 0}%` },
-          { k: 'Emails sent', v: summary.emailsSent ?? 0 },
-        ].map(s => (
-          <div key={s.k} className="card" style={{ padding: 16 }}>
-            <div className="faint" style={{ fontSize: 12, fontWeight: 700 }}>{s.k}</div>
-            <div className="display" style={{ fontSize: 28, marginTop: 6 }}>{s.v}</div>
+
+      <div className="kpis" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
+        <div className="kpi"><div className="kpi-top">Meetings booked<span className="kpi-ic"><Icon name="calendar" size={16} /></span></div><b>{summary.meetings ?? 0}</b><small>last 30 days</small></div>
+        <div className="kpi"><div className="kpi-top">Reply rate<span className="kpi-ic"><Icon name="chat" size={16} /></span></div><b>{summary.replyRate ?? 0}%</b><small>of emails sent</small></div>
+        <div className="kpi"><div className="kpi-top">Emails sent<span className="kpi-ic"><Icon name="send" size={16} /></span></div><b>{summary.emailsSent ?? 0}</b><small>last 30 days</small></div>
+        <div className="kpi"><div className="kpi-top">Calls made<span className="kpi-ic"><Icon name="phone" size={16} /></span></div><b>{calls?.total ?? 0}</b><small>{calls?.answerRate ?? 0}% answered</small></div>
+      </div>
+
+      <div className="an2">
+        <BarChart title="Emails sent" data={data.dailyEmails?.length ? data.dailyEmails : [summary.emailsSent ?? 0]} labels={labels} />
+        <BarChart title="Meetings booked" data={data.dailyMeetings?.length ? data.dailyMeetings : [summary.meetings ?? 0]} labels={labels} />
+      </div>
+
+      <div className="an2">
+        <FunnelChart funnel={funnel} />
+        <div className="card" style={{ overflow: "hidden" }}>
+          <div className="card-h"><div><b>By campaign</b><small>Sends, replies and meetings per campaign</small></div></div>
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead><tr><th>Campaign</th><th>Sent</th><th>Replies</th><th>Meetings</th></tr></thead>
+              <tbody>
+                {campaigns.length === 0 ? (
+                  <tr><td colSpan={4} className="empty">No campaigns yet.</td></tr>
+                ) : campaigns.map(c => (
+                  <tr key={c.campaignId} onClick={() => router.push(`/campaigns/${c.campaignId}`)}>
+                    <td><b style={{ color: "#0a1712", fontWeight: 800 }}>{c.name}</b></td>
+                    <td>{c.sent}</td>
+                    <td>{c.channel === "voice" ? "n/a" : `${c.replies} · ${c.replyRate}%`}</td>
+                    <td>{c.meetings}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
+        </div>
       </div>
-      <div className="analytics-chart-grid">
-        <BarChart title="Emails sent (last 7 days)" data={(data.dailyEmails?.length ? data.dailyEmails : [summary.emailsSent ?? 0])} labels={(data.dayLabels?.length ? data.dayLabels : ['Total'])} color="var(--teal)" />
-        <BarChart title="Meetings booked (last 7 days)" data={(data.dailyMeetings?.length ? data.dailyMeetings : [summary.meetings ?? 0])} labels={(data.dayLabels?.length ? data.dayLabels : ['Total'])} color="var(--g-500)" />
-      </div>
-      <FunnelChart funnel={funnel} />
+
       {calls && (
-        <div className="card" style={{ padding: 18, marginTop: 16 }}>
-          <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 14 }}>Call performance</div>
-          <div className="analytics-call-grid">
+        <div className="card">
+          <div className="card-h">
+            <div><b>Call performance</b><small>Inbound and outbound</small></div>
+            <button type="button" className="lnk" onClick={() => router.push("/calls")}>Call History <Icon name="arrow" size={14} /></button>
+          </div>
+          <div className="cpg">
             {[
               { k: 'Total calls', v: calls.total ?? 0 },
               { k: 'Answer rate', v: `${calls.answerRate ?? 0}%` },
               { k: 'Meetings booked', v: calls.meetingsBooked ?? 0 },
               { k: 'Voicemail', v: calls.voicemail ?? 0 },
               { k: 'Failed', v: calls.failed ?? 0 },
-            ].map(s => (
-              <div key={s.k} className="col">
-                <span className="faint" style={{ fontSize: 11.5, fontWeight: 700 }}>{s.k}</span>
-                <span style={{ fontWeight: 800, fontSize: 20, marginTop: 4 }}>{s.v}</span>
-              </div>
-            ))}
+            ].map(s => <div key={s.k}><small>{s.k}</small><b>{s.v}</b></div>)}
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

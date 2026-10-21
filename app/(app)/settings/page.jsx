@@ -424,38 +424,44 @@ export default function SettingsPage() {
 
   if (showSkeleton) return <RouteSkeleton />;
 
+  const jumpTo = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
   return (
-    <div className="scroll grow settings-page" style={{ minHeight: 0 }}>
-      <div className="settings-inner" style={{ padding: '34px 40px 48px', width: '100%' }}>
-        <div className="row spread settings-head" style={{ gap: 18, alignItems: 'flex-start', marginBottom: 24 }}>
-          <div>
-            <h1 className="display" style={{ fontSize: 28, marginBottom: 8 }}>Settings</h1>
-            <p className="muted" style={{ fontSize: 14 }}>
-              Manage profile details, organisation identity, and AI agent defaults.
-            </p>
-          </div>
-          <button
-            form="settings-form"
-            type="submit"
-            className="btn btn-primary btn-sm"
-            disabled={saving}
-            style={{ flex: 'none' }}
-          >
+    <main className="gx settings-page">
+      <div className="ph">
+        <div>
+          <h1>Settings</h1>
+          <p>Defaults for your agent, your organisation and your senders. Only the Owner and Admins see this page.</p>
+        </div>
+        <div className="acts">
+          <Link className="bt bt-g" href="/settings/senders">Choose senders to keep</Link>
+          <button form="settings-form" type="submit" className="bt bt-p" disabled={saving}>
             <Icon name="check" size={15} color="#06231a" />
             {saving ? 'Saving...' : 'Save changes'}
           </button>
         </div>
+      </div>
 
-        <div className="settings-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 20, alignItems: 'start' }}>
-          <form id="settings-form" onSubmit={handleSubmit} className="col" style={{ gap: 18 }}>
-            <section className="card" style={{ padding: 24, borderRadius: 8 }}>
-              <div className="row" style={{ gap: 10, marginBottom: 20 }}>
-                <span style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--g-50)', display: 'grid', placeItems: 'center', color: 'var(--g-700)' }}>
-                  <Icon name="user" size={18} />
-                </span>
+        <div className="st3 settings-layout">
+          <nav className="card snav" aria-label="Settings sections" style={{ position: 'sticky', top: 0 }}>
+            {[
+              ['settings-profile', 'Profile', 'user'],
+              ['settings-organisation', 'Organisation', 'building'],
+              ['settings-agent', 'Agent configuration', 'spark'],
+              ['settings-inboxes', 'Sending inboxes', 'mail'],
+              ['phone-numbers', 'Phone numbers', 'phone'],
+              ['settings-voice', 'Voice agent', 'sliders'],
+            ].map(([id, label, icon]) => (
+              <button key={id} type="button" onClick={() => jumpTo(id)}><Icon name={icon} size={16} /> {label}</button>
+            ))}
+            <Link href="/settings/team"><Icon name="users" size={16} /> Team</Link>
+          </nav>
+          <form id="settings-form" onSubmit={handleSubmit} className="scol">
+            <section id="settings-profile" className="card sec" style={{ scrollMarginTop: 16 }}>
+              <div className="sec-h">
                 <div>
-                  <h2 style={{ fontSize: 16, fontWeight: 800 }}>Profile</h2>
-                  <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Shown in the workspace header and account records.</p>
+                  <b>Profile</b>
+                  <small>Shown in the workspace header and account records.</small>
                 </div>
               </div>
               <div className="settings-two-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14 }}>
@@ -475,15 +481,12 @@ export default function SettingsPage() {
               </div>
             </section>
 
-            <section className="card" data-tour="settings-email" style={{ padding: 24, borderRadius: 8 }}>
-              <div className="row spread" style={{ gap: 16, marginBottom: 18, alignItems: 'flex-start' }}>
+            <section id="settings-inboxes" className="card sec" data-tour="settings-email" style={{ scrollMarginTop: 16 }}>
+              <div className="sec-h">
                 <div className="row" style={{ gap: 10, minWidth: 0 }}>
-                  <span style={{ width: 36, height: 36, borderRadius: 10, background: emailConnectionReady ? 'var(--g-50)' : 'var(--bg-2)', display: 'grid', placeItems: 'center', color: emailConnectionReady ? 'var(--g-700)' : 'var(--ink-2)', flex: 'none' }}>
-                    <Icon name="send" size={18} />
-                  </span>
                   <div>
-                    <h2 style={{ fontSize: 16, fontWeight: 800 }}>Sending inboxes</h2>
-                    <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Each inbox needs SMTP to send and IMAP to read replies. Give an inbox to a teammate, or leave it shared with the team.</p>
+                    <b>Sending inboxes</b>
+                  <small>Each inbox needs SMTP to send and IMAP to read replies. Give an inbox to a teammate, or leave it shared with the team.</small>
                   </div>
                 </div>
                 <span
@@ -703,14 +706,11 @@ export default function SettingsPage() {
               )}
             </section>
 
-            <section className="card" style={{ padding: 24, borderRadius: 8 }}>
-              <div className="row" style={{ gap: 10, marginBottom: 20 }}>
-                <span style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--bg-2)', display: 'grid', placeItems: 'center', color: 'var(--ink-2)' }}>
-                  <Icon name="building" size={18} />
-                </span>
+            <section id="settings-organisation" className="card sec" style={{ scrollMarginTop: 16 }}>
+              <div className="sec-h">
                 <div>
-                  <h2 style={{ fontSize: 16, fontWeight: 800 }}>Organisation</h2>
-                  <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Used for account context and future campaign personalisation.</p>
+                  <b>Organisation</b>
+                  <small>Used for account context and future campaign personalisation.</small>
                 </div>
               </div>
               <div className="col" style={{ gap: 16 }}>
@@ -725,14 +725,11 @@ export default function SettingsPage() {
               </div>
             </section>
 
-            <section className="card" style={{ padding: 24, borderRadius: 8 }}>
-              <div className="row" style={{ gap: 10, marginBottom: 20 }}>
-                <span style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--g-50)', display: 'grid', placeItems: 'center', color: 'var(--g-700)' }}>
-                  <Icon name="spark" size={18} />
-                </span>
+            <section id="settings-agent" className="card sec" style={{ scrollMarginTop: 16 }}>
+              <div className="sec-h">
                 <div>
-                  <h2 style={{ fontSize: 16, fontWeight: 800 }}>Agent Configuration</h2>
-                  <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Defaults applied to outbound emails, replies, and booking workflows.</p>
+                  <b>Agent configuration</b>
+                  <small>Defaults applied to outbound emails, replies, and booking workflows.</small>
                 </div>
               </div>
 
@@ -804,16 +801,12 @@ export default function SettingsPage() {
             </section>
 
             <PhoneNumbers teamMembers={teamMembers} />
-            <a href="/settings/senders">Choose inboxes and numbers to keep after a plan change</a>
-            <section className="card" style={{ padding: 24, borderRadius: 8 }}>
-              <div className="row spread" style={{ gap: 16, marginBottom: 20, alignItems: 'flex-start' }}>
+            <section id="settings-voice" className="card sec" style={{ scrollMarginTop: 16 }}>
+              <div className="sec-h">
                 <div className="row" style={{ gap: 10, minWidth: 0 }}>
-                  <span style={{ width: 36, height: 36, borderRadius: 10, background: voiceAgentId ? 'var(--g-50)' : 'var(--bg-2)', display: 'grid', placeItems: 'center', color: voiceAgentId ? 'var(--g-700)' : 'var(--ink-2)', flex: 'none' }}>
-                    <Icon name="phone" size={18} />
-                  </span>
                   <div>
-                    <h2 style={{ fontSize: 16, fontWeight: 800 }}>Voice Agent (Retell)</h2>
-                    <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Required for launching and running voice campaigns.</p>
+                    <b>Voice agent</b>
+                  <small>Required for launching and running voice campaigns.</small>
                   </div>
                 </div>
                 <span
@@ -971,12 +964,12 @@ export default function SettingsPage() {
               </div>
             </section>
 
-            {error && <p style={{ fontSize: 13.5, color: '#c0392b', fontWeight: 700 }}>{error}</p>}
-            {success && <p style={{ fontSize: 13.5, color: 'var(--g-700)', fontWeight: 800 }}>Settings saved successfully.</p>}
+            {error && <div className="note">{error}</div>}
+            {success && <div className="gnote ok"><b>Settings saved.</b> New drafts use these defaults. Drafts already waiting keep their wording.</div>}
           </form>
 
-          <aside className="col settings-aside" style={{ gap: 14, position: 'sticky', top: 24 }}>
-            <section className="card" style={{ padding: 20, borderRadius: 8 }}>
+          <aside className="scol settings-aside">
+            <section className="card pad">
               <div className="row" style={{ gap: 12 }}>
                 <span style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--g-50)', border: '1px solid var(--g-100)', display: 'grid', placeItems: 'center', color: 'var(--g-700)' }}>
                   <Icon name="building" size={21} />
@@ -1000,7 +993,7 @@ export default function SettingsPage() {
               ))}
             </section>
 
-            <section className="card" style={{ padding: 18, borderRadius: 8, background: 'var(--g-50)', borderColor: 'var(--g-100)' }}>
+            <section className="card pad">
               <div className="row" style={{ gap: 8, fontWeight: 800, fontSize: 13 }}>
                 <Icon name="checkCircle" size={16} color="var(--g-700)" />
                 Workspace defaults
@@ -1010,7 +1003,7 @@ export default function SettingsPage() {
               </p>
             </section>
 
-            <section className="card" style={{ padding: 18, borderRadius: 8 }}>
+            <section className="card pad">
               <div className="row" style={{ gap: 8, fontWeight: 800, fontSize: 13 }}>
                 <Icon name="send" size={16} color="var(--g-700)" />
                 Campaign launch readiness
@@ -1035,7 +1028,7 @@ export default function SettingsPage() {
               </p>
             </section>
 
-            <section className="card" data-tour="settings-tour" style={{ padding: 18, borderRadius: 8 }}>
+            <section className="card pad" data-tour="settings-tour">
               <div className="row" style={{ gap: 8, fontWeight: 800, fontSize: 13 }}>
                 <Icon name="play" size={16} color="var(--g-700)" />
                 Guided tour
@@ -1045,16 +1038,16 @@ export default function SettingsPage() {
                 and analytics. Useful when someone new joins your team, or to revisit a section you skipped.
               </p>
               <div className="col" style={{ gap: 8, marginTop: 12 }}>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => startTour({ restart: true })}>
+                <button type="button" className="bt bt-g sm" onClick={() => startTour({ restart: true })}>
                   <Icon name="play" size={14} /> Restart tour
                 </button>
-                <Link href="/setup" className="btn btn-ghost btn-sm">
+                <Link href="/setup" className="bt bt-g sm">
                   <Icon name="checkCircle" size={14} /> Open setup checklist
                 </Link>
               </div>
             </section>
 
-            <section className="card" style={{ padding: 18, borderRadius: 8 }}>
+            <section className="card pad">
               <div className="row" style={{ gap: 8, fontWeight: 800, fontSize: 13 }}>
                 <Icon name="chat" size={16} color="var(--g-700)" />
                 Help and resources
@@ -1078,7 +1071,6 @@ export default function SettingsPage() {
             </section>
           </aside>
         </div>
-      </div>
-    </div>
+    </main>
   );
 }

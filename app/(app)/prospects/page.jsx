@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import api from "../../../lib/api";
 import { leadPhoto } from "../../../lib/lead-photo";
 import Icon from "../../../components/ui/Icon";
 import Avatar from "../../../components/ui/Avatar";
-import Segmented from "../../../components/ui/Segmented";
 import Spinner from "../../../components/ui/Spinner";
 import LeadDetailModal, {
   SOURCE_LABELS,
@@ -17,6 +17,8 @@ import LeadDetailModal, {
   stageStyle,
 } from "../../../components/leads/LeadDetailModal";
 import { cleanText, isValidEmail } from "../../../lib/validation";
+import { FREE_PLAN, isFreePlan, useOrg } from "../../../lib/free-plan";
+import UpgradeModal from "../../../components/billing/UpgradeModal";
 import {
   audienceDefaultsFromOnboarding,
   normalizeApolloLocations,
@@ -177,142 +179,113 @@ function csvToLeads(text) {
   }).filter(lead => lead.name || lead.firstName || lead.lastName || lead.email || lead.company);
 }
 
-function LeadRow({ lead, onDelete, onSendNow, onOpen, sending }) {
+function readiness(lead) {
+  const status = lead.status || "new";
+  if (STOPPED_STATUSES.has(status)) return { label: "Stopped", cls: "pl-mute" };
+  const hasEmail = isValidEmail(lead.email);
+  if (hasEmail && lead.phone) return { label: "Email + voice", cls: "pl-ok" };
+  if (hasEmail) return { label: "Email ready", cls: "pl-ok" };
+  if (lead.phone) return { label: "Voice ready", cls: "pl-info" };
+  return { label: "Not ready", cls: "pl-warn" };
+}
+
+function LeadRow({ lead, onSelect, selected }) {
   const name = leadName(lead);
   const photo = leadPhoto(lead);
   const score = lead.score ?? 0;
   const status = lead.status || "new";
-  const source = lead.source || "manual";
-  const safeEmail = isValidEmail(lead.email) ? lead.email : "";
-  const hasEmail = Boolean(safeEmail);
-  const safeLinkedIn = safeExternalUrl(lead.linkedinUrl);
-  const sendReady = hasEmail && !STOPPED_STATUSES.has(status);
-  const canSendNow = sendReady && Boolean(lead.campaignId) && status !== "contacted";
-  const readyLabel = hasEmail ? "Email ready" : lead.phone ? "Voice ready" : "Not ready";
+  const ready = readiness(lead);
 
   return (
     <tr
-      className="data-row row-clickable"
-      onClick={() => onOpen(lead.id)}
+      className={selected ? "sel" : score >= 80 ? "hot" : ""}
+      onClick={() => onSelect(lead.id)}
       tabIndex={0}
-      role="button"
-      title="Open lead details"
-      onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onOpen(lead.id); } }}
+      aria-selected={selected}
+      onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(lead.id); } }}
     >
       <td>
-        <div className="row" style={{ gap: 11, minWidth: 0 }}>
+        <div className="who">
           <Avatar name={name} size={34} src={photo} />
-          <div className="col" style={{ minWidth: 0 }}>
-            <span style={{ fontWeight: 800, fontSize: 14 }} className="ellip">{name}</span>
-            <span className="faint ellip" style={{ fontSize: 12 }}>{lead.title || "No title"} · {lead.company || "No company"}</span>
+          <div style={{ minWidth: 0 }}>
+            <b className="ellip">{name}</b>
+            <small className="ellip">{lead.title || "No title"} · {lead.company || "No company"}</small>
           </div>
         </div>
       </td>
-      <td><span style={{ fontWeight: 700, fontSize: 13 }}>{lead.email || "Not requested"}</span></td>
-      <td><span style={{ fontWeight: 700, fontSize: 13 }}>{lead.phone || "Not requested"}</span></td>
-      <td><span className="badge" style={stageStyle(status)}>{STAGE_LABELS[status] || status}</span></td>
+      <td><span className="pl" style={{ ...stageStyle(status), border: 0 }}>{STAGE_LABELS[status] || status}</span></td>
+      <td><span className={`pl ${ready.cls}`}>{ready.label}</span></td>
       <td>
-        <span className={`chip ${sendReady ? "chip-ready" : "chip-blocked"}`}>
-          {STOPPED_STATUSES.has(status) ? "Stopped" : readyLabel}
-        </span>
+        <div className="score"><i><u style={{ width: `${Math.min(100, score)}%` }} /></i><b>{score}</b></div>
       </td>
-      <td>
-        <div className="row" style={{ gap: 8, minWidth: 86 }}>
-          <div className="score-bar"><span style={{ width: `${Math.min(100, score)}%` }} /></div>
-          <strong style={{ fontSize: 13 }}>{score}</strong>
-        </div>
-      </td>
-      <td><span style={{ fontSize: 12.5, fontWeight: 700 }}>{formatNextOutreach(lead.nextOutreach)}</span></td>
-      <td onClick={event => event.stopPropagation()}>
-        <div className="row" style={{ gap: 6, justifyContent: "flex-end", minWidth: 168, flexWrap: "wrap" }}>
-          <button
-            className="btn btn-ghost btn-sm"
-            type="button"
-            disabled={!canSendNow || sending}
-            onClick={() => onSendNow(lead.id)}
-            title={!hasEmail ? "Lead needs an email" : !lead.campaignId ? "Attach lead to an email campaign first" : status === "contacted" ? "Step 1 has already been sent" : STOPPED_STATUSES.has(status) ? "Sequence is stopped for this lead" : "Send campaign email now"}
-            style={{ height: 32, padding: "0 10px", fontSize: 12 }}
-          >
-            <Icon name="send" size={13} /> {sending ? "Sending..." : "Send now"}
-          </button>
-          {safeEmail ? <a className="icon-btn" href={`mailto:${safeEmail}`} title="Email lead"><Icon name="mail" size={14} /></a> : null}
-          {safeLinkedIn ? <a className="icon-btn" href={safeLinkedIn} target="_blank" rel="noreferrer" title="Open LinkedIn"><Icon name="link" size={14} /></a> : null}
-          <button className="icon-btn danger" type="button" onClick={() => onDelete(lead.id)} title="Delete lead"><Icon name="logout" size={14} /></button>
-        </div>
-      </td>
+      <td className="ellip">{formatNextOutreach(lead.nextOutreach)}</td>
     </tr>
   );
 }
 
-function LeadMobileCard({ lead, onDelete, onSendNow, onOpen, sending }) {
+function LeadPreview({ lead, onOpen, onSendNow, onDelete, sending }) {
   const name = leadName(lead);
-  const photo = leadPhoto(lead);
-  const score = lead.score ?? 0;
   const status = lead.status || "new";
-  const source = lead.source || "manual";
+  const ready = readiness(lead);
   const safeEmail = isValidEmail(lead.email) ? lead.email : "";
-  const hasEmail = Boolean(safeEmail);
   const safeLinkedIn = safeExternalUrl(lead.linkedinUrl);
-  const sendReady = hasEmail && !STOPPED_STATUSES.has(status);
-  const canSendNow = sendReady && Boolean(lead.campaignId) && status !== "contacted";
+  const canSendNow = Boolean(safeEmail) && !STOPPED_STATUSES.has(status) && Boolean(lead.campaignId) && status !== "contacted";
 
   return (
-    <article className="prospect-mobile-card card row-clickable" onClick={() => onOpen(lead.id)}>
-      <div className="row" style={{ gap: 11, minWidth: 0 }}>
-        <Avatar name={name} size={36} src={photo} />
-        <div className="col" style={{ minWidth: 0 }}>
-          <span style={{ fontWeight: 800, fontSize: 14 }} className="ellip">{name}</span>
-          <span className="faint ellip" style={{ fontSize: 12 }}>{lead.title || "No title"} · {lead.company || "No company"}</span>
+    <aside className="card pv">
+      <div className="pv-top">
+        <div className="pv-id">
+          <Avatar name={name} size={52} src={leadPhoto(lead)} />
+          <div style={{ minWidth: 0 }}>
+            <b>{name}</b>
+            <small>{[lead.title, lead.company].filter(Boolean).join(" · ") || "No title"}</small>
+          </div>
+          {safeLinkedIn ? (
+            <a className="ibt" style={{ marginLeft: "auto" }} href={safeLinkedIn} target="_blank" rel="noreferrer" aria-label="Open LinkedIn"><Icon name="link" size={15} /></a>
+          ) : null}
+        </div>
+        <div className="pv-tags">
+          <span className="pl" style={{ ...stageStyle(status), border: 0 }}>{STAGE_LABELS[status] || status}</span>
+          <span className={`pl ${ready.cls}`}>{ready.label}</span>
+          <span className="pl pl-dark">Score {lead.score ?? 0}</span>
         </div>
       </div>
-
-      <div className="prospect-mobile-meta">
-        <div>
-          <span>Stage</span>
-          <strong><span className="badge" style={stageStyle(status)}>{STAGE_LABELS[status] || status}</span></strong>
-        </div>
-        <div>
-          <span>Send ready</span>
-          <strong><span className={`chip ${sendReady ? "chip-ready" : "chip-blocked"}`}>{sendReady ? "Ready" : hasEmail ? "Stopped" : "Needs email"}</span></strong>
-        </div>
-        <div>
-          <span>Score</span>
-          <strong>{score}</strong>
-        </div>
-        <div>
-          <span>Location</span>
-          <strong>{lead.location || "-"}</strong>
+      <div className="pv-sec">
+        <div className="pv-h">Contact</div>
+        <div className="kv"><span>Email</span><b className="ellip">{lead.email || "Not revealed"}</b></div>
+        <div className="kv"><span>Phone</span><b>{lead.phone || "Not revealed"}</b></div>
+        <div className="kv"><span>Location</span><b>{lead.location || "Unknown"}</b></div>
+        <div className="kv"><span>Source</span><b>{SOURCE_LABELS[lead.source] || lead.source || "Manual"}</b></div>
+      </div>
+      <div className="pv-sec">
+        <div className="pv-h">Next step</div>
+        <div className="tl">
+          <div><i /><b>{formatNextOutreach(lead.nextOutreach)}</b><span>{lead.campaignId ? "Attached to a campaign" : "Not in a campaign yet"}</span></div>
         </div>
       </div>
-
-      <div className="prospect-mobile-email">Email: {lead.email || "Not requested"} · Phone: {lead.phone || "Not requested"}</div>
-      <div className="faint" style={{ fontSize: 12 }}>Next outreach: {formatNextOutreach(lead.nextOutreach)}</div>
-
-      <div className="row prospect-mobile-actions" onClick={event => event.stopPropagation()}>
-        <button className="btn btn-ghost btn-sm" type="button" disabled={!canSendNow || sending} onClick={() => onSendNow(lead.id)}>
-          <Icon name="send" size={14} /> {sending ? "Sending..." : "Send now"}
+      <div className="pv-acts">
+        <Link className="bt bt-g" href={`/prospects/${lead.id}`}>Full profile</Link>
+        <button
+          type="button"
+          className="bt bt-p"
+          disabled={!canSendNow || sending}
+          onClick={() => onSendNow(lead.id)}
+          title={!safeEmail ? "Lead needs an email" : !lead.campaignId ? "Attach lead to an email campaign first" : status === "contacted" ? "Step 1 has already been sent" : STOPPED_STATUSES.has(status) ? "Sequence is stopped for this lead" : "Send campaign email now"}
+        >
+          <Icon name="send" size={14} color="#06231a" /> {sending ? "Sending..." : "Send now"}
         </button>
-        {safeEmail ? <a className="icon-btn" href={`mailto:${safeEmail}`} title="Email lead"><Icon name="mail" size={14} /></a> : null}
-        {safeLinkedIn ? <a className="icon-btn" href={safeLinkedIn} target="_blank" rel="noreferrer" title="Open LinkedIn"><Icon name="link" size={14} /></a> : null}
-        <button className="icon-btn danger" type="button" onClick={() => onDelete(lead.id)} title="Delete lead"><Icon name="logout" size={14} /></button>
       </div>
-    </article>
-  );
-}
-
-function StatCard({ label, value, icon, tone }) {
-  return (
-    <div className="metric-card">
-      <span className="metric-icon" data-tone={tone || "green"}><Icon name={icon} size={16} /></span>
-      <div>
-        <strong>{value}</strong>
-        <span>{label}</span>
+      <div style={{ padding: "0 20px 16px", display: "flex", gap: 8 }}>
+        {safeEmail ? <a className="lnk" href={`mailto:${safeEmail}`}><Icon name="mail" size={14} /> Email</a> : null}
+        <button type="button" className="lnk" style={{ marginLeft: "auto", color: "#b42318" }} onClick={() => onDelete(lead.id)}>Delete lead</button>
       </div>
-    </div>
+    </aside>
   );
 }
 
 export default function ProspectsPage() {
+  const freePlan = isFreePlan(useOrg());
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [tab, setTab] = useState("table");
   const [campaigns, setCampaigns] = useState([]);
   const [campaignId, setCampaignId] = useState("");
@@ -422,6 +395,8 @@ export default function ProspectsPage() {
   }), [leads]);
 
   const detailLead = useMemo(() => leads.find(lead => lead.id === detailLeadId) || null, [leads, detailLeadId]);
+  const [selectedLeadId, setSelectedLeadId] = useState("");
+  const previewLead = filteredLeads.find(lead => lead.id === selectedLeadId) || filteredLeads[0] || null;
 
   const canSearch = useMemo(() => Boolean(campaignId)
     && (titles.length > 0 || customTitles.trim())
@@ -693,119 +668,102 @@ export default function ProspectsPage() {
     setBulkEnriching(false);
   };
 
+  const switchTab = value => {
+    setTab(value);
+    setError("");
+    setNotice("");
+  };
+
   return (
-    <div className="col" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-      <div className="row spread page-toolbar">
+    <main className="gx">
+      <div className="ph">
         <div>
-          <h1 className="display page-title">Prospects</h1>
-          <p className="muted page-subtitle">Source, score, filter, and prepare leads for campaigns.</p>
+          <h1>Prospects</h1>
+          <p>{freePlan ? `${leads.length} of ${FREE_PLAN.maxLeads} leads on the Free plan. Bring your own leads by CSV or manual entry.` : "Source, score, filter, and prepare leads for campaigns."}</p>
         </div>
-        <Segmented
-          data-tour="prospects-sources"
-          className="prospects-source-tabs"
-          options={[
-            { label: "Lead table", value: "table" },
-            { label: "Manual add", value: "manual" },
-            { label: "Lead database search", value: "apollo" },
-            { label: "CSV upload", value: "csv" },
-          ]}
-          value={tab}
-          onChange={value => {
-            setTab(value);
-            setError("");
-            setNotice("");
-          }}
-        />
+        <div className="acts" data-tour="prospects-sources">
+          {tab !== "table" ? (
+            <button type="button" className="bt bt-g" onClick={() => switchTab("table")}><Icon name="arrowLeft" size={15} /> All prospects</button>
+          ) : null}
+          <button type="button" className="bt bt-g" onClick={() => switchTab("csv")}><Icon name="doc" size={15} /> Import CSV</button>
+          <button type="button" className="bt bt-g" onClick={() => switchTab("manual")}><Icon name="plus" size={15} /> Add manually</button>
+          <button type="button" className="bt bt-p" onClick={() => freePlan ? setUpgradeOpen(true) : switchTab("apollo")}><Icon name="search" size={15} color="#06231a" /> Find new leads</button>
+        </div>
       </div>
 
       {(error || notice) ? <div className={error ? "notice-warn" : "notice-good"}>{error || notice}</div> : null}
 
-      <div className="scroll grow app-page">
+      <div className="col" style={{ gap: 16 }}>
         {tab === "table" ? (
-          <div className="col" style={{ gap: 16 }}>
-            <div className="metric-grid">
-              <StatCard label="total prospects" value={metrics.total} icon="users" />
-              <StatCard label="hot leads" value={metrics.hot} icon="flame" tone="warn" />
-              <StatCard label="meetings set" value={metrics.meetings} icon="calendar" />
-              <StatCard label="emails revealed" value={metrics.revealed} icon="mail" />
+          <>
+            <div className="card" style={{ padding: "16px 20px" }}>
+              <div className="minis">
+                <div className="mini"><b>{metrics.total}</b><small>total prospects</small></div>
+                <span className="mini-sep" />
+                <div className="mini"><b style={{ color: "#c2410c" }}>{metrics.hot}</b><small>hot leads</small></div>
+                <span className="mini-sep" />
+                <div className="mini"><b>{metrics.meetings}</b><small>meetings set</small></div>
+                <span className="mini-sep" />
+                <div className="mini"><b style={{ color: "#088256" }}>{metrics.revealed}</b><small>emails revealed</small></div>
+              </div>
             </div>
 
-            <div className="card table-shell prospects-table-shell" style={{ position: "relative" }}>
-              {leadLoading && filteredLeads.length > 0 && (
-                <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,.6)", display: "grid", placeItems: "center", zIndex: 1 }}>
-                  <Spinner size={22} />
+            <div className="pros-grid">
+              <div className="card" style={{ overflow: "hidden", position: "relative" }}>
+                {leadLoading && filteredLeads.length > 0 && (
+                  <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,.6)", display: "grid", placeItems: "center", zIndex: 1 }}>
+                    <Spinner size={22} />
+                  </div>
+                )}
+                <div className="tools">
+                  <label className="inp" style={{ width: 250 }}>
+                    <Icon name="search" size={15} />
+                    <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search name, company, role…" aria-label="Search prospects" />
+                  </label>
+                  <select className={`chipf ${stageFilter !== "all" ? "set" : ""}`} value={stageFilter} onChange={event => setStageFilter(event.target.value)} aria-label="Stage">
+                    {STAGE_OPTIONS.map(status => <option key={status} value={status}>{status === "all" ? "Stage" : STAGE_LABELS[status]}</option>)}
+                  </select>
+                  <select className={`chipf ${sourceFilter !== "all" ? "set" : ""}`} value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} aria-label="Source">
+                    {SOURCE_OPTIONS.map(source => <option key={source} value={source}>{source === "all" ? "Source" : SOURCE_LABELS[source] || source}</option>)}
+                  </select>
+                  <select className="chipf" style={{ marginLeft: "auto", borderStyle: "solid" }} value={sortBy} onChange={event => setSortBy(event.target.value)} aria-label="Sort">
+                    {SORT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
                 </div>
+
+                <div className="tbl-wrap" style={{ opacity: leadLoading ? 0.5 : 1, pointerEvents: leadLoading ? "none" : "auto", transition: "opacity .15s" }}>
+                  <table className="tbl" style={{ tableLayout: "fixed", minWidth: 680 }}>
+                    <colgroup><col style={{ width: "36%" }} /><col style={{ width: "15%" }} /><col style={{ width: "16%" }} /><col style={{ width: "13%" }} /><col /></colgroup>
+                    <thead>
+                      <tr>{["Prospect", "Stage", "Readiness", "Score", "Next step"].map(header => <th key={header}>{header}</th>)}</tr>
+                    </thead>
+                    <tbody>
+                      {leadLoading && filteredLeads.length === 0 ? (
+                        <tr><td colSpan={5} className="empty"><Spinner size={16} /></td></tr>
+                      ) : filteredLeads.length === 0 ? (
+                        <tr><td colSpan={5} className="empty">No prospects match the current filters.</td></tr>
+                      ) : filteredLeads.map(lead => (
+                        <LeadRow key={lead.id} lead={lead} selected={previewLead?.id === lead.id} onSelect={setSelectedLeadId} />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="tfoot"><span>Showing {filteredLeads.length} of {leads.length}</span></div>
+              </div>
+
+              {previewLead ? (
+                <LeadPreview
+                  lead={previewLead}
+                  onOpen={setDetailLeadId}
+                  onSendNow={sendLeadNow}
+                  onDelete={deleteLead}
+                  sending={sendingId === previewLead.id}
+                />
+              ) : (
+                <aside className="card pv"><div className="empty">Select a prospect to see their details.</div></aside>
               )}
-              <div className="filter-bar">
-                <div className="input-wrap filter-search">
-                  <span className="lead-ico"><Icon name="search" size={16} /></span>
-                  <input className="input has-ico" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search name, company, role, email..." />
-                </div>
-                <select className="input compact-select" value={stageFilter} onChange={event => setStageFilter(event.target.value)}>
-                  {STAGE_OPTIONS.map(status => <option key={status} value={status}>{STAGE_LABELS[status]}</option>)}
-                </select>
-                <select className="input compact-select" value={sourceFilter} onChange={event => setSourceFilter(event.target.value)}>
-                  {SOURCE_OPTIONS.map(source => <option key={source} value={source}>{SOURCE_LABELS[source] || source}</option>)}
-                </select>
-                <select className="input compact-select" value={sortBy} onChange={event => setSortBy(event.target.value)}>
-                  {SORT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </select>
-                <button className="btn btn-primary btn-sm" type="button" onClick={() => setTab("manual")}>
-                  <Icon name="plus" size={15} color="#06231a" /> Add manually
-                </button>
-              </div>
-
-              <div className="table-scroll" style={{ opacity: leadLoading ? 0.5 : 1, pointerEvents: leadLoading ? "none" : "auto", transition: "opacity .15s" }}>
-                <table className="data-table prospects-table">
-                  <colgroup>
-                    <col className="prospect-col" />
-                    <col className="email-col" />
-                    <col className="email-col" />
-                    <col className="stage-col" />
-                    <col className="ready-col" />
-                    <col className="score-col" />
-                    <col className="location-col" />
-                    <col className="actions-col" />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      {["Prospect", "Email", "Phone", "Stage", "Readiness", "Score", "Next outreach", ""].map(header => <th key={header}>{header}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leadLoading && filteredLeads.length === 0 ? null : filteredLeads.length === 0 ? (
-                      <tr><td colSpan={8} className="table-empty">No prospects match the current filters.</td></tr>
-                    ) : filteredLeads.map(lead => (
-                      <LeadRow
-                        key={lead.id}
-                        lead={lead}
-                        onDelete={deleteLead}
-                        onSendNow={sendLeadNow}
-                        onOpen={setDetailLeadId}
-                        sending={sendingId === lead.id}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="prospects-mobile-list" style={{ opacity: leadLoading ? 0.5 : 1, pointerEvents: leadLoading ? "none" : "auto", transition: "opacity .15s" }}>
-                {leadLoading && filteredLeads.length === 0 ? (
-                  <div className="soft-empty"><Spinner size={16} /></div>
-                ) : filteredLeads.length === 0 ? (
-                  <div className="soft-empty">No prospects match the current filters.</div>
-                ) : filteredLeads.map(lead => (
-                  <LeadMobileCard
-                    key={lead.id}
-                    lead={lead}
-                    onDelete={deleteLead}
-                    onSendNow={sendLeadNow}
-                    onOpen={setDetailLeadId}
-                    sending={sendingId === lead.id}
-                  />
-                ))}
-              </div>
             </div>
-          </div>
+          </>
         ) : tab === "manual" ? (
           <form className="card source-panel" onSubmit={createManualLead}>
             <div className="source-panel-head">
@@ -1013,6 +971,14 @@ export default function ProspectsPage() {
         )}
       </div>
 
+      {upgradeOpen ? (
+        <UpgradeModal
+          title="Finding new leads is on paid plans"
+          body="On Free you bring your own leads. Paid plans search the lead database for buyers who fit, verify their work emails, and check fit before spending any credits."
+          onClose={() => setUpgradeOpen(false)}
+        />
+      ) : null}
+
       {detailLead ? (
         <LeadDetailModal
           lead={detailLead}
@@ -1023,6 +989,6 @@ export default function ProspectsPage() {
           sending={sendingId === detailLead.id}
         />
       ) : null}
-    </div>
+    </main>
   );
 }
