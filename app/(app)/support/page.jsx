@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
 import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import Spinner from "../../../components/ui/Spinner";
@@ -233,7 +234,13 @@ export default function SupportPage() {
           <div className="card" style={{ overflow: "hidden" }}>
             <div className="card-h"><div><b>Your tickets</b><small>{tickets.length} ticket{tickets.length === 1 ? "" : "s"}</small></div></div>
             {tickets.length === 0 ? (
-              <div className="empty">No tickets yet.</div>
+              <EmptyState
+                compact
+                icon="chat"
+                title="No tickets yet"
+                text="Ask us anything. Real people reply within 1 business day."
+                actions={[{ label: "New ticket", icon: "plus", primary: true, onClick: () => setComposing(true) }]}
+              />
             ) : tickets.map(ticket => (
               <button key={ticket.id} type="button" className={`tk ${!showForm && ticket.id === selectedId ? "on" : ""}`} onClick={() => { setSelectedId(ticket.id); setComposing(false); }}>
                 <div><b className="ellip">{ticket.subject}</b><TicketBadge status={ticket.status} /></div>

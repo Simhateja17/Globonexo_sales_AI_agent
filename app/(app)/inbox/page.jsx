@@ -2,6 +2,8 @@
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
+import { useRouter } from "next/navigation";
 import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import Spinner from "../../../components/ui/Spinner";
@@ -81,6 +83,7 @@ function MessageBubble({ side, label, meta, avatar, children }) {
 }
 
 export default function InboxPage() {
+  const router = useRouter();
   const composerRef = useRef(null);
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -336,9 +339,17 @@ export default function InboxPage() {
                 </button>
               ))
             ) : (
-              <div className="empty">
-                No {activeFilter === "all" ? "emails" : activeFilter} yet.
-              </div>
+              threads.length === 0 ? (
+                <EmptyState
+                  compact
+                  icon="inbox"
+                  title="You are all caught up"
+                  text="When a lead replies, your agent drafts an answer and it shows up here for your OK."
+                  actions={[{ label: "View campaigns", onClick: () => router.push("/campaigns") }]}
+                />
+              ) : (
+                <EmptyState compact icon="search" title={`No ${activeFilter} yet`} text="Try another filter." actions={[{ label: "Show all", onClick: () => changeFilter("all") }]} />
+              )
             )}
           </div>
         </aside>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
 import { canSee } from "../../../lib/access";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
 
 const STATUS_STYLES = {
   active: { label: "Active", cls: "pl-ok" },
@@ -397,15 +398,22 @@ export default function CampaignsPage() {
       {loading ? (
         <CampaignSkeleton />
       ) : filteredCampaigns.length === 0 ? (
-        <div className="card empty" style={{ padding: 40 }}>
-          <span className="need-ic" style={{ margin: "0 auto" }}><Icon name="send" size={20} /></span>
-          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 22, color: "#0a1712", margin: "14px 0 0" }}>No campaigns found</h2>
-          <p style={{ margin: "8px auto 0", maxWidth: 420, lineHeight: 1.5 }}>
-            Create a campaign with a channel, name, ICP source, send cap, and working hours.
-          </p>
-          <button type="button" className="bt bt-p" style={{ marginTop: 18 }} onClick={() => router.push("/campaigns/new")}>
-            <Icon name="plus" size={15} color="#06231a" /> New campaign
-          </button>
+        <div className="card">
+          {campaigns.length === 0 ? (
+            <EmptyState
+              icon="send"
+              title="Start your first campaign"
+              text="Tell your agent who you sell to. It finds qualified leads each week, writes each email and waits for your OK."
+              actions={[{ label: "New campaign", icon: "plus", primary: true, onClick: () => router.push("/campaigns/new") }]}
+            />
+          ) : (
+            <EmptyState
+              icon="search"
+              title="No campaigns match"
+              text="Try another status or owner, or clear the search."
+              actions={[{ label: "Clear filters", primary: true, onClick: () => { setSearch(""); setStatusFilter("all"); setAssignmentFilter("all"); } }]}
+            />
+          )}
         </div>
       ) : (
         filteredCampaigns.map(campaign => {

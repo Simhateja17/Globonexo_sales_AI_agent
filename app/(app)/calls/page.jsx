@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../../../lib/api";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
+import { useRouter } from "next/navigation";
 import Spinner from "../../../components/ui/Spinner";
 import Avatar from "../../../components/ui/Avatar";
 
@@ -217,6 +219,7 @@ function CallDetailPanel({ call }) {
 }
 
 export default function CallsPage() {
+  const router = useRouter();
   const [calls, setCalls]           = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState("");
@@ -329,11 +332,16 @@ export default function CallsPage() {
               {error} <button type="button" className="bt bt-g sm" onClick={load} style={{ marginLeft: 8 }}>Retry</button>
             </div>
           ) : calls.length === 0 ? (
-            <div className="empty" style={{ padding: 56 }}>
-              <span className="need-ic" style={{ margin: "0 auto 14px" }}><Icon name="phone" size={20} /></span>
-              <div style={{ fontWeight: 800, fontSize: 15, color: "#0a1712", marginBottom: 6 }}>{emptyCopy.title}</div>
-              <div>{emptyCopy.body}</div>
-            </div>
+            filter === "all" ? (
+              <EmptyState
+                icon="phone"
+                title="No calls yet"
+                text="Start a voice campaign and your agent calls your leads, says it is an AI first, and logs every call here with a transcript."
+                actions={[{ label: "New voice campaign", icon: "plus", primary: true, onClick: () => router.push("/campaigns/new") }]}
+              />
+            ) : (
+              <EmptyState icon="phone" title={emptyCopy.title} text={emptyCopy.body} actions={[{ label: "Show all calls", onClick: () => setFilter("all") }]} />
+            )
           ) : (
             <div className="tbl-wrap" style={{ opacity: loading ? 0.5 : 1, pointerEvents: loading ? "none" : "auto", transition: "opacity .15s" }}>
               <table className="tbl">

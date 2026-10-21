@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
 import Avatar from "../../../components/ui/Avatar";
 import Typing from "../../../components/ui/Typing";
 import api from "../../../lib/api";
@@ -665,7 +666,17 @@ export default function AgentPage() {
             {!initialLoaded ? (
               <div className="empty">Loading…</div>
             ) : (
-              msgs.map((m, i) => <Bubble key={m.id ?? i} m={m} onResolved={resolved => setMsgs(current => [...current, resolved])} onPrepare={prepareCampaign} />)
+              msgs.length === 0 && !typing ? (
+                <EmptyState
+                  icon="spark"
+                  title={`Ask ${name} anything`}
+                  text={'Try "Which leads are hot this week?" or "Draft a follow-up for my latest campaign".'}
+                  actions={[
+                    { label: "Which leads are hot?", onClick: () => send("Which leads are hot this week?") },
+                    { label: "What needs me today?", onClick: () => send("What needs me today?") },
+                  ]}
+                />
+              ) : msgs.map((m, i) => <Bubble key={m.id ?? i} m={m} onResolved={resolved => setMsgs(current => [...current, resolved])} onPrepare={prepareCampaign} />)
             )}
             {typing && (
               <div className="bot">

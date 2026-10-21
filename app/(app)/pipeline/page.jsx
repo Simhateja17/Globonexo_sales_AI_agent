@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
 import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
@@ -63,6 +64,7 @@ function LeadCard({ lead }) {
 }
 
 export default function PipelinePage() {
+  const router = useRouter();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -144,10 +146,13 @@ export default function PipelinePage() {
       {error ? <div className="note">{error}</div> : null}
 
       {leads.length === 0 ? (
-        <div className="card empty" style={{ padding: 48 }}>
-          <span className="need-ic" style={{ margin: "0 auto 12px" }}><Icon name="funnel" size={20} /></span>
-          <div style={{ fontWeight: 800, color: "#0a1712" }}>Your pipeline is empty</div>
-          <div style={{ marginTop: 4 }}>Add leads from Prospects to start building the board.</div>
+        <div className="card">
+          <EmptyState
+            icon="funnel"
+            title="Your pipeline is empty"
+            text="Leads move from New to Meeting set on their own as your agent emails, calls and books meetings."
+            actions={[{ label: "Add leads", icon: "plus", primary: true, onClick: () => router.push("/prospects") }]}
+          />
         </div>
       ) : (
         <div className="board-wrap">

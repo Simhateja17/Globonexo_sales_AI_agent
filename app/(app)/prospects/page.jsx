@@ -7,6 +7,7 @@ import { leadPhoto } from "../../../lib/lead-photo";
 import Icon from "../../../components/ui/Icon";
 import Avatar from "../../../components/ui/Avatar";
 import Spinner from "../../../components/ui/Spinner";
+import EmptyState from "../../../components/ui/EmptyState";
 import LeadDetailModal, {
   SOURCE_LABELS,
   STAGE_LABELS,
@@ -741,7 +742,26 @@ export default function ProspectsPage() {
                       {leadLoading && filteredLeads.length === 0 ? (
                         <tr><td colSpan={5} className="empty"><Spinner size={16} /></td></tr>
                       ) : filteredLeads.length === 0 ? (
-                        <tr><td colSpan={5} className="empty">No prospects match the current filters.</td></tr>
+                        <tr><td colSpan={5} style={{ height: "auto", whiteSpace: "normal" }}>
+                          {leads.length === 0 ? (
+                            <EmptyState
+                              icon="users"
+                              title="No leads yet"
+                              text="Find buyers who fit, or bring your own list. Every lead is checked before any credits are spent."
+                              actions={[
+                                { label: "Import CSV", icon: "doc", onClick: () => switchTab("csv") },
+                                { label: "Find new leads", icon: "search", primary: true, onClick: () => freePlan ? setUpgradeOpen(true) : switchTab("apollo") },
+                              ]}
+                            />
+                          ) : (
+                            <EmptyState
+                              icon="search"
+                              title="No leads match these filters"
+                              text={`Try another stage or source, or remove the search term. Your ${leads.length} lead${leads.length === 1 ? " is" : "s are"} still here.`}
+                              actions={[{ label: "Clear filters", primary: true, onClick: () => { setSearch(""); setStageFilter("all"); setSourceFilter("all"); } }]}
+                            />
+                          )}
+                        </td></tr>
                       ) : filteredLeads.map(lead => (
                         <LeadRow key={lead.id} lead={lead} selected={previewLead?.id === lead.id} onSelect={setSelectedLeadId} />
                       ))}
