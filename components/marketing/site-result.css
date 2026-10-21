@@ -1,0 +1,42 @@
+/* Hero + three-card layout shared by the 404, demo booked and message
+   sent pages. */
+.mk-wrap{position:relative;overflow:hidden;background:linear-gradient(135deg,#041f16 0%,#06311f 45%,#075b3f 100%);color:#fff}
+.mk-wrap::before{content:"";position:absolute;width:560px;height:560px;right:-160px;top:-220px;border-radius:50%;background:radial-gradient(circle,rgba(41,214,143,.5),rgba(41,214,143,0) 70%);filter:blur(60px);pointer-events:none}
+.mk-in{position:relative;max-width:1160px;margin:0 auto;padding:88px 24px 96px;display:flex;gap:56px;align-items:center}
+.mk-in > div:first-child{flex:1;min-width:0}
+.mk-eb{display:inline-flex;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#a8f0c6;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.mk-h{margin:22px 0 0;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:68px;line-height:1.02;letter-spacing:-.045em;color:#fff}
+.mk-h span{display:block;color:#6fe7b0}
+.mk-p{margin:20px 0 0;max-width:560px;color:rgba(255,255,255,.76);font-size:18px;line-height:1.7}
+.mk-btns{margin-top:30px;display:flex;flex-wrap:wrap;gap:12px}
+.mk-b1{display:inline-flex;align-items:center;gap:8px;height:50px;padding:0 24px;border-radius:999px;background:linear-gradient(180deg,#29d68f,#00c27a);color:#06231a;font-size:15px;font-weight:800;box-shadow:0 12px 30px rgba(0,194,122,.35);text-decoration:none}
+.mk-b2{display:inline-flex;align-items:center;height:50px;padding:0 24px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:15px;font-weight:800;text-decoration:none}
+.mk-b1:hover{filter:brightness(1.04)}.mk-b2:hover{background:rgba(255,255,255,.14)}
+.mk-card{flex:none;width:440px;max-width:100%;padding:26px;border-radius:24px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16)}
+.mk-card small{display:block;color:#a8f0c6;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.mk-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.85);font-size:15px;font-weight:700}
+.mk-row:first-of-type{border-top:0;margin-top:8px}
+.mk-row i{flex:none;width:34px;height:34px;border-radius:10px;background:rgba(111,231,176,.14);color:#6fe7b0;display:flex;align-items:center;justify-content:center}
+.mk-row span{flex:1;min-width:0;overflow-wrap:anywhere}
+.mk-row em{font-style:normal;color:rgba(255,255,255,.5);font-size:13px;text-align:right}
+.mk-big{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:200px;line-height:.9;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:2px rgba(111,231,176,.55);user-select:none}
+.mk-sec{max-width:1160px;margin:0 auto;padding:72px 24px}
+.mk-sec h2{margin:0;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:30px;letter-spacing:-.025em;color:#0a1712}
+.mk-g3{margin-top:24px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.mk-c{padding:24px;border-radius:20px;border:1px solid var(--line);background:#fff;display:flex;flex-direction:column;gap:8px}
+.mk-c i{width:40px;height:40px;border-radius:12px;background:#ecfdf3;color:#088256;display:flex;align-items:center;justify-content:center}
+.mk-c b{margin-top:6px;font-size:17px;font-weight:800;color:#0a1712}
+.mk-c span{color:var(--muted);font-size:14.5px;line-height:1.6}
+.mk-c a{margin-top:6px;color:#088256;font-size:14px;font-weight:800;text-decoration:none}
+.mk-note{margin-top:20px;padding:14px 18px;border-radius:14px;background:#ecfdf3;border:1px solid #c6efd9;color:#0a5d3f;font-size:14px;font-weight:600;line-height:1.55}
+.mk-note a{color:#088256;font-weight:800;text-decoration:none;margin-left:4px}
+@media (max-width:900px){
+  .mk-in{flex-direction:column;align-items:stretch;gap:32px;padding:56px 20px 64px}
+  .mk-h{font-size:44px}
+  .mk-p{font-size:16px}
+  .mk-big{font-size:120px}
+  .mk-card{width:100%}
+  .mk-g3{grid-template-columns:minmax(0,1fr)}
+  .mk-sec{padding:48px 20px}
+  .mk-sec h2{font-size:24px}
+}

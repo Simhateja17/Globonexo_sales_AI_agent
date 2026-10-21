@@ -1,13 +1,16 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Icon from "../ui/Icon";
-import { CONTACT_FALLBACK_ERROR, CONTACT_TOPICS, sendContactMessage } from "../../lib/contact";
+import { CONTACT_FALLBACK_ERROR, CONTACT_SENT_KEY, CONTACT_TOPICS, sendContactMessage } from "../../lib/contact";
 import { SUPPORT_EMAIL } from "../../lib/site";
+
 
 const EMPTY = { name: "", email: "", company: "", topic: CONTACT_TOPICS[0], message: "", website: "" };
 
 export default function ContactForm() {
+  const router = useRouter();
   const [values, setValues] = useState(EMPTY);
   const [status, setStatus] = useState("idle"); // idle | sending | sent | error
   const [error, setError] = useState("");
@@ -21,7 +24,15 @@ export default function ContactForm() {
     setError("");
     try {
       await sendContactMessage(values);
+      try {
+        window.sessionStorage.setItem(CONTACT_SENT_KEY, JSON.stringify({
+          name: values.name, email: values.email, topic: values.topic, sentAt: new Date().toISOString(),
+        }));
+      } catch {
+        // The confirmation page falls back to generic copy without it.
+      }
       setStatus("sent");
+      router.push("/contact/sent");
     } catch (err) {
       setError(err?.message || CONTACT_FALLBACK_ERROR);
       setStatus("error");
