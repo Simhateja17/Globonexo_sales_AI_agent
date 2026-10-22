@@ -783,7 +783,7 @@ export default function B2bStartupsPage() {
                 fontWeight: "800",
               }}
             >
-              Choose a plan
+              Start free
             </Link>
             <Link
               href="/contact"

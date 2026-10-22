@@ -127,7 +127,7 @@ export default function AccuracyPage() {
               </p>
               <div style={{ marginTop: "30px", display: "flex", flexWrap: "wrap", gap: "12px" }}>
                 <Link
-                  href="/pricing"
+                  href="/signup"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -142,7 +142,7 @@ export default function AccuracyPage() {
                     boxShadow: "0 12px 30px rgba(0,194,122,.35)",
                   }}
                 >
-                  Choose a plan{" "}
+                  Start free{" "}
                   <svg
                     width="16"
                     height="16"
@@ -910,7 +910,7 @@ export default function AccuracyPage() {
                 fontWeight: "800",
               }}
             >
-              Choose a plan
+              Start free
             </Link>
             <Link
               href="/contact"

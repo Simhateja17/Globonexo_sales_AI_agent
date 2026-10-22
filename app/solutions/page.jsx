@@ -955,7 +955,7 @@ export default function SolutionsPage() {
           <h2 className="gd-h2" style={{ margin: "0" }}>
             See it run on your pipeline.
           </h2>
-          <p className="gd-lead">Choose a plan, connect your inbox, and launch your first campaign.</p>
+          <p className="gd-lead">Start free, connect your inbox, and launch your first campaign.</p>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
           <Link
@@ -974,7 +974,7 @@ export default function SolutionsPage() {
               boxShadow: "var(--sh-green)",
             }}
           >
-            Choose a plan
+            Start free
           </Link>
           <Link
             href="/contact"
