@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import api from "../../../lib/api";
 import { leadPhoto } from "../../../lib/lead-photo";
@@ -48,6 +48,8 @@ const TECHNOLOGY_OPTIONS = [
 const INDUSTRY_OPTIONS = ["B2B SaaS", "IT Services", "Marketing Agencies", "Recruiting", "Fintech", "Healthcare", "Manufacturing", "Real Estate", "E-commerce", "Education"];
 const STAGE_OPTIONS = ["all", "new", "queued", "contacted", "engaged", "meeting_booked", "not_interested", "unsubscribed"];
 const SOURCE_OPTIONS = ["all", "apollo", "csv", "manual"];
+const LEADS_PER_PAGE = 25;
+
 const SORT_OPTIONS = [
   { value: "created_desc", label: "Newest" },
   { value: "created_asc", label: "Oldest" },
@@ -324,6 +326,11 @@ export default function ProspectsPage() {
   const [stageFilter, setStageFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [sortBy, setSortBy] = useState("created_desc");
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [summary, setSummary] = useState(null);
+  const leadRequest = useRef(0);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [manualLead, setManualLead] = useState(DEFAULT_MANUAL_LEAD);
@@ -335,16 +342,72 @@ export default function ProspectsPage() {
   const selectedCampaign = campaigns.find(campaign => campaign.id === campaignId);
   const selectedVoiceCampaign = selectedCampaign?.channel === "voice";
 
-  const refreshLeads = () => {
+  // One page at a time: search, filters and sort run in the backend query, so
+  // a workspace with thousands of leads loads as fast as one with ten.
+  const loadPage = () => {
+    const request = ++leadRequest.current;
     setLeadLoading(true);
-    api.get("/leads", { params: { perPage: 500 } })
-      .then(({ data }) => setLeads(Array.isArray(data?.items) ? data.items : []))
+    api.get("/leads", {
+      params: {
+        page,
+        perPage: LEADS_PER_PAGE,
+        sort: sortBy,
+        search: query || undefined,
+        status: stageFilter === "all" ? undefined : stageFilter,
+        source: sourceFilter === "all" ? undefined : sourceFilter,
+      },
+    })
+      .then(({ data }) => {
+        if (request !== leadRequest.current) return;
+        const items = Array.isArray(data?.items) ? data.items : [];
+        const count = Number(data?.pagination?.total ?? items.length);
+        // A delete can empty the last page; step back instead of showing nothing.
+        if (items.length === 0 && page > 1 && count > 0) {
+          setPage(Math.max(1, Math.ceil(count / LEADS_PER_PAGE)));
+          return;
+        }
+        setLeads(items);
+        setTotal(count);
+      })
       .catch(() => {
+        if (request !== leadRequest.current) return;
         setLeads([]);
+        setTotal(0);
         setError("Prospects could not be loaded.");
       })
-      .finally(() => setLeadLoading(false));
+      .finally(() => {
+        if (request === leadRequest.current) setLeadLoading(false);
+      });
   };
+
+  // Header counts cover every lead, not just this page.
+  const loadSummary = () => {
+    api.get("/leads/summary")
+      .then(({ data }) => setSummary(data && typeof data.total === "number" ? data : null))
+      .catch(() => setSummary(null));
+  };
+
+  const refreshLeads = () => {
+    loadPage();
+    loadSummary();
+  };
+
+  useEffect(() => { loadPage(); }, [page, query, stageFilter, sourceFilter, sortBy]);
+  useEffect(() => { loadSummary(); }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const next = search.trim();
+      if (next !== query) {
+        setQuery(next);
+        setPage(1);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search, query]);
+
+  const filterBy = setter => value => { setter(value); setPage(1); };
+  const clearFilters = () => { setSearch(""); setQuery(""); setStageFilter("all"); setSourceFilter("all"); setPage(1); };
 
   useEffect(() => {
     Promise.allSettled([api.get("/campaigns"), api.get("/onboarding")])
@@ -362,7 +425,6 @@ export default function ProspectsPage() {
           setKeywords(defaults.keywords);
         }
       });
-    refreshLeads();
     try {
       const saved = JSON.parse(window.localStorage.getItem("gnx-active-apollo-import") || "null");
       if (saved?.runId) {
@@ -372,31 +434,15 @@ export default function ProspectsPage() {
     } catch {}
   }, []);
 
-  const filteredLeads = useMemo(() => {
-    const needle = search.trim().toLowerCase();
-    const filtered = leads.filter(lead => {
-      const haystack = [leadName(lead), lead.company, lead.title, lead.email, lead.location].filter(Boolean).join(" ").toLowerCase();
-      return (!needle || haystack.includes(needle))
-        && (stageFilter === "all" || lead.status === stageFilter)
-        && (sourceFilter === "all" || lead.source === sourceFilter);
-    });
-    return [...filtered].sort((a, b) => {
-      if (sortBy === "score_desc") return (b.score ?? 0) - (a.score ?? 0);
-      if (sortBy === "score_asc") return (a.score ?? 0) - (b.score ?? 0);
-      if (sortBy === "name_asc") return leadName(a).localeCompare(leadName(b));
-      if (sortBy === "company_asc") return (a.company || "").localeCompare(b.company || "");
-      const aTime = new Date(a.createdAt || 0).getTime();
-      const bTime = new Date(b.createdAt || 0).getTime();
-      return sortBy === "created_asc" ? aTime - bTime : bTime - aTime;
-    });
-  }, [leads, search, stageFilter, sourceFilter, sortBy]);
-
-  const metrics = useMemo(() => ({
-    total: leads.length,
-    hot: leads.filter(lead => (lead.score ?? 0) >= 80 || lead.status === "engaged").length,
-    meetings: leads.filter(lead => lead.status === "meeting_booked").length,
-    revealed: leads.filter(lead => Boolean(lead.email)).length,
-  }), [leads]);
+  // The backend already filtered and sorted this page.
+  const filteredLeads = leads;
+  const hasFilters = Boolean(query || stageFilter !== "all" || sourceFilter !== "all");
+  const leadCount = summary?.total ?? (hasFilters ? 0 : total);
+  // Without the summary only the total is known; the other counts show a dash.
+  const metrics = summary || { total: leadCount, hot: "–", meetings: "–", revealed: "–" };
+  const pageCount = Math.max(1, Math.ceil(total / LEADS_PER_PAGE));
+  const firstShown = total === 0 ? 0 : (page - 1) * LEADS_PER_PAGE + 1;
+  const lastShown = Math.min(total, (page - 1) * LEADS_PER_PAGE + leads.length);
 
   const detailLead = useMemo(() => leads.find(lead => lead.id === detailLeadId) || null, [leads, detailLeadId]);
   const [selectedLeadId, setSelectedLeadId] = useState("");
@@ -419,6 +465,8 @@ export default function ProspectsPage() {
     setStageFilter("all");
     setSortBy("created_desc");
     setSearch("");
+    setQuery("");
+    setPage(1);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -594,8 +642,10 @@ export default function ProspectsPage() {
         } : undefined,
       });
 
-      setLeads(current => [data, ...current.filter(lead => lead.id !== data.id)]);
       setManualLead(DEFAULT_MANUAL_LEAD);
+      loadSummary();
+      if (page === 1) loadPage();
+      else setPage(1);
       setNotice(`${leadName(data)} added manually${campaignId ? " and attached to the selected campaign" : ""}.`);
       setTab("table");
     } catch (err) {
@@ -617,7 +667,7 @@ export default function ProspectsPage() {
     if (!ok) return;
     try {
       await api.delete(`/leads/${id}`);
-      setLeads(current => current.filter(lead => lead.id !== id));
+      refreshLeads();
       setNotice("Lead deleted.");
     } catch {
       setError("Lead could not be deleted.");
@@ -692,7 +742,7 @@ export default function ProspectsPage() {
       <div className="ph">
         <div>
           <h1>Prospects</h1>
-          <p>{freePlan ? `${leads.length} of ${FREE_PLAN.maxLeads} leads on the Free plan. Bring your own leads by CSV or manual entry.` : "Source, score, filter, and prepare leads for campaigns."}</p>
+          <p>{freePlan ? `${leadCount} of ${FREE_PLAN.maxLeads} leads on the Free plan. Bring your own leads by CSV or manual entry.` : "Source, score, filter, and prepare leads for campaigns."}</p>
         </div>
         <div className="acts" data-tour="prospects-sources">
           {tab !== "table" ? (
@@ -733,13 +783,13 @@ export default function ProspectsPage() {
                     <Icon name="search" size={15} />
                     <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search name, company, role…" aria-label="Search prospects" />
                   </label>
-                  <select className={`chipf ${stageFilter !== "all" ? "set" : ""}`} value={stageFilter} onChange={event => setStageFilter(event.target.value)} aria-label="Stage">
+                  <select className={`chipf ${stageFilter !== "all" ? "set" : ""}`} value={stageFilter} onChange={event => filterBy(setStageFilter)(event.target.value)} aria-label="Stage">
                     {STAGE_OPTIONS.map(status => <option key={status} value={status}>{status === "all" ? "Stage" : STAGE_LABELS[status]}</option>)}
                   </select>
-                  <select className={`chipf ${sourceFilter !== "all" ? "set" : ""}`} value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} aria-label="Source">
+                  <select className={`chipf ${sourceFilter !== "all" ? "set" : ""}`} value={sourceFilter} onChange={event => filterBy(setSourceFilter)(event.target.value)} aria-label="Source">
                     {SOURCE_OPTIONS.map(source => <option key={source} value={source}>{source === "all" ? "Source" : SOURCE_LABELS[source] || source}</option>)}
                   </select>
-                  <select className="chipf" style={{ marginLeft: "auto", borderStyle: "solid" }} value={sortBy} onChange={event => setSortBy(event.target.value)} aria-label="Sort">
+                  <select className="chipf" style={{ marginLeft: "auto", borderStyle: "solid" }} value={sortBy} onChange={event => filterBy(setSortBy)(event.target.value)} aria-label="Sort">
                     {SORT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
                   </select>
                 </div>
@@ -763,7 +813,7 @@ export default function ProspectsPage() {
                         ))
                       ) : filteredLeads.length === 0 ? (
                         <tr><td colSpan={5} style={{ height: "auto", whiteSpace: "normal" }}>
-                          {leads.length === 0 ? (
+                          {!hasFilters ? (
                             <EmptyState
                               icon="users"
                               title="No leads yet"
@@ -777,8 +827,8 @@ export default function ProspectsPage() {
                             <EmptyState
                               icon="search"
                               title="No leads match these filters"
-                              text={`Try another stage or source, or remove the search term. Your ${leads.length} lead${leads.length === 1 ? " is" : "s are"} still here.`}
-                              actions={[{ label: "Clear filters", primary: true, onClick: () => { setSearch(""); setStageFilter("all"); setSourceFilter("all"); } }]}
+                              text={`Try another stage or source, or remove the search term.${leadCount ? ` Your ${leadCount} lead${leadCount === 1 ? " is" : "s are"} still here.` : ""}`}
+                              actions={[{ label: "Clear filters", primary: true, onClick: clearFilters }]}
                             />
                           )}
                         </td></tr>
@@ -788,7 +838,16 @@ export default function ProspectsPage() {
                     </tbody>
                   </table>
                 </div>
-                <div className="tfoot"><span>Showing {filteredLeads.length} of {leads.length}</span></div>
+                <div className="tfoot">
+                  <span>{total === 0 ? "Showing 0 of 0" : `Showing ${firstShown} to ${lastShown} of ${total}`}</span>
+                  {pageCount > 1 ? (
+                    <div className="acts">
+                      <span className="pg-of">Page {page} of {pageCount}</span>
+                      <button type="button" className="bt bt-g sm" disabled={page <= 1 || leadLoading} onClick={() => setPage(current => Math.max(1, current - 1))}>Previous</button>
+                      <button type="button" className="bt bt-g sm" disabled={page >= pageCount || leadLoading} onClick={() => setPage(current => Math.min(pageCount, current + 1))}>Next</button>
+                    </div>
+                  ) : null}
+                </div>
               </div>
 
               {previewLead ? (
@@ -981,18 +1040,18 @@ export default function ProspectsPage() {
                   <label className="apollo-checkbox-row"><input type="checkbox" checked={voiceConfirmed} onChange={event => setVoiceConfirmed(event.target.checked)} /> I confirm these numbers were DNC-checked, have not opted out, and may lawfully be called.</label>
                 </div> : null}
               </div>
-              {freePlan && csvLeads.length > 0 && leads.length + csvLeads.length > FREE_PLAN.maxLeads ? (
+              {freePlan && csvLeads.length > 0 && leadCount + csvLeads.length > FREE_PLAN.maxLeads ? (
                 <StateNote
                   tone="warn"
-                  title={`This file has ${csvLeads.length} leads. You have room for ${Math.max(0, FREE_PLAN.maxLeads - leads.length)}.`}
-                  text={`The Free plan holds up to ${FREE_PLAN.maxLeads} leads. ${leads.length} are already in your workspace.`}
+                  title={`This file has ${csvLeads.length} leads. You have room for ${Math.max(0, FREE_PLAN.maxLeads - leadCount)}.`}
+                  text={`The Free plan holds up to ${FREE_PLAN.maxLeads} leads. ${leadCount} are already in your workspace.`}
                   secondary={{ label: "Upgrade", onClick: () => setUpgradeOpen(true) }}
-                  action={FREE_PLAN.maxLeads - leads.length > 0 ? { label: `Import the first ${FREE_PLAN.maxLeads - leads.length}`, onClick: () => setCsvLeads(current => current.slice(0, FREE_PLAN.maxLeads - leads.length)) } : null}
+                  action={FREE_PLAN.maxLeads - leadCount > 0 ? { label: `Import the first ${FREE_PLAN.maxLeads - leadCount}`, onClick: () => setCsvLeads(current => current.slice(0, FREE_PLAN.maxLeads - leadCount)) } : null}
                 />
               ) : null}
               <div className="row spread source-actions">
                 <span className="faint">{csvLeads.length} parsed rows. Maximum 1000 rows per upload.</span>
-                <button className="btn btn-primary btn-sm" type="button" disabled={csvLeads.length === 0 || uploading || (freePlan && leads.length + csvLeads.length > FREE_PLAN.maxLeads)} onClick={uploadCsv}>
+                <button className="btn btn-primary btn-sm" type="button" disabled={csvLeads.length === 0 || uploading || (freePlan && leadCount + csvLeads.length > FREE_PLAN.maxLeads)} onClick={uploadCsv}>
                   <Icon name="plus" size={15} color="#06231a" /> {uploading ? "Importing..." : "Import leads"}
                 </button>
               </div>
