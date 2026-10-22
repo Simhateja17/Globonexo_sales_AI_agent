@@ -2772,6 +2772,53 @@ a { color: inherit; text-decoration: none; }
 .hd-ripple { position: absolute; z-index: 39; width: 40px; height: 40px; margin: -20px 0 0 -20px; pointer-events: none; border: 2px solid var(--g-400); border-radius: 50%; animation: hd-ripple .55s ease-out forwards; }
 @keyframes hd-ripple { from { opacity: .9; transform: scale(.3); } to { opacity: 0; transform: scale(1.4); } }
 
+/* The workspace pages use the GNX app design (.gx, app/(app)/app-design.css).
+   Its layouts collapse at viewport widths under 1200px, but the desktop stage
+   is always drawn 1400px wide and scaled, so keep the wide layouts there. */
+.hd-stage .gx.hd-gx { flex: 1; min-height: 0; overflow: hidden; }
+.hd-stage:not(.is-compact) .gx .pros-grid { grid-template-columns: minmax(0, 1fr) 360px; }
+.hd-stage:not(.is-compact) .gx .cg { grid-template-columns: minmax(0, 1fr) 420px; }
+.hd-stage:not(.is-compact) .gx .cal-grid { grid-template-columns: minmax(0, 1fr) 320px; }
+.hd-stage:not(.is-compact) .gx .ib { grid-template-columns: 330px minmax(0, 1fr) 280px; }
+.hd-stage:not(.is-compact) .gx .ib .ctx { display: flex; }
+.hd-stage:not(.is-compact) .gx .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+.hd-stage:not(.is-compact) .gx .mets,
+.hd-stage:not(.is-compact) .gx .cc-stats { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+.hd-stage .gx .hd-ib { flex: 1; min-height: 0; }
+.hd-stage .gx .hd-ib .il,
+.hd-stage .gx .hd-ib .cv { min-height: 0; overflow: hidden; }
+/* Long threads keep the newest messages and the reply box in view, like the
+   real thread scrolled to its end. */
+.hd-thread-body { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; margin-top: 14px; }
+.hd-thread-body > * { flex: none; }
+.hd-stage.is-compact .hd-thread-body { overflow: visible; }
+.hd-stage .gx .dft { margin-top: 14px; }
+.hd-dft-text { min-height: 96px; padding: 12px 16px; white-space: pre-wrap; font-size: 13.5px; font-weight: 600; line-height: 1.55; color: #0a1712; }
+.hd-stage .gx .bt.hd-dim { opacity: .55; }
+.hd-stage .gx .bt.hd-calling { color: #0369a1; border-color: #bae0fb; background: #f0f9ff; }
+.hd-ph { color: #9aa8a0; white-space: nowrap; overflow: hidden; }
+.hd-chip-menu { position: relative; }
+.hd-chip-menu.is-focused { border-color: var(--g-300); box-shadow: 0 0 0 3px var(--ring); }
+.hd-chip-menu .hd-menu { left: auto; right: 0; min-width: 180px; color: var(--ink-2); font-weight: 700; }
+.hd-stage .gx tr.hd-sort-row.sel td { background: #f3fcf7; }
+.hd-swap-in, .hd-panel-in { animation: hd-screen-in .4s cubic-bezier(.2,.7,.2,1) both; }
+.hd-stage .gx .cd .rec { padding: 12px 18px; border-bottom: 1px solid #eef3f0; }
+.hd-upc-new { background: #f3fcf7; }
+.hd-ask { gap: 7px; height: 38px; padding: 0 15px; border-radius: 999px; background: #0a5d3f; color: #fff; font-size: 13px; font-weight: 800; }
+.hd-stage.is-compact .hd-ask { width: 38px; padding: 0; justify-content: center; }
+
+/* Phone: compact top bar, bottom tab bar and More sheet, like the app. The
+   bar sits at the bottom of the visible view, which HeroDemo publishes. */
+.hd-phone-top { position: absolute; top: 0; left: 0; z-index: 26; height: 62px; display: flex; align-items: center; padding: 0 16px; }
+.hd-stage.is-compact .hd-header { padding-left: 120px; }
+.hd-stage.is-compact .gx.hd-gx { overflow: visible; padding-bottom: 96px; }
+.hd-tabs { position: absolute; left: 0; right: 0; z-index: 30; top: calc(var(--hd-view-top, 0px) + var(--hd-view-h, 640px) - 72px); height: 72px; display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 8px 10px; background: #fff; border-top: 1px solid #e7ede9; }
+.hd-tabs > span { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #7c8a83; font-size: 11px; font-weight: 800; }
+.hd-tabs > span.is-on { color: #088256; }
+.hd-more { position: absolute; left: 12px; right: 12px; z-index: 29; top: calc(var(--hd-view-top, 0px) + var(--hd-view-h, 640px) - 86px); transform: translateY(-100%) translateY(16px); padding: 10px; display: flex; flex-direction: column; gap: 2px; background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--sh-lg); opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
+.hd-more.is-open { opacity: 1; transform: translateY(-100%); }
+.hd-stage.is-compact .hd-toast { top: calc(var(--hd-view-top, 0px) + var(--hd-view-h, 600px) - 140px); }
+
 .landing-how { padding-top: 116px; padding-bottom: 120px; background: #fff; }
 .landing-section-intro { max-width: 610px; }
 .landing-section-intro h2, .landing-results-copy h2, .landing-cta h2 { font-size: clamp(38px, 4vw, 56px); }
