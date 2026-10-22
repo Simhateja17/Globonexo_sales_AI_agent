@@ -1,5 +1,4 @@
 "use client";
-import { Fragment } from "react";
 import Link from "next/link";
 import Icon from "../ui/Icon";
 import FaqSection from "../marketing/FaqSection";
@@ -16,17 +15,6 @@ const PRIMARY_BTN = {
 };
 const OUTLINE_BTN = { background: "#fff", border: "1.5px solid #0a1712", color: "#0a1712" };
 const GHOST_BTN = { background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.22)", color: "#fff" };
-
-// The studies behind the numbers quoted on this page.
-const SOURCES = [
-  ["Salesforce, State of Sales", "https://www.salesforce.com/news/stories/sales-research-2023/"],
-  ["Saleshandy, cold email statistics (2026)", "https://saleshandy.com/blog/cold-email-statistics/"],
-  ["Woodpecker, cold email statistics (2026)", "https://woodpecker.co/blog/cold-email-statistics/"],
-  ["Belkins, cold calling benchmarks (2026)", "https://belkins.io/blog/cold-calling-benchmarks"],
-  ["Gartner, buyers validate AI with reps (2026)", "https://www.gartner.com/en/newsroom/press-releases/2026-05-20-gartner-survey-finds-sixty-nine-percent-of-b-two-b-buyers-turn-to-sales-reps-to-validate-ai-generated-insights"],
-  ["The Bridge Group, 2025 SDR Metrics Report", "https://www.bridgegroupinc.com/research/2025-sdr-models-metrics-report-the-bridge-group"],
-  ["Google, email sender guidelines", "https://support.google.com/a/answer/81126"],
-];
 
 const faqs = [
   {
@@ -1457,17 +1445,6 @@ export default function LandingSections({ user, loading }) {
           </div>
         </div>
       </section>
-      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-        <div className="gd-sources">
-          <strong>Sources:</strong>{" "}
-          {SOURCES.map(([label, href], index) => (
-            <Fragment key={href}>
-              {index > 0 ? " · " : null}
-              <a href={href} target="_blank" rel="noopener noreferrer">{label}</a>
-            </Fragment>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
