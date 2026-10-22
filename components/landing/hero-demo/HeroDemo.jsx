@@ -241,15 +241,13 @@ function Cursor({ cursorRef, clicking }) {
   );
 }
 
-export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
+export default function HeroDemo() {
   const shellRef = React.useRef(null);
   const cameraRef = React.useRef(null);
   const cursorRef = React.useRef(null);
   const timers = React.useRef([]);
   const sceneRef = React.useRef(0);
   const visibleRef = React.useRef(false);
-  const onLoopEndRef = React.useRef(onLoopEnd);
-  onLoopEndRef.current = onLoopEnd;
 
   const [scene, setScene] = React.useState(0);
   const [run, setRun] = React.useState(0);
@@ -293,7 +291,6 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
           if (cursor) setClick(c => ({ n: c.n + 1, x: cursor._x || 0, y: cursor._y || 0 }));
         }
         if (step.next) {
-          if (index === SCENES.length - 1) onLoopEndRef.current?.();
           play((index + 1) % SCENES.length);
         }
       }, step.at));
@@ -316,7 +313,9 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
     return clearTimers;
   }, []);
 
-  // Only plays while on screen; coming back restarts the current scene.
+  // Plays once the visitor scrolls to it, so the hero copy has the first
+  // screen to itself; scrolling away pauses it and coming back restarts the
+  // current scene.
   React.useEffect(() => {
     if (reduced || !shellRef.current || typeof IntersectionObserver === "undefined") return undefined;
     const observer = new IntersectionObserver(([entry]) => {
@@ -327,7 +326,7 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
         visibleRef.current = false;
         clearTimers();
       }
-    }, { threshold: 0.25 });
+    }, { threshold: 0.5 });
     observer.observe(shellRef.current);
     return () => observer.disconnect();
   }, [reduced, play]);
@@ -342,7 +341,7 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
       const h = shell.clientHeight;
       // Phones and small tablets see the app's own phone layout at real size;
       // the app's CSS switches to it at the same 900px breakpoint.
-      // A frame narrower than a real phone (the intro frame on a phone is
+      // A frame narrower than a real phone (a narrow phone frame is
       // ~330px) still gets a 390px page, scaled down, so nothing is squeezed.
       const compact = window.innerWidth <= 900;
       compactRef.current = compact;
@@ -542,11 +541,6 @@ export default function HeroDemo({ intro = false, onLoopEnd, onSkip }) {
             )}
           </div>
         </div>
-        {intro && (
-          <button type="button" className="hd-skip" onClick={onSkip}>
-            Skip intro <Icon name="arrow" size={13} />
-          </button>
-        )}
       </div>
     </CompactContext.Provider>
   );
