@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "../../../components/ui/Icon";
+import useFreeUsage from "../../../hooks/useFreeUsage";
 import InboxHealthNote from "../../../components/ui/InboxHealthNote";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
@@ -267,14 +268,19 @@ function FreeWelcome({ firstName, organization, router }) {
 
 function FreeDashboard({ firstName, kpis, tasks, activity, campaigns, router }) {
   const plan = upgradePlan();
-  const emailsUsed = kpis.emailsSent ?? 0;
+  const usage = useFreeUsage(true);
+  const emailsUsed = usage?.emailsThisMonth ?? 0;
+  const creditsUsed = usage?.creditsUsed ?? 0;
+  const creditsTotal = usage?.creditsTotal || FREE_PLAN.monthlyCredits;
+  const sentToday = usage?.sentToday;
+  const dailyCap = usage?.dailyCap || FREE_PLAN.dailyEmailCap;
+  const dailyCapHit = sentToday != null && sentToday >= dailyCap;
   const leadsUsed = kpis.savedLeads ?? 0;
-  const emailsLeft = Math.max(0, FREE_PLAN.monthlyAiEmails - emailsUsed);
   const leadsLeft = Math.max(0, FREE_PLAN.maxLeads - leadsUsed);
   const campaign = campaigns.find(c => c.status === "active") || campaigns[0] || null;
   const enrolled = Number(campaign?.enrolled || 0);
   const sent = Number(campaign?.sent || 0);
-  const nearLimit = emailsUsed >= FREE_PLAN.monthlyAiEmails * 0.6;
+  const creditsLow = creditsUsed >= creditsTotal * 0.6;
 
   return (
     <main className="gx">
@@ -289,12 +295,23 @@ function FreeDashboard({ firstName, kpis, tasks, activity, campaigns, router }) 
         </div>
       </div>
 
-      {nearLimit ? (
+      {dailyCapHit ? (
+        <div className="lim-banner">
+          <span className="li"><Icon name="clock" size={18} /></span>
+          <div>
+            <b>{sentToday} of {dailyCap} emails sent today</b>
+            <span>The rest send tomorrow inside your sending window. Paid plans send up to {plan.dailyEmailCap} a day.</span>
+          </div>
+          <div className="acts">
+            <button type="button" className="bt bt-p sm" onClick={() => router.push("/billing")}>Upgrade to {plan.name}</button>
+          </div>
+        </div>
+      ) : creditsLow ? (
         <div className="lim-banner">
           <span className="li"><Icon name="alertCircle" size={18} /></span>
           <div>
-            <b>{emailsUsed} of {FREE_PLAN.monthlyAiEmails} emails used this month</b>
-            <span>{emailsLeft === 0 ? "New drafts are paused until your allowance resets." : `${emailsLeft} left. New drafts pause when you run out,`} or upgrade to keep going today.</span>
+            <b>{creditsUsed} of {creditsTotal} AI credits used this month</b>
+            <span>{creditsUsed >= creditsTotal ? "New drafts are paused until your credits reset" : "New drafts pause when they run out"}, or upgrade to keep going today.</span>
           </div>
           <div className="acts">
             <button type="button" className="bt bt-g sm" onClick={() => router.push("/pricing")}>See plans</button>
@@ -327,7 +344,7 @@ function FreeDashboard({ firstName, kpis, tasks, activity, campaigns, router }) 
       </div>
 
       <div className="kpis" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
-        <KpiCard item={{ label: "Emails sent", value: emailsUsed, detail: `of ${FREE_PLAN.monthlyAiEmails} this month`, icon: "send" }} />
+        <KpiCard item={{ label: "Emails sent", value: emailsUsed, detail: sentToday != null ? `this month · ${sentToday} of ${dailyCap} today` : "this month", icon: "send" }} />
         <KpiCard item={{ label: "Replies", value: kpis.replies ?? 0, detail: <><span className="up">{kpis.replyRate ?? 0}%</span> reply rate</>, icon: "chat" }} />
         <KpiCard item={{ label: "Meetings", value: kpis.meetings ?? 0, detail: "booked", icon: "calendar" }} />
         <KpiCard item={{ label: "Your leads", value: leadsUsed, detail: `of ${FREE_PLAN.maxLeads} on Free`, icon: "users" }} />

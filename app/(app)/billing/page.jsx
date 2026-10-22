@@ -9,6 +9,7 @@ import Icon from "../../../components/ui/Icon";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import useBillingCheckout from "../../../hooks/useBillingCheckout";
 import api from "../../../lib/api";
+import useFreeUsage from "../../../hooks/useFreeUsage";
 import { useCanSee } from "../../../lib/access";
 import { ACCESS_STATUSES as ACTIVE_STATUSES, MAX_ANNUAL_SAVINGS_PERCENT, PLAN_CONFIG } from "../../../lib/plans";
 import { FREE_PLAN, isFreePlan, upgradePlan, useOrg } from "../../../lib/free-plan";
@@ -51,6 +52,7 @@ export default function BillingPage() {
   const freePlan = isFreePlan(organization);
   const [freeKpis, setFreeKpis] = useState(null);
   const [owner, setOwner] = useState(null);
+  const freeLive = useFreeUsage(freePlan);
   const [usage, setUsage] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -357,8 +359,20 @@ export default function BillingPage() {
       <div className="meters" data-tour="billing-usage">
         {freePlan ? (
           <>
-            <Meter label="Emails sent" value={`${freeKpis?.emailsSent ?? 0} of ${FREE_PLAN.monthlyAiEmails}`} used={freeKpis?.emailsSent} limit={FREE_PLAN.monthlyAiEmails} note={`Drafts pause at ${FREE_PLAN.monthlyAiEmails}`} />
-            <Meter label="Sent this month" value={usage?.emailsSentThisMonth ?? 0} used={usage?.emailsSentThisMonth} limit={FREE_PLAN.dailyEmailCap * 30} note={`Up to ${FREE_PLAN.dailyEmailCap} a day`} />
+            <Meter
+              label="AI credits this month"
+              value={`${freeLive?.creditsUsed ?? 0} of ${freeLive?.creditsTotal || FREE_PLAN.monthlyCredits}`}
+              used={freeLive?.creditsUsed}
+              limit={freeLive?.creditsTotal || FREE_PLAN.monthlyCredits}
+              note={`About ${FREE_PLAN.monthlyAiEmails} AI-written emails. Drafts pause when they run out.`}
+            />
+            <Meter
+              label="Sent today"
+              value={freeLive?.sentToday != null ? `${freeLive.sentToday} of ${freeLive.dailyCap || FREE_PLAN.dailyEmailCap}` : `Up to ${FREE_PLAN.dailyEmailCap}`}
+              used={freeLive?.sentToday}
+              limit={freeLive?.dailyCap || FREE_PLAN.dailyEmailCap}
+              note="Resets each day in your timezone"
+            />
             <Meter label="Leads" value={`${freeKpis?.savedLeads ?? 0} of ${FREE_PLAN.maxLeads}`} used={freeKpis?.savedLeads} limit={FREE_PLAN.maxLeads} note="CSV upload or manual entry only" />
             <Meter label="Email campaigns" value={`${usage?.campaignUsage?.email?.used ?? 0} of ${FREE_PLAN.emailCampaigns}`} used={usage?.campaignUsage?.email?.used} limit={FREE_PLAN.emailCampaigns} note="Pause it to start a different one" />
           </>

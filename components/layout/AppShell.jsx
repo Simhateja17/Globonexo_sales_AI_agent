@@ -5,16 +5,19 @@ import Logo from "../ui/Logo";
 import Icon from "../ui/Icon";
 import Avatar from "../ui/Avatar";
 import AskNexoDrawer from "./AskNexoDrawer";
+import UpgradeModal from "../billing/UpgradeModal";
+import useFreeUsage from "../../hooks/useFreeUsage";
 import ConnectionBanner from "../ui/ConnectionBanner";
 import api from "../../lib/api";
 import { hasWorkspaceAccess } from "../../lib/billingAccess";
 import { canSee, pageKeyForPath, RoleContext } from "../../lib/access";
 import { FREE_PLAN, isFreePlan, OrgContext, upgradePlan } from "../../lib/free-plan";
 
-function FreePlanUsage({ usage, onUpgrade }) {
+function FreePlanUsage({ kpis, usage, onUpgrade }) {
   const meters = [
-    ["Emails sent", usage?.emailsSent, FREE_PLAN.monthlyAiEmails],
-    ["Leads", usage?.savedLeads, FREE_PLAN.maxLeads],
+    ["AI credits", usage?.creditsUsed, usage?.creditsTotal || FREE_PLAN.monthlyCredits],
+    ["Sent today", usage?.sentToday, usage?.dailyCap || FREE_PLAN.dailyEmailCap],
+    ["Leads", kpis?.savedLeads, FREE_PLAN.maxLeads],
   ];
   return (
     <div style={{ margin: '10px 0 4px', padding: 14, borderRadius: 14, background: 'var(--bg)', border: '1px solid var(--line)', flex: 'none' }}>
@@ -106,6 +109,13 @@ export default function AppShell({ children }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [freeUsage, setFreeUsage] = useState(null);
   const [askOpen, setAskOpen] = useState(false);
+  const [upgradePrompt, setUpgradePrompt] = useState(null);
+
+  useEffect(() => {
+    const onUpgrade = event => setUpgradePrompt(event.detail ?? {});
+    window.addEventListener('gnx:upgrade-required', onUpgrade);
+    return () => window.removeEventListener('gnx:upgrade-required', onUpgrade);
+  }, []);
   const [agentName, setAgentName] = useState('Nexo');
   const notificationsRef = useRef(null);
 
@@ -209,6 +219,7 @@ export default function AppShell({ children }) {
   }, []);
 
   const freePlan = isFreePlan(org);
+  const freeLiveUsage = useFreeUsage(freePlan, freePlan ? pathname : null);
 
 
   const paymentRequired = Boolean(
@@ -216,7 +227,6 @@ export default function AppShell({ children }) {
       && user
       && org
       && user.membership_status !== 'plan_suspended'
-      && !freePlan
       && !hasWorkspaceAccess(user, org),
   );
   const billingRouteAllowed = BILLING_ALLOWED_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -385,7 +395,7 @@ export default function AppShell({ children }) {
           </div>
         </div>
 
-        {freePlan ? <div className="app-shell-logout" style={{ display: 'block' }}><FreePlanUsage usage={freeUsage} onUpgrade={() => goTo('/billing')} /></div> : null}
+        {freePlan ? <div className="app-shell-logout" style={{ display: 'block' }}><FreePlanUsage kpis={freeUsage} usage={freeLiveUsage} onUpgrade={() => goTo('/billing')} /></div> : null}
         <button className="row nw app-shell-logout" onClick={handleLogout} style={{ gap: 9, marginTop: 10, padding: '0 6px', height: 36, color: 'var(--muted)', fontWeight: 700, fontSize: 13.5, flex: 'none' }}>
           <Icon name="logout" size={17} /> Log out
         </button>
@@ -503,6 +513,15 @@ export default function AppShell({ children }) {
           </button>
         </nav>
         <ConnectionBanner />
+        {upgradePrompt ? (
+          <div className="gx gx-layer">
+            <UpgradeModal
+              title="This needs a paid plan"
+              body={upgradePrompt.message || "Your current plan does not include this. Upgrade to use it."}
+              onClose={() => setUpgradePrompt(null)}
+            />
+          </div>
+        ) : null}
         {askOpen ? <AskNexoDrawer agentName={agentName} onClose={() => setAskOpen(false)} /> : null}
       </div>
     </div>
