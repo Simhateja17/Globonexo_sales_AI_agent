@@ -1,4 +1,5 @@
-import { AuthAside } from "../../../components/layout/AuthAside";
+import { Suspense } from "react";
+import { AuthFrame } from "../../../components/auth/AuthFrame";
 import { LoginForm } from "../../../components/auth/LoginForm";
 
 export const metadata = {
@@ -7,16 +8,10 @@ export const metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="screen auth-screen" style={{ flexDirection: 'row' }}>
-      <AuthAside
-        kicker="Welcome back"
-        headline="Your AI sales rep never sleeps."
-        sub="Sign in to see the emails it sent, the replies it handled, and the meetings it booked while you were away."
-        bullets={['Autonomous outreach & follow-up', 'Real-time buying-intent signals', 'Meetings booked on autopilot']}
-      />
-      <div className="grow auth-main" style={{ display: 'grid', placeItems: 'center', padding: 40, background: '#fff' }}>
+    <AuthFrame panel="away">
+      <Suspense fallback={null}>
         <LoginForm />
-      </div>
-    </div>
+      </Suspense>
+    </AuthFrame>
   );
 }

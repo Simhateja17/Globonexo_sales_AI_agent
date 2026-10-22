@@ -7251,6 +7251,8 @@ canvas {
 .contact-form textarea.input { height: auto; padding: 14px 16px; line-height: 1.6; resize: vertical; }
 .contact-form select.input { padding-right: 12px; }
 .contact-form-trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.contact-form .input--bad, .contact-form .input--bad:focus { border-color: #f04438; box-shadow: 0 0 0 3px #fee4e2; }
+.contact-field-error { margin-top: 6px; color: #b42318; font-size: 13px; font-weight: 700; line-height: 1.5; }
 .contact-form-error { margin-top: 16px; padding: 12px 14px; border: 1px solid #f6d5d1; border-radius: var(--r-md); background: var(--stop-50); color: var(--stop); font-size: 14px; line-height: 1.5; }
 .contact-form-foot { margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
 .contact-form-foot > span { max-width: 360px; color: var(--muted); font-size: 13px; line-height: 1.5; }
