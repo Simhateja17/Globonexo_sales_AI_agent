@@ -806,7 +806,7 @@ export default function IndividualsPage() {
                 fontWeight: "800",
               }}
             >
-              Choose a plan
+              Start free
             </Link>
             <Link
               href="/contact"

@@ -74,7 +74,7 @@ export default function AboutPage() {
             </p>
             <div className="about-hero-actions">
               <Link className="btn btn-primary btn-lg" href="/signup">
-                Choose a plan <Icon name="arrow" size={17} color="#06231a" />
+                Start free <Icon name="arrow" size={17} color="#06231a" />
               </Link>
               <Link className="landing-outline-btn" href="/contact">Talk to us</Link>
             </div>
@@ -188,7 +188,7 @@ export default function AboutPage() {
             <p>Pick a plan and launch this week, or book 30 minutes and we will walk through your outbound with you.</p>
           </div>
           <div className="content-cta-actions">
-            <Link className="btn btn-primary btn-lg" href="/signup">Choose a plan</Link>
+            <Link className="btn btn-primary btn-lg" href="/signup">Start free</Link>
             <a className="landing-outline-btn" href={DEMO_URL} target="_blank" rel="noopener noreferrer">Book a demo</a>
           </div>
         </div>
