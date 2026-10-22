@@ -160,6 +160,8 @@ function CampaignSettingsDrawer({
   );
 }
 
+const CAMPAIGNS_PER_PAGE = 10;
+
 export default function CampaignsPage() {
   const confirm = useConfirm();
   const router = useRouter();
@@ -168,6 +170,7 @@ export default function CampaignsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [assignmentFilter, setAssignmentFilter] = useState("mine");
+  const [page, setPage] = useState(1);
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -216,6 +219,17 @@ export default function CampaignsPage() {
       return statusMatch && assignmentMatch && textMatch;
     });
   }, [campaigns, search, statusFilter, assignmentFilter, team]);
+
+  // /campaigns returns every campaign (other pages rely on the full list and
+  // its summary), so the list is paged here rather than in the API.
+  useEffect(() => { setPage(1); }, [search, statusFilter, assignmentFilter]);
+  const pageCount = Math.max(1, Math.ceil(filteredCampaigns.length / CAMPAIGNS_PER_PAGE));
+  const currentPage = Math.min(page, pageCount);
+  const pageCampaigns = filteredCampaigns.slice((currentPage - 1) * CAMPAIGNS_PER_PAGE, currentPage * CAMPAIGNS_PER_PAGE);
+  const goToPage = next => {
+    setPage(next);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const setCampaignInList = updated => {
     setCampaigns(current => current.map(campaign => (campaign.id === updated.id ? updated : campaign)));
@@ -419,7 +433,8 @@ export default function CampaignsPage() {
           )}
         </div>
       ) : (
-        filteredCampaigns.map(campaign => {
+        <>
+        {pageCampaigns.map(campaign => {
           const viewer = team?.viewer;
           const canOperate = !viewer || ['owner', 'admin'].includes(viewer.role) || campaign.assignedUserId === viewer.id;
           const canDelete = canSee(viewer?.role, 'campaign.delete');
@@ -527,7 +542,18 @@ export default function CampaignsPage() {
               </div>
             </div>
           );
-        })
+        })}
+        {filteredCampaigns.length > CAMPAIGNS_PER_PAGE ? (
+          <div className="tfoot cpager">
+            <span>Showing {(currentPage - 1) * CAMPAIGNS_PER_PAGE + 1} to {Math.min(filteredCampaigns.length, currentPage * CAMPAIGNS_PER_PAGE)} of {filteredCampaigns.length}</span>
+            <div className="acts">
+              <span className="pg-of">Page {currentPage} of {pageCount}</span>
+              <button type="button" className="bt bt-g sm" disabled={currentPage <= 1} onClick={() => goToPage(currentPage - 1)}>Previous</button>
+              <button type="button" className="bt bt-g sm" disabled={currentPage >= pageCount} onClick={() => goToPage(currentPage + 1)}>Next</button>
+            </div>
+          </div>
+        ) : null}
+        </>
       )}
       <CampaignSettingsDrawer
         campaign={settingsCampaign}

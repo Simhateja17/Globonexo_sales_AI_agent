@@ -127,6 +127,7 @@
 .gx .tfoot .acts{align-items:center}
 .gx .tfoot .pg-of{margin-right:4px;color:#9aa8a0}
 .gx .tfoot .bt:disabled{opacity:.5;cursor:default}
+.gx .tfoot.cpager{padding:4px 2px}
 .gx .pv{position:sticky;top:0;overflow:hidden}
 .gx .pv-top{padding:20px;background:linear-gradient(160deg,#fff,#f4fbf7);border-bottom:1px solid #eef3f0}
 .gx .pv-id{display:flex;gap:12px;align-items:center}
