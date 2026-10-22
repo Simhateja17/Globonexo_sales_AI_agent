@@ -35,8 +35,8 @@ const faqs = [
     a: "It can show you which segments respond, quickly and cheaply. It cannot create demand. Poor product-market fit was a factor in 43% of recent venture-backed shutdowns CB Insights studied, and faster outreach to the wrong market only fails faster.",
   },
   {
-    q: "Is there a free trial?",
-    a: "No. Every account starts on a paid monthly or yearly plan. Book a demo if you want to watch the agent find, email and call a lead before you pay.",
+    q: "Is there a free plan?",
+    a: "Yes. The Free plan runs 1 email campaign from your own company inbox, up to 30 emails a day and about 200 AI-written emails a month, on your own leads (CSV or paste, up to 500). Lead enrichment and AI calling are on paid plans. No card needed. Sign up with a work email; each company gets one Free workspace.",
   },
 ];
 

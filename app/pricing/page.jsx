@@ -1,13 +1,13 @@
 export const metadata = {
   title: "AI Sales Agent Pricing: Plans, Credits, and Limits",
   description:
-    "AI SDR pricing without the usual add-ons. Every GNX Sales plan includes email sequences, lead enrichment, and AI voice calling from one credit pool. Compare plans and monthly costs.",
+    "Start free with one email campaign from your own inbox, no card needed. Paid GNX Sales plans add lead enrichment and AI voice calling from one credit pool. Compare plans and monthly costs.",
   alternates: { canonical: "/pricing" },
   openGraph: {
     url: "/pricing",
     title: "AI Sales Agent Pricing: Plans, Credits, and Limits",
     description:
-      "Every plan includes email, enrichment, and AI voice calling on one credit pool. Credits set the ceiling, not the feature list.",
+      "Start free, no card needed. Paid plans include email, enrichment, and AI voice calling on one credit pool.",
   },
 };
 
@@ -15,12 +15,12 @@ import PricingView from "../../components/marketing/PricingView";
 
 const faqs = [
   {
-    q: "Is there a free trial?",
-    a: "No. Every account starts on a paid monthly or yearly plan. Book a demo if you want to watch the agent find, email and call a lead before you pay.",
+    q: "Is there a free plan?",
+    a: "Yes. The Free plan runs 1 email campaign from your own company inbox, up to 30 emails a day and about 200 AI-written emails a month, on your own leads (CSV or paste, up to 500). Lead enrichment and AI calling are on paid plans. No card needed. Sign up with a work email; each company gets one Free workspace.",
   },
   {
     q: "Is AI calling priced separately?",
-    a: "No. Outbound calling is in every plan and draws from the same credits as email and enrichment, and your plan's phone numbers are included. Extra numbers beyond your plan cost 200 credits each every 30 days. The plan decides how many voice campaigns run at once.",
+    a: "No. Outbound calling is in every paid plan and draws from the same credits as email and enrichment, and your plan's phone numbers are included. Extra numbers beyond your plan cost 200 credits each every 30 days. The plan decides how many voice campaigns run at once.",
   },
   {
     q: "What happens when I run out of credits?",

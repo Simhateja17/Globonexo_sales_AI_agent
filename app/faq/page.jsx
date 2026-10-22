@@ -144,8 +144,8 @@ const groups = [
         a: "Individual: 2,645 credits a month, 3 email and 1 voice campaign, 1 user, 1 mailbox, 1 phone number. Agency: 5,370 credits, 10 email and 4 voice campaigns, 5 users, 10 mailboxes, 3 phone numbers. Startup: 14,370 credits, 25 email and 10 voice campaigns, 15 users, 30 mailboxes, 10 phone numbers.",
       },
       {
-        q: "Is there a free trial?",
-        a: "No. Every account starts on a paid monthly or yearly plan. Book a demo first if you want to see the agent work before paying.",
+        q: "Is there a free plan?",
+        a: "Yes. The Free plan runs 1 email campaign from your own company inbox, up to 30 emails a day and about 200 AI-written emails a month, on your own leads (CSV or paste, up to 500). Lead enrichment and AI calling are on paid plans. No card needed. Sign up with a work email; each company gets one Free workspace.",
       },
       {
         q: "What are credits?",

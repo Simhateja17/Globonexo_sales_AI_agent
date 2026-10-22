@@ -18,7 +18,7 @@ describe("PublicNav session actions", () => {
 
     expect(screen.getByRole("link", { name: /Back to dashboard/i }).getAttribute("href")).toBe("/dashboard");
     expect(screen.queryByText("Sign in")).toBeNull();
-    expect(screen.queryByText("Choose a plan")).toBeNull();
+    expect(screen.queryByText("Start free")).toBeNull();
   });
 
   it("keeps the sign-in and plan actions for a signed-out visitor", () => {
@@ -27,7 +27,8 @@ describe("PublicNav session actions", () => {
     render(<PublicNav />);
 
     expect(screen.getByRole("link", { name: "Sign in" }).getAttribute("href")).toBe("/login");
-    expect(screen.getByRole("link", { name: /Choose a plan/i }).getAttribute("href")).toBe("/signup");
+    expect(screen.getByRole("link", { name: /Start free/i }).getAttribute("href")).toBe("/signup");
+    expect(screen.getByRole("link", { name: "Book a demo" }).getAttribute("href")).toContain("calendly.com");
     expect(screen.queryByText(/Back to dashboard/i)).toBeNull();
   });
 
@@ -37,7 +38,7 @@ describe("PublicNav session actions", () => {
     render(<PublicNav />);
 
     expect(screen.queryByText("Sign in")).toBeNull();
-    expect(screen.queryByText("Choose a plan")).toBeNull();
+    expect(screen.queryByText("Start free")).toBeNull();
     expect(screen.queryByText(/Back to dashboard/i)).toBeNull();
   });
 });

@@ -43,8 +43,8 @@ export default function LandingPage() {
                   </button>
                 ) : (
                   <>
-                    <button className="btn btn-primary btn-lg" onClick={() => router.push('/pricing')}>
-                      See plans from $59 <Icon name="arrow" size={18} color="#06231a" />
+                    <button className="btn btn-primary btn-lg" onClick={() => router.push('/signup')}>
+                      Start free <Icon name="arrow" size={18} color="#06231a" />
                     </button>
                     <a
                       className="landing-outline-btn"
@@ -60,9 +60,9 @@ export default function LandingPage() {
                 )}
               </div>
               <div className="landing-assurances">
+                <span><Icon name="check" size={15} color="var(--g-300)" /> Free plan, no card</span>
                 <span><Icon name="check" size={15} color="var(--g-300)" /> Month to month</span>
                 <span><Icon name="check" size={15} color="var(--g-300)" /> No setup fee</span>
-                <span><Icon name="check" size={15} color="var(--g-300)" /> Verified emails only</span>
                 <span><Icon name="check" size={15} color="var(--g-300)" /> AI disclosed on every call</span>
               </div>
             </div>
