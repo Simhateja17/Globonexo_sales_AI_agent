@@ -1,20 +1,29 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
-import { Icon } from '../ui/Icon';
-import { Field } from '../ui/Input';
-import { postAuthPath } from '../../lib/billingAccess';
+import { postAuthPath, rememberPausedWorkspace } from '../../lib/billingAccess';
 import { cleanText, isValidEmail } from '../../lib/validation';
+import { GoogleButton } from './AuthFrame';
+import { NextSteps, VerifyStep } from './VerifyStep';
+
+const OAUTH_ERRORS = {
+  oauth_failed: 'Google sign-in did not finish. Please try again, or use your email.',
+};
 
 export function LoginForm() {
   const router = useRouter();
+  const params = useSearchParams();
   const { startLogin, verifyLogin } = useAuth();
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [otp, setOtp] = useState('');
+  const [codeError, setCodeError] = useState('');
   const [step, setStep] = useState('email');
-  const [error, setError] = useState('');
+  const oauthError = params?.get('error');
+  const [error, setError] = useState(oauthError ? OAUTH_ERRORS[oauthError] || oauthError : '');
   const [submitting, setSubmitting] = useState(false);
 
   const handleEmailSubmit = async (e) => {
@@ -22,13 +31,15 @@ export function LoginForm() {
     setError('');
     const normalizedEmail = cleanText(email, { max: 254 }).toLowerCase();
     if (!isValidEmail(normalizedEmail)) {
-      setError('Enter a valid work email.');
+      setEmailError('Enter a full email address, like you@company.com.');
       return;
     }
     setEmail(normalizedEmail);
     setSubmitting(true);
     try {
       await startLogin(normalizedEmail);
+      setOtp('');
+      setCodeError('');
       setStep('otp');
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong. Please try again.');
@@ -40,18 +51,17 @@ export function LoginForm() {
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!/^\d{6}$/.test(otp)) {
-      setError('Enter the 6-digit code.');
-      return;
-    }
+    setCodeError('');
+    if (!/^\d{6}$/.test(otp)) return;
     setSubmitting(true);
     try {
       const data = await verifyLogin(email, otp);
       localStorage.setItem('returning_user', '1');
+      rememberPausedWorkspace(data);
       router.push(postAuthPath(data));
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid or expired code.');
-    } finally {
+      if (err.response?.status === 401 && /code/i.test(err.response?.data?.error || '')) setCodeError('wrong');
+      else setError(err.response?.data?.error || 'Something went wrong. Please try again.');
       setSubmitting(false);
     }
   };
@@ -61,8 +71,12 @@ export function LoginForm() {
     setSubmitting(true);
     try {
       await startLogin(email);
+      setOtp('');
+      setCodeError('');
+      return true;
     } catch (err) {
-      setError(err.response?.data?.error || 'Could not resend the code. Please try again.');
+      setError(err.response?.data?.error || 'Could not send a new code. Please try again in a minute.');
+      return false;
     } finally {
       setSubmitting(false);
     }
@@ -70,74 +84,56 @@ export function LoginForm() {
 
   if (step === 'otp') {
     return (
-      <div style={{ width: 380, maxWidth: '100%' }}>
-        <h2 className="display" style={{ fontSize: 30 }}>Check your inbox</h2>
-        <p className="muted" style={{ marginTop: 8, fontSize: 15 }}>
-          We sent a 6-digit code to <b style={{ color: 'var(--ink)' }}>{email}</b>.
-        </p>
-        <form onSubmit={handleOtpSubmit}>
-          <div style={{ marginTop: 24 }}>
-            <Field
-              label="Verification code"
-              icon="lock"
-              placeholder="123456"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              required
-              autoComplete="one-time-code"
-            />
-          </div>
-          {error && (
-            <p style={{ marginTop: 14, fontSize: 13.5, color: '#c0392b', fontWeight: 600 }}>{error}</p>
-          )}
-          <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ marginTop: 22 }} disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in'} <Icon name="arrow" size={18} color="#06231a" />
-          </button>
-        </form>
-        <p className="text-c muted" style={{ marginTop: 22, fontSize: 14 }}>
-          Didn&apos;t get it?{' '}
-          <button type="button" onClick={handleResend} disabled={submitting} style={{ color: 'var(--g-700)', fontWeight: 800 }}>
-            Resend code
-          </button>
-        </p>
-        <p className="text-c muted" style={{ marginTop: 8, fontSize: 14 }}>
-          <button type="button" onClick={() => { setStep('email'); setOtp(''); setError(''); }} style={{ color: 'var(--muted)', fontWeight: 700 }}>
-            Use a different email
-          </button>
-        </p>
-      </div>
+      <VerifyStep
+        email={email}
+        otp={otp}
+        setOtp={(value) => { setOtp(value); setCodeError(''); }}
+        codeError={codeError}
+        error={error}
+        submitting={submitting}
+        submitLabel="Sign in"
+        onSubmit={handleOtpSubmit}
+        onResend={handleResend}
+        onChangeEmail={() => { setStep('email'); setOtp(''); setCodeError(''); setError(''); }}
+      />
     );
   }
 
   return (
-    <div className="auth-form">
-      <h2 className="display" style={{ fontSize: 30 }}>Sign in</h2>
-      <p className="muted" style={{ marginTop: 8, fontSize: 15 }}>Welcome back. Let&apos;s get to work.</p>
-      <button
-        type="button"
-        className="btn btn-ghost btn-block"
-        style={{ marginTop: 26 }}
-        onClick={() => { window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`; }}
-      >
-        <Icon name="google" size={19} /> Continue with Google
-      </button>
-      <div className="row center" style={{ gap: 14, margin: '20px 0' }}>
-        <hr className="divider grow" /><span className="faint" style={{ fontSize: 12.5, fontWeight: 700 }}>OR</span><hr className="divider grow" />
-      </div>
-      <form onSubmit={handleEmailSubmit}>
-        <div className="col" style={{ gap: 16 }}>
-          <Field label="Work email" icon="mail" type="email" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-        </div>
-        {error && (
-          <p style={{ marginTop: 14, fontSize: 13.5, color: '#c0392b', fontWeight: 600 }}>{error}</p>
-        )}
-        <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ marginTop: 22 }} disabled={submitting}>
-          {submitting ? 'Sending code…' : 'Continue'} <Icon name="arrow" size={18} color="#06231a" />
+    <>
+      <h1>Sign in</h1>
+      <p>Welcome back. Let&apos;s get to work.</p>
+      <GoogleButton />
+      <div className="or">or</div>
+      <form onSubmit={handleEmailSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <label className="fld">
+          <span>Work email</span>
+          <div className={`in${emailError ? ' bad' : ''}`}>
+            <input
+              type="email"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
+              aria-invalid={emailError ? 'true' : undefined}
+              autoComplete="email"
+              maxLength={254}
+            />
+          </div>
+          {emailError ? <span className="ferr" role="alert">{emailError}</span> : null}
+        </label>
+        {error ? <span className="ferr" role="alert">{error}</span> : null}
+        <button type="submit" className="bt bt-p" disabled={submitting}>
+          {submitting ? 'Sending code…' : 'Email me a code'}
         </button>
       </form>
-      <p className="text-c muted" style={{ marginTop: 22, fontSize: 14 }}>
-        New to Globonexo? <a href="/signup" className="nw" style={{ color: 'var(--g-700)', fontWeight: 800 }}>Create an account</a>
-      </p>
-    </div>
+      <div className="au-foot">New to GNX? <Link href="/signup">Create an account</Link></div>
+      <NextSteps
+        title="New to GNX?"
+        steps={[
+          ['spark', 'Start free', '1 email campaign from your own inbox'],
+          ['card', 'No card needed', 'Upgrade only when it books meetings'],
+        ]}
+      />
+    </>
   );
 }

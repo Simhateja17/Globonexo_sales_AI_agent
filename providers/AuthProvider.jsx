@@ -36,8 +36,11 @@ export function AuthProvider({ children }) {
     return res.data;
   };
 
+  // Resolves to the backend's Free plan eligibility for this email:
+  // 'eligible', 'personal_email', 'domain_taken' or 'paused'.
   const startSignup = async (payload) => {
-    await api.post('/auth/signup/start', payload);
+    const res = await api.post('/auth/signup/start', payload);
+    return res.data?.freePlan;
   };
 
   const verifySignup = async (email, otp) => {
