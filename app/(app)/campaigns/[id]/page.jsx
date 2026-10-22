@@ -11,6 +11,7 @@ import Avatar from "../../../../components/ui/Avatar";
 import { isValidEmail } from "../../../../lib/validation";
 import { leadPhoto } from "../../../../lib/lead-photo";
 import { FREE_PLAN, isFreePlan, upgradePlan, useOrg } from "../../../../lib/free-plan";
+import useFreeUsage from "../../../../hooks/useFreeUsage";
 import { campaignLifecycle } from "../../../../lib/campaign-state";
 import StateNote from "../../../../components/ui/StateNote";
 import DraftReview from "../../../../components/campaigns/DraftReview";
@@ -204,6 +205,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
 
 export default function CampaignDetailPage() {
   const freePlan = isFreePlan(useOrg());
+  const freeLive = useFreeUsage(freePlan);
   const { id } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -562,8 +564,16 @@ export default function CampaignDetailPage() {
         <div className="lim-banner">
           <span className="li"><Icon name="clock" size={18} /></span>
           <div>
-            <b>Free sends up to {FREE_PLAN.dailyEmailCap} emails a day</b>
-            <span>Anything over the daily limit sends the next day inside your sending window. Paid plans send up to {upgradePlan().dailyEmailCap} a day and more.</span>
+            <b>
+              {freeLive?.sentToday != null
+                ? `${freeLive.sentToday} of ${freeLive.dailyCap || FREE_PLAN.dailyEmailCap} emails sent today`
+                : `Free sends up to ${FREE_PLAN.dailyEmailCap} emails a day`}
+            </b>
+            <span>
+              {freeLive?.sentToday != null && freeLive.sentToday >= (freeLive.dailyCap || FREE_PLAN.dailyEmailCap)
+                ? `The rest send tomorrow inside your sending window. Paid plans send up to ${upgradePlan().dailyEmailCap} a day.`
+                : `Anything over the daily limit sends the next day inside your sending window. Paid plans send up to ${upgradePlan().dailyEmailCap} a day.`}
+            </span>
           </div>
           <button type="button" className="bt bt-p sm" onClick={() => router.push("/billing")}>
             <Icon name="star" size={13} color="#06231a" /> Upgrade to {upgradePlan().name}

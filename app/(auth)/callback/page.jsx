@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
+import { postAuthPath } from '../../../lib/billingAccess';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -24,8 +25,7 @@ export default function AuthCallbackPage() {
       .post('/auth/google/callback', { accessToken, refreshToken, expiresIn, invitationToken })
       .then((res) => {
         localStorage.setItem('returning_user', '1');
-        const status = res.data.organization?.subscription_status;
-        router.replace(['active', 'past_due'].includes(status) ? '/dashboard' : '/subscribe');
+        router.replace(postAuthPath(res.data));
       })
       .catch(() => router.replace('/login?error=oauth_failed'));
   }, [router]);
