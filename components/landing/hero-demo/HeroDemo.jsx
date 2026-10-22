@@ -3,8 +3,10 @@ import React from "react";
 import Logo from "../../ui/Logo";
 import Icon from "../../ui/Icon";
 import Avatar from "../../ui/Avatar";
+// The copied workspace screens use the app's own GNX design styles.
+import "../../../app/(app)/app-design.css";
 import { WORKSPACE_USER, DRAFTS, AGENT_STEPS, OWEN_CALL, photoFor } from "./demoData";
-import { ProspectsScreen, LeadModal, CampaignsScreen, CallsScreen, CallModal, InboxScreen, CalendarScreen, AgentScreen, CompactContext } from "./screens";
+import { ProspectsScreen, CampaignsScreen, CallsScreen, InboxScreen, CalendarScreen, AgentScreen, CompactContext } from "./screens";
 
 // Hero product demo: a cursor walks through copies of the real app screens
 // while a camera zooms in on the moment that matters in each one.
@@ -33,7 +35,7 @@ const SCENES = [
     nav: "prospects",
     label: "Prospects",
     Screen: ProspectsScreen,
-    final: { sorted: true },
+    final: { sorted: true, open: true },
     steps: [
       { at: 300, cursor: "sort" },
       { at: 1000, click: true, set: { sortOpen: true } },
@@ -41,12 +43,10 @@ const SCENES = [
       { at: 1850, click: true, set: { sortOpen: false, sorted: true } },
       { at: 2700, cursor: "lead-top" },
       { at: 3200, click: true, set: { open: true } },
-      { at: 3450, zoom: "lead-modal-top", scale: 1.35 },
-      { at: 5500, zoom: null },
-      { at: 5600, cursor: "modal-close" },
-      { at: 6100, click: true, set: { open: false } },
-      { at: 6500, cursor: "nav-campaigns" },
-      { at: 7100, click: true, next: true },
+      { at: 3500, zoom: "lead-preview", scale: 1.3 },
+      { at: 5600, zoom: null },
+      { at: 6000, cursor: "nav-campaigns" },
+      { at: 6600, click: true, next: true },
     ],
   },
   {
@@ -70,22 +70,18 @@ const SCENES = [
     nav: "calls",
     label: "Call History",
     Screen: CallsScreen,
-    final: { done: true, outcome: true },
+    final: { done: true, outcome: true, open: true, lines: OWEN_CALL.transcript.length },
     steps: [
       { at: 300, cursor: "call-owen" },
       { at: 1600, set: { done: true } },
       { at: 2400, set: { outcome: true } },
-      { at: 2900, cursor: "call-details" },
-      { at: 3400, click: true, set: { pressDetails: true } },
-      { at: 3600, set: { pressDetails: false, open: true } },
-      { at: 3900, zoom: "call-summary", scale: 1.3 },
-      { at: 5400, set: { callScroll: 430 }, zoom: "call-transcript", scale: 1.25 },
-      ...transcriptSteps(5800),
-      { at: 9800, zoom: null },
-      { at: 10000, cursor: "call-close" },
-      { at: 10500, click: true, set: { open: false } },
-      { at: 10900, cursor: "nav-campaigns" },
-      { at: 11500, click: true, next: true },
+      { at: 2900, click: true, set: { open: true } },
+      { at: 3300, zoom: "call-summary", scale: 1.35 },
+      { at: 4900, set: { callScroll: 330 }, zoom: "call-transcript", scale: 1.3 },
+      ...transcriptSteps(5300),
+      { at: 9300, zoom: null, set: { callScroll: 0 } },
+      { at: 9700, cursor: "nav-campaigns" },
+      { at: 10300, click: true, next: true },
     ],
   },
   {
@@ -179,11 +175,13 @@ const SCENES = [
   },
 ];
 
-// On phones there is no sidebar: every page change opens the real ☰ menu
-// first, then taps the page in it. The added taps push later steps back.
+// On phones there is no sidebar. Like the real app, pages in the bottom tab
+// bar are one tap away; the rest open the More sheet first, then tap the page
+// in it. The added taps push later steps back.
 // Moving to a target can also scroll the page, so a tap waits until that
 // scroll has settled instead of landing while the page is still moving.
 const PHONE_SETTLE = 1000;
+const PHONE_TABS = [["dashboard", "Home", "grid"], ["prospects", "Leads", "users"], ["inbox", "Inbox", "inbox"], ["campaigns", "Campaigns", "send"]];
 const PHONE_WIDTH = 390;
 function phoneSteps(steps) {
   let shift = 0;
@@ -196,11 +194,12 @@ function phoneSteps(steps) {
     }
     if (step.cursor) lastMove = at;
     if (step.cursor?.startsWith("nav-")) {
-      // The ☰ button is at the top, so reaching it can scroll the page up.
+      const id = step.cursor.slice(4);
+      if (PHONE_TABS.some(([tab]) => tab === id)) return [{ ...step, cursor: `tab-${id}`, at }];
       shift += 1500;
       lastMove = at + 1500;
       return [
-        { ...step, cursor: "menu-btn", at },
+        { ...step, cursor: "more-btn", at },
         { at: at + 950, click: true, menu: true },
         { ...step, at: at + 1500 },
       ];
@@ -374,9 +373,9 @@ export default function HeroDemo() {
     if (!camera) return;
 
     // Phones: no zoom. The page scrolls so whatever matters stays in view;
-    // windows that open on top (lead, call, file picker) sit in that view.
+    // the file picker, which opens on top, sits in that view.
     if (frame.compact) {
-      const modalOpen = Boolean(flags.open || flags.pickerOpen);
+      const modalOpen = Boolean(flags.pickerOpen);
       const focus = zoom.key || cursorKey;
       const box = focus ? measure(camera, focus) : null;
       // A new page (next scene, or a campaign opening) starts at the top at
@@ -486,34 +485,25 @@ export default function HeroDemo() {
             )}
 
             {frame.compact && (
-              <aside className="app-shell-sidebar hd-phone-bar">
-                <div className="app-shell-brand"><Logo size={28} /></div>
-                <span data-hd="menu-btn" className="app-shell-menu-btn"><Icon name={menuOpen ? "close" : "menu"} size={22} /></span>
-                <div className={`app-shell-mobile-drawer ${menuOpen ? "is-open" : ""}`}>
-                  {NAV.map((group, gi) => (
-                    <div key={gi} className="app-shell-mobile-group">
-                      {group.label && <div className="app-shell-mobile-label">{group.label}</div>}
-                      {group.items.map(([id, label, ico]) => (
-                        <span key={id} data-hd={`nav-${id}`} className={`app-shell-mobile-item ${id === def.nav ? "is-active" : ""}`}>
-                          <Icon name={ico} size={18} color={id === def.nav ? "var(--g-600)" : "var(--muted)"} />
-                          <span>{label}</span>
-                        </span>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </aside>
+              <div className="hd-phone-top">
+                <Logo size={26} />
+              </div>
             )}
 
             <div className="hd-main">
               <header className="row spread hd-header">
-                <div className="input-wrap app-shell-search">
-                  <span className="lead-ico"><Icon name="search" size={17} /></span>
-                  <div className="input has-ico hd-fake-input" style={{ height: 40, background: "var(--bg)", fontSize: 14 }}>Search leads, accounts, replies…</div>
-                </div>
+                {!frame.compact ? (
+                  <div className="input-wrap app-shell-search">
+                    <span className="lead-ico"><Icon name="search" size={17} /></span>
+                    <div className="input has-ico hd-fake-input" style={{ height: 40, background: "var(--bg)", fontSize: 14 }}>Search leads, accounts, replies…</div>
+                  </div>
+                ) : <span />}
                 <div className="row" style={{ gap: 14 }}>
+                  <span className="row nw hd-ask">
+                    <Icon name="spark" size={15} color="#6fe7b0" />{!frame.compact && <span>Ask Nexo</span>}
+                  </span>
                   <span style={{ position: "relative", color: "var(--ink-2)", display: "block" }}>
-                    <Icon name="inbox" size={20} />
+                    <Icon name="bell" size={20} />
                     <span className="hd-bell-count">7</span>
                   </span>
                   <div className="row" style={{ gap: 9 }}>
@@ -532,8 +522,33 @@ export default function HeroDemo() {
               </div>
             </div>
 
-            {def.nav === "prospects" && <LeadModal open={Boolean(flags.open)} />}
-            {def.nav === "calls" && <CallModal open={Boolean(flags.open)} scroll={flags.callScroll || 0} lines={flags.lines || 0} />}
+            {frame.compact && (
+              <>
+                <div className={`hd-more ${menuOpen ? "is-open" : ""}`}>
+                  {NAV.map((group, gi) => (
+                    <div key={gi} className="app-shell-mobile-group">
+                      {group.label && <div className="app-shell-mobile-label">{group.label}</div>}
+                      {group.items.filter(([id]) => !PHONE_TABS.some(([tab]) => tab === id)).map(([id, label, ico]) => (
+                        <span key={id} data-hd={`nav-${id}`} className={`app-shell-mobile-item ${id === def.nav ? "is-active" : ""}`}>
+                          <Icon name={ico} size={18} color={id === def.nav ? "var(--g-600)" : "var(--muted)"} />
+                          <span>{label}</span>
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                <nav className="hd-tabs">
+                  {PHONE_TABS.map(([id, label, ico]) => (
+                    <span key={id} data-hd={`tab-${id}`} className={id === def.nav ? "is-on" : ""}>
+                      <Icon name={ico} size={20} /><span>{label}</span>
+                    </span>
+                  ))}
+                  <span data-hd="more-btn" className={menuOpen || !PHONE_TABS.some(([tab]) => tab === def.nav) ? "is-on" : ""}>
+                    <Icon name="menu" size={20} /><span>More</span>
+                  </span>
+                </nav>
+              </>
+            )}
 
             {!reduced && <Cursor cursorRef={cursorRef} clicking={clicking} />}
             {click.n > 0 && !reduced && (
