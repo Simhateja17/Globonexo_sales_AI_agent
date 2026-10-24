@@ -141,6 +141,7 @@ function formatMeetingTime(value) {
 }
 
 
+const ACTIVITY_PER_PAGE = 10;
 const ACTIVITY_TABS = [
   { id: "all", label: "All" },
   { id: "reply", label: "Replies" },
@@ -410,6 +411,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activityTab, setActivityTab] = useState("all");
+  const [activityPage, setActivityPage] = useState(1);
   const showSkeleton = useFirstLoad(loading);
 
   useEffect(() => {
@@ -470,6 +472,9 @@ export default function DashboardPage() {
   ]), [kpis]);
 
   const visibleActivity = activityTab === "all" ? activity : activity.filter(item => item.type === activityTab);
+  const activityPageCount = Math.max(1, Math.ceil(visibleActivity.length / ACTIVITY_PER_PAGE));
+  const currentActivityPage = Math.min(activityPage, activityPageCount);
+  const pageActivity = visibleActivity.slice((currentActivityPage - 1) * ACTIVITY_PER_PAGE, currentActivityPage * ACTIVITY_PER_PAGE);
   const activeCampaigns = campaigns.filter(c => c.status === "active").slice(0, 3);
   const goalRemaining = Math.max(0, (weeklyGoal.target ?? 1) - (weeklyGoal.current ?? 0));
 
@@ -555,7 +560,7 @@ export default function DashboardPage() {
             </div>
             <div className="tabs-mini" role="tablist">
               {ACTIVITY_TABS.map(tab => (
-                <button key={tab.id} type="button" role="tab" aria-selected={activityTab === tab.id} className={activityTab === tab.id ? "on" : ""} onClick={() => setActivityTab(tab.id)}>
+                <button key={tab.id} type="button" role="tab" aria-selected={activityTab === tab.id} className={activityTab === tab.id ? "on" : ""} onClick={() => { setActivityTab(tab.id); setActivityPage(1); }}>
                   {tab.label}
                 </button>
               ))}
@@ -564,7 +569,7 @@ export default function DashboardPage() {
           {visibleActivity.length === 0 ? (
             <div className="empty">{activity.length === 0 ? "No activity yet. Start a campaign to see activity here." : "Nothing of this type yet."}</div>
           ) : (
-            visibleActivity.map((item, index) => (
+            pageActivity.map((item, index) => (
               <div key={`${item.type}-${item.time}-${index}`} className="act">
                 <span className={`act-ic ${ACTIVITY_TONE[item.type] || ""}`}><Icon name={ICON_MAP[item.type] || "send"} size={16} /></span>
                 <div className="act-main"><div className="act-t">{item.text}</div></div>
@@ -573,6 +578,16 @@ export default function DashboardPage() {
               </div>
             ))
           )}
+          {visibleActivity.length > ACTIVITY_PER_PAGE ? (
+            <div className="tfoot">
+              <span>Showing {(currentActivityPage - 1) * ACTIVITY_PER_PAGE + 1} to {Math.min(visibleActivity.length, currentActivityPage * ACTIVITY_PER_PAGE)} of {visibleActivity.length}</span>
+              <div className="acts">
+                <span className="pg-of">Page {currentActivityPage} of {activityPageCount}</span>
+                <button type="button" className="bt bt-g sm" disabled={currentActivityPage <= 1} onClick={() => setActivityPage(currentActivityPage - 1)}>Previous</button>
+                <button type="button" className="bt bt-g sm" disabled={currentActivityPage >= activityPageCount} onClick={() => setActivityPage(currentActivityPage + 1)}>Next</button>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="dash-right">

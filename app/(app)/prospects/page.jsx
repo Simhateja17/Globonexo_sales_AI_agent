@@ -48,7 +48,7 @@ const TECHNOLOGY_OPTIONS = [
 const INDUSTRY_OPTIONS = ["B2B SaaS", "IT Services", "Marketing Agencies", "Recruiting", "Fintech", "Healthcare", "Manufacturing", "Real Estate", "E-commerce", "Education"];
 const STAGE_OPTIONS = ["all", "new", "queued", "contacted", "engaged", "meeting_booked", "not_interested", "unsubscribed"];
 const SOURCE_OPTIONS = ["all", "apollo", "csv", "manual"];
-const LEADS_PER_PAGE = 25;
+const LEADS_PER_PAGE = 10;
 
 const SORT_OPTIONS = [
   { value: "created_desc", label: "Newest" },
