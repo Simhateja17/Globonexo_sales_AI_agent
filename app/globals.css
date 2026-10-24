@@ -8401,3 +8401,44 @@ select:not([multiple]):not([size]),
   background-position: right 13px center;
   background-size: 12px;
 }
+
+/* ---- Campaign email rows: cleaner, more readable list ---- */
+.campaign-email-summary {
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 20px;
+}
+.campaign-email-summary > :first-child { margin-top: 2px; }
+.campaign-email-summary:hover { background: var(--g-50); }
+.campaign-email-copy { gap: 3px; }
+.campaign-email-copy strong {
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--ink);
+}
+.campaign-email-recipient {
+  font-size: 12.5px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--muted);
+}
+.campaign-email-preview {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--faint);
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.campaign-email-state { align-self: center; }
+.campaign-email-state .chip,
+.campaign-email-state .badge {
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
