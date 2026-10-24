@@ -198,7 +198,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
           )}
         </div>
       </td>
-      <td><span className="faint" style={{ fontSize: 13 }}>{lead.location || "-"}</span></td>
+      <td style={{ whiteSpace: "normal" }}><span className="faint" style={{ fontSize: 13, lineHeight: 1.35, display: "block" }}>{lead.location || "-"}</span></td>
     </tr>
   );
 }
@@ -494,15 +494,18 @@ export default function CampaignDetailPage() {
 
   // A dual-channel campaign shows an Email and a Phone column, so the lead
   // table columns are derived rather than picked from two fixed layouts.
-  const leadColumns = [
-    { header: "Lead", width: dualChannel ? "25%" : "34%" },
-    ...(emailEnabled ? [{ header: "Email", width: dualChannel ? "18%" : "22%" }] : []),
-    ...(voiceEnabled ? [{ header: "Phone", width: dualChannel ? "14%" : "22%" }] : []),
-    { header: "Status", width: dualChannel ? "11%" : "14%" },
-    { header: "Next outreach", width: "19%" },
-    { header: "Action", width: dualChannel ? "20%" : "16%" },
-    { header: "Location", width: dualChannel ? "12%" : "14%" },
+  const leadColumnWeights = [
+    { header: "Lead", weight: dualChannel ? 24 : 28 },
+    ...(emailEnabled ? [{ header: "Email", weight: dualChannel ? 16 : 20 }] : []),
+    ...(voiceEnabled ? [{ header: "Phone", weight: dualChannel ? 12 : 16 }] : []),
+    { header: "Status", weight: dualChannel ? 9 : 11 },
+    { header: "Next outreach", weight: dualChannel ? 12 : 14 },
+    { header: "Action", weight: dualChannel ? 15 : 16 },
+    { header: "Location", weight: dualChannel ? 12 : 13 },
   ];
+  // Normalise to exactly 100% so the last column (Location) is never pushed out of the table.
+  const leadWeightTotal = leadColumnWeights.reduce((sum, column) => sum + column.weight, 0);
+  const leadColumns = leadColumnWeights.map(column => ({ header: column.header, width: `${(column.weight / leadWeightTotal * 100).toFixed(2)}%` }));
 
   return (
     <main className="gx">
