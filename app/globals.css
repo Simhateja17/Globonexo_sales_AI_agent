@@ -8519,3 +8519,9 @@ select:not([multiple]):not([size]),
 .gx .btn:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
 .gx .btn-primary:disabled { background: var(--g-100); color: var(--g-800); }
 .gx .btn-sm[aria-pressed="false"] { color: var(--muted); box-shadow: none; }
+
+/* ---- Campaign settings form polish ---- */
+textarea.input { height: auto; min-height: 128px; padding-top: 12px; padding-bottom: 12px; line-height: 1.55; }
+.gx .btn-sm[aria-pressed] { min-width: 56px; height: 38px; padding: 0 14px; font-size: 13.5px; }
+.gx .btn-sm[aria-pressed="true"] { box-shadow: 0 6px 16px rgba(0,168,106,.25); }
+.gx .btn-sm[aria-pressed="false"] { background: var(--bg); border: 1px solid var(--line); }
