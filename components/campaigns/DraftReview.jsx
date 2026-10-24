@@ -336,7 +336,13 @@ function DraftRow({ message, displayTimezone, onApprove, onSendThin, onSave, onR
   );
 }
 
+const EMAILS_PER_PAGE = 10;
+
 function StepSection({ step, messages, displayTimezone, onApprove, onSendThin, onSave, onRegenerate, busy }) {
+  const [page, setPage] = useState(1);
+  const pageCount = Math.max(1, Math.ceil(messages.length / EMAILS_PER_PAGE));
+  const currentPage = Math.min(page, pageCount);
+  const pageMessages = messages.slice((currentPage - 1) * EMAILS_PER_PAGE, currentPage * EMAILS_PER_PAGE);
   // Thin drafts are deliberately not in this list. Approving a step is a bulk
   // judgement about copy the agent wrote well; the thin ones are the copy it
   // could not write well, and sweeping them in here would quietly undo the
@@ -361,7 +367,7 @@ function StepSection({ step, messages, displayTimezone, onApprove, onSendThin, o
       </div>
       {step.bodyPromptContext && <p className="campaign-email-step-instruction">{step.bodyPromptContext}</p>}
       <div>
-        {messages.map(message => (
+        {pageMessages.map(message => (
           <DraftRow
             key={message.id}
             message={message}
@@ -374,6 +380,16 @@ function StepSection({ step, messages, displayTimezone, onApprove, onSendThin, o
           />
         ))}
       </div>
+      {messages.length > EMAILS_PER_PAGE && (
+        <div className="campaign-email-pager">
+          <span>Showing {(currentPage - 1) * EMAILS_PER_PAGE + 1} to {Math.min(messages.length, currentPage * EMAILS_PER_PAGE)} of {messages.length}</span>
+          <div className="campaign-email-pager-actions">
+            <span>Page {currentPage} of {pageCount}</span>
+            <button type="button" className="btn btn-ghost btn-sm" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>Previous</button>
+            <button type="button" className="btn btn-ghost btn-sm" disabled={currentPage >= pageCount} onClick={() => setPage(currentPage + 1)}>Next</button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

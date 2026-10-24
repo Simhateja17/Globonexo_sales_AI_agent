@@ -8442,3 +8442,26 @@ select:not([multiple]):not([size]),
   font-size: 11.5px;
   font-weight: 700;
 }
+
+/* Step header in the brand green, plus the per-step pager */
+.campaign-email-step-head {
+  background: linear-gradient(90deg, var(--g-50), #fff);
+  border-bottom-color: var(--g-100);
+}
+.campaign-email-step-number { background: var(--g-600); border-radius: 12px; }
+.campaign-email-step-action { color: var(--g-700); }
+.campaign-email-step-action:hover { color: var(--g-800, var(--g-700)); text-decoration: underline; }
+.campaign-email-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.campaign-email-pager-actions { display: flex; align-items: center; gap: 8px; }
