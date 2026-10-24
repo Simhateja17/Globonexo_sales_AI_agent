@@ -4,6 +4,7 @@ export const metadata = {
     "B2B lead generation run by an AI SDR tool: sourcing, qualification, email sequences, and voice calls. See how it fits an individual seller, an agency running outbound for clients, or a startup building outbound in-house.",
   alternates: { canonical: "/solutions" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/solutions",
     title: "B2B Lead Generation with an AI SDR Tool",
     description:

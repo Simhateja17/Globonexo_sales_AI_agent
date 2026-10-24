@@ -4,6 +4,7 @@ export const metadata = {
     "Test an AI voice agent for sales before launch with selectable simulations. Outbound AI calling with do-not-call enforcement, real calendar booking, and a number provisioned for you.",
   alternates: { canonical: "/voice" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/voice",
     title: "AI Voice Agent Platform for Outbound Sales Calls",
     description: "Outbound AI calling with selectable adversarial simulation testing before launch.",

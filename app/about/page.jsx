@@ -2,7 +2,7 @@ export const metadata = {
   title: { absolute: "About GNX Sales" },
   description: "Globonexo builds AI sales agents that find buyers, start conversations, and book meetings for small sales teams.",
   alternates: { canonical: "/about" },
-  openGraph: { url: "/about" },
+  openGraph: { url: "/about", images: ["/og-image.png"] },
 };
 
 import Link from "next/link";

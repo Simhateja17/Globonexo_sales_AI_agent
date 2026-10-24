@@ -7,7 +7,7 @@ export const metadata = {
   description:
     "GNX Sales is an AI sales agent that finds buyers, researches them, writes personalized email, follows up, and calls by AI voice. Sales automation software that books meetings on its own.",
   alternates: { canonical: "/" },
-  openGraph: { url: "/" },
+  openGraph: { url: "/", images: ["/og-image.png"] },
 };
 
 export default function Page() {

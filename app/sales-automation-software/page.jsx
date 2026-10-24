@@ -4,6 +4,7 @@ export const metadata = {
     "Sales automation software that does more than send on a schedule. GNX Sales sources and qualifies leads, writes personalized sequences, follows up, handles replies, places AI voice calls, and books meetings, from one subscription.",
   alternates: { canonical: "/sales-automation-software" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/sales-automation-software",
     title: "Sales Automation Software That Runs the Whole Motion",
     description:

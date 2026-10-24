@@ -4,6 +4,7 @@ export const metadata = {
     "Run outbound for every client from one system. Separate ideal customer profiles, positioning, sequences, and voice agents per client, lead discovery, enrichment, email, follow-ups, replies, and calls without accounts bleeding into one another.",
   alternates: { canonical: "/solutions/agencies" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/solutions/agencies",
     title: "AI Sales Agent for Agencies Running Client Outbound",
     description:

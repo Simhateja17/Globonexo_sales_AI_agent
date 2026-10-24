@@ -4,6 +4,7 @@ export const metadata = {
     "What an AI sales agent is, how it differs from sales automation software and an AI writing assistant, what it can and cannot do, how the loop works step by step, and how to evaluate one before you buy.",
   alternates: { canonical: "/ai-sales-agent-guide" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/ai-sales-agent-guide",
     title: "What Is an AI Sales Agent? A Complete Guide",
     description:

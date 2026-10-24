@@ -4,6 +4,7 @@ export const metadata = {
     "GNX Sales is an AI sales tool that runs the full outbound motion: lead generation, enrichment, AI email sequences, voice calling, replies, meetings, and analytics in one sales automation platform.",
   alternates: { canonical: "/platform" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/platform",
     title: "AI Sales Tool: The Whole Outbound Motion in One Platform",
     description:

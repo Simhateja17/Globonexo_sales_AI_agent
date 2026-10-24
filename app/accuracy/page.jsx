@@ -3,7 +3,7 @@ export const metadata = {
   description:
     "How GNX Sales keeps AI outreach truthful: context readiness gates, facts separated from hypotheses, and every draft validated before a human ever sees it.",
   alternates: { canonical: "/accuracy" },
-  openGraph: { url: "/accuracy" },
+  openGraph: { url: "/accuracy", images: ["/og-image.png"] },
 };
 
 import Link from "next/link";
