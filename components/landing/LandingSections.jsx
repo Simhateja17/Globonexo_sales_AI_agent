@@ -6,7 +6,7 @@ import { LoopAnimator, QualifyCards, ReadyCard, VoiceStage } from "./LandingInte
 import { MOST_POPULAR_PLAN_ID, PLAN_CONFIG } from "../../lib/plans";
 import { FREE_PLAN } from "../../lib/free-plan";
 
-const CALENDLY_URL = "https://calendly.com/gnxsales-support/30min";
+const CALENDLY_URL = "https://cal.com/gnx-sales/30mins-meeting";
 
 const PRIMARY_BTN = {
   background: "linear-gradient(180deg, #29d68f, #00c27a)",

@@ -28,7 +28,7 @@ describe("PublicNav session actions", () => {
 
     expect(screen.getByRole("link", { name: "Sign in" }).getAttribute("href")).toBe("/login");
     expect(screen.getByRole("link", { name: /Start free/i }).getAttribute("href")).toBe("/signup");
-    expect(screen.getByRole("link", { name: "Book a demo" }).getAttribute("href")).toContain("calendly.com");
+    expect(screen.getByRole("link", { name: "Book a demo" }).getAttribute("href")).toContain("cal.com");
     expect(screen.queryByText(/Back to dashboard/i)).toBeNull();
   });
 

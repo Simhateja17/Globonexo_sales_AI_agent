@@ -81,7 +81,7 @@ export const blogIndexHtml = `<div style="max-width:1160px;margin:0 auto;padding
       <p style="font-size:15px;line-height:1.7;color:var(--ink-2);margin:0">We can build a campaign with you and show you the leads and workflow on a live account.</p>
     </div>
     <div style="justify-self:start">
-      <a href="https://calendly.com/gnxsales-support/30min" target="_blank" rel="noopener" style="display:inline-block">
+      <a href="https://cal.com/gnx-sales/30mins-meeting" target="_blank" rel="noopener" style="display:inline-block">
         <span class="btn btn-primary btn-lg">Book a 30-minute walkthrough</span>
       </a>
     </div>

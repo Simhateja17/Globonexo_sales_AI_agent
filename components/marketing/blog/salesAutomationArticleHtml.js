@@ -450,7 +450,7 @@ export const salesAutomationArticleHtml = `<article style="max-width:1160px;marg
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0">A <a href="/sales-automation-software">sales automation platform</a> gives your team one place to run the repeatable work. Your people keep control of the market, message, important conversations, and deals.</p>
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0">If you want to see how this works for your own ideal customer profile, we can build a campaign with you and show you the leads and workflow on a live account.</p>
     <div data-reveal style="margin-top:28px">
-      <a href="https://calendly.com/gnxsales-support/30min" target="_blank" rel="noopener" style="border:none;display:inline-block">
+      <a href="https://cal.com/gnx-sales/30mins-meeting" target="_blank" rel="noopener" style="border:none;display:inline-block">
         <span class="btn btn-primary btn-lg">Book a 30-minute walkthrough</span>
       </a>
     </div>
