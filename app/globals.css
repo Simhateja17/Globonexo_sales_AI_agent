@@ -8487,3 +8487,9 @@ select:not([multiple]):not([size]),
 @media (max-width: 680px) {
   .campaign-email-row .campaign-email-summary { padding: 14px 16px; }
 }
+
+/* Final say on the row padding, whatever other resets load */
+.campaign-email-step .campaign-email-row > button.campaign-email-summary { padding: 16px 24px !important; }
+@media (max-width: 680px) {
+  .campaign-email-step .campaign-email-row > button.campaign-email-summary { padding: 14px 16px !important; }
+}
