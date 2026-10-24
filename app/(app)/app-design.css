@@ -832,3 +832,10 @@
 }
 .gx .pcol-pager{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 2px 2px;font-size:12px;font-weight:800;color:#69786f}
 .gx .pcol-pager .bt{flex:none}
+
+/* Calendar card stretches to the height of the Availability column */
+.gx .cal-grid{align-items:stretch}
+.gx .cal-grid > .wk-scroll{display:flex;flex-direction:column}
+.gx .cal-grid > .wk-scroll > div{display:flex;flex-direction:column;flex:1;min-height:0}
+.gx .cal-grid .wk-b{flex:1}
+.gx .cal-grid .dcol{height:auto}

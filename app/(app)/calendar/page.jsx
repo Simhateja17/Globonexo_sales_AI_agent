@@ -388,7 +388,7 @@ export default function CalendarPage() {
                 const weekend = !settings.workingDays.includes(day.getDay());
                 const dayMeetings = meetingsByDay.get(day.toDateString()) || [];
                 return (
-                  <div key={day.toISOString()} className={`dcol ${weekend ? "wk" : ""} ${isToday ? "today" : ""}`} style={{ height: hours.length * HOUR_PX }}>
+                  <div key={day.toISOString()} className={`dcol ${weekend ? "wk" : ""} ${isToday ? "today" : ""}`} style={{ minHeight: hours.length * HOUR_PX }}>
                     {dayMeetings.map(meeting => {
                       const past = meeting.status !== "scheduled" || meeting.scheduled.getTime() + meeting.duration * 60000 < now;
                       return (
