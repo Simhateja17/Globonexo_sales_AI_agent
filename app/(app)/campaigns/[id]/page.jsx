@@ -203,6 +203,8 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
   );
 }
 
+const LEADS_PER_PAGE = 10;
+
 export default function CampaignDetailPage() {
   const freePlan = isFreePlan(useOrg());
   const freeLive = useFreeUsage(freePlan);
@@ -213,6 +215,7 @@ export default function CampaignDetailPage() {
   const [campaign, setCampaign] = useState(null);
   const [team, setTeam] = useState(null);
   const [leads, setLeads] = useState([]);
+  const [leadPage, setLeadPage] = useState(1);
   const [detailLeadId, setDetailLeadId] = useState("");
   const [enrichingId, setEnrichingId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -634,12 +637,26 @@ export default function CampaignDetailPage() {
                 <tbody>
                   {leads.length === 0 ? (
                     <tr><td colSpan={leadColumns.length} className="empty">No leads are attached to this campaign.</td></tr>
-                  ) : leads.map(lead => (
+                  ) : leads.slice((Math.min(leadPage, Math.ceil(leads.length / LEADS_PER_PAGE)) - 1) * LEADS_PER_PAGE, Math.min(leadPage, Math.ceil(leads.length / LEADS_PER_PAGE)) * LEADS_PER_PAGE).map(lead => (
                     <CampaignLeadRow key={lead.id} lead={lead} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} onOpen={setDetailLeadId} canOperate={canOperate} callNowLimit={callNowLimit} />
                   ))}
                 </tbody>
               </table>
             </div>
+            {leads.length > LEADS_PER_PAGE ? (() => {
+              const pageCount = Math.ceil(leads.length / LEADS_PER_PAGE);
+              const page = Math.min(leadPage, pageCount);
+              return (
+                <div className="tfoot">
+                  <span>Showing {(page - 1) * LEADS_PER_PAGE + 1} to {Math.min(leads.length, page * LEADS_PER_PAGE)} of {leads.length}</span>
+                  <div className="acts">
+                    <span className="pg-of">Page {page} of {pageCount}</span>
+                    <button type="button" className="bt bt-g sm" disabled={page <= 1} onClick={() => setLeadPage(page - 1)}>Previous</button>
+                    <button type="button" className="bt bt-g sm" disabled={page >= pageCount} onClick={() => setLeadPage(page + 1)}>Next</button>
+                  </div>
+                </div>
+              );
+            })() : null}
           </div>
           )}
       </div>
