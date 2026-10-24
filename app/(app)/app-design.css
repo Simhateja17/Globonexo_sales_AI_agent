@@ -830,3 +830,5 @@
 @media (max-width:900px){
   .gx.agent-page .ag{height:calc(100vh - 170px);min-height:480px}
 }
+.gx .pcol-pager{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 2px 2px;font-size:12px;font-weight:800;color:#69786f}
+.gx .pcol-pager .bt{flex:none}

@@ -63,6 +63,8 @@ function LeadCard({ lead }) {
   );
 }
 
+const LEADS_PER_COLUMN = 10;
+
 export default function PipelinePage() {
   const router = useRouter();
   const [leads, setLeads] = useState([]);
@@ -70,7 +72,9 @@ export default function PipelinePage() {
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [hotOnly, setHotOnly] = useState(false);
+  const [pages, setPages] = useState({});
   const showSkeleton = useFirstLoad(loading);
+  useEffect(() => { setPages({}); }, [query, hotOnly]);
 
   useEffect(() => {
     api.get("/leads", { params: { perPage: 500 } })
@@ -157,17 +161,30 @@ export default function PipelinePage() {
       ) : (
         <div className="board-wrap">
           <div className="board">
-            {STAGES.map(stage => (
+            {STAGES.map(stage => {
+              const stageLeads = grouped[stage.id] || [];
+              const pageCount = Math.max(1, Math.ceil(stageLeads.length / LEADS_PER_COLUMN));
+              const page = Math.min(pages[stage.id] || 1, pageCount);
+              const goTo = next => setPages(current => ({ ...current, [stage.id]: next }));
+              return (
               <section key={stage.id} className="pcol" aria-label={stage.label}>
-                <div className="pcol-h"><i style={{ background: stage.tint }} />{stage.label}<span>{grouped[stage.id]?.length ?? 0}</span></div>
-                {(grouped[stage.id] || []).map(lead => <LeadCard key={lead.id} lead={lead} />)}
+                <div className="pcol-h"><i style={{ background: stage.tint }} />{stage.label}<span>{stageLeads.length}</span></div>
+                {stageLeads.slice((page - 1) * LEADS_PER_COLUMN, page * LEADS_PER_COLUMN).map(lead => <LeadCard key={lead.id} lead={lead} />)}
+                {pageCount > 1 ? (
+                  <div className="pcol-pager">
+                    <button type="button" className="bt bt-g sm" disabled={page <= 1} onClick={() => goTo(page - 1)}>Prev</button>
+                    <span>{page} / {pageCount}</span>
+                    <button type="button" className="bt bt-g sm" disabled={page >= pageCount} onClick={() => goTo(page + 1)}>Next</button>
+                  </div>
+                ) : null}
                 {stage.id === "new" ? (
                   <Link className="pcol-add" href="/prospects"><Icon name="plus" size={13} /> Add leads</Link>
                 ) : (grouped[stage.id] || []).length === 0 ? (
                   <div className="pcol-add" style={{ borderStyle: "dashed" }}>No leads here</div>
                 ) : null}
               </section>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
