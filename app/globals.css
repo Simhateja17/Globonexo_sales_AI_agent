@@ -5876,6 +5876,7 @@ canvas {
   margin-top: 14px;
   flex-wrap: wrap;
 }
+.setup-compact-actions .btn { font-size: 13px; height: 38px; padding: 0 16px; gap: 7px; }
 
 /* ---- Full checklist page ---- */
 .setup-full { display: flex; flex-direction: column; gap: 20px; }
