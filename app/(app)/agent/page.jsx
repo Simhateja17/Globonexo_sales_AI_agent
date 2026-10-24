@@ -662,7 +662,7 @@ export default function AgentPage() {
             <b><Icon name="spark" size={17} /> {name}, your sales agent</b>
             <span className="pl pl-ok"><u /> Working</span>
           </div>
-          <div ref={scrollRef} className="agm" style={{ overflowY: 'auto', maxHeight: 640 }}>
+          <div ref={scrollRef} className="agm" style={{ overflowY: 'auto' }}>
             {!initialLoaded ? (
               <div className="empty">Loading…</div>
             ) : (

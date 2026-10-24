@@ -801,3 +801,32 @@
 .gx .sk{display:block;height:12px;border-radius:6px;background:linear-gradient(90deg,#eef3f0 0%,#f6faf8 50%,#eef3f0 100%);background-size:200% 100%;animation:gx-sk 1.2s ease-in-out infinite}
 @keyframes gx-sk{from{background-position:200% 0}to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.gx .sk{animation:none}}
+
+/* ---- AI Agent: compact, fluid sizing across desktop widths ---- */
+.gx.agent-page .ph h1{font-size:clamp(21px,1.7vw,25px)}
+.gx.agent-page .ph p{font-size:clamp(12.5px,.95vw,13.5px)}
+.gx.agent-page .ag{
+  grid-template-columns:clamp(180px,15vw,230px) minmax(0,1fr) clamp(220px,18vw,280px);
+  height:clamp(520px,calc(100vh - 190px),760px);min-height:0;
+}
+.gx.agent-page .ag > *{min-height:0}
+.gx.agent-page .agc{min-width:0;overflow:hidden}
+.gx.agent-page .agm{max-height:none !important;min-height:0;padding:16px 18px;gap:12px}
+.gx.agent-page .agc-h{padding:12px 18px}
+.gx.agent-page .agc-h b{font-size:15px}
+.gx.agent-page .agi{padding:10px 18px 14px}
+.gx.agent-page .me,.gx.agent-page .bot-t{font-size:12.5px;padding:9px 13px}
+.gx.agent-page .bot-av{width:26px;height:26px}
+.gx.agent-page .chips2 span,.gx.agent-page .chips2 button,.gx.agent-page .sugg span,.gx.agent-page .sugg button{font-size:11.5px;padding:6px 10px}
+.gx.agent-page .sendc{width:34px;height:34px;border-radius:10px}
+.gx.agent-page .agh{padding:12px;overflow-y:auto}
+.gx.agent-page .agh a.it,.gx.agent-page .agh .it{font-size:12.5px;padding:8px 10px}
+.gx.agent-page .agr{padding:14px;gap:12px;overflow-y:auto}
+.gx.agent-page .ov b{font-size:19px}
+.gx.agent-page .ov div{padding:10px}
+@media (max-width:1200px){
+  .gx.agent-page .ag{grid-template-columns:clamp(180px,20vw,220px) minmax(0,1fr)}
+}
+@media (max-width:900px){
+  .gx.agent-page .ag{height:calc(100vh - 170px);min-height:480px}
+}
