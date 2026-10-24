@@ -8493,3 +8493,29 @@ select:not([multiple]):not([size]),
 @media (max-width: 680px) {
   .campaign-email-step .campaign-email-row > button.campaign-email-summary { padding: 14px 16px !important; }
 }
+
+/* ---- Buttons inside .gx screens ----
+   `.gx button` (app-design.css) resets background and padding with higher specificity than the
+   plain `.btn*` classes, which left primary buttons white and padding-less. Restate them here. */
+.gx .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  height: 48px; padding: 0 22px; font-weight: 700; font-size: 15px;
+  border-radius: var(--r-pill);
+}
+.gx .btn-sm { height: 40px; padding: 0 16px; font-size: 14px; }
+.gx .btn-lg { height: 54px; padding: 0 28px; font-size: 16px; }
+.gx .btn-primary {
+  background: linear-gradient(180deg, var(--g-400), var(--g-500));
+  color: #06231a;
+  box-shadow: var(--sh-green);
+}
+.gx .btn-primary:hover:not(:disabled) { box-shadow: 0 16px 40px rgba(0,168,106,.36); filter: brightness(1.03); }
+.gx .btn-ghost, .gx .btn-secondary {
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); box-shadow: var(--sh-xs);
+}
+.gx .btn-ghost:hover:not(:disabled), .gx .btn-secondary:hover:not(:disabled) { border-color: var(--g-300); background: var(--g-50); }
+.gx .btn-dark { background: var(--ink); color: #fff; }
+.gx .btn:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+.gx .btn-primary:disabled { background: var(--g-100); color: var(--g-800); }
+.gx .btn-sm[aria-pressed="false"] { color: var(--muted); box-shadow: none; }
