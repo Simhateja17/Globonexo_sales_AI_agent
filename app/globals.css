@@ -8465,3 +8465,19 @@ select:not([multiple]):not([size]),
   font-weight: 700;
 }
 .campaign-email-pager-actions { display: flex; align-items: center; gap: 8px; }
+
+/* Keep the compact mobile layout of the email rows (the overrides above come later in the cascade) */
+@media (max-width: 680px) {
+  .campaign-email-summary {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .campaign-email-state {
+    grid-column: 2;
+    justify-content: space-between;
+    align-self: auto;
+  }
+  .campaign-email-preview { display: none; }
+  .campaign-email-step-head { padding: 12px 16px; }
+}
