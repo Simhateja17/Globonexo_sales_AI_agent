@@ -5877,6 +5877,7 @@ canvas {
   flex-wrap: wrap;
 }
 .setup-compact-actions .btn { font-size: 13px; height: 38px; padding: 0 16px; gap: 7px; }
+.setup-compact-actions .btn-primary { background: linear-gradient(180deg, var(--g-400), var(--g-500)); color: #06231a; }
 
 /* ---- Full checklist page ---- */
 .setup-full { display: flex; flex-direction: column; gap: 20px; }
