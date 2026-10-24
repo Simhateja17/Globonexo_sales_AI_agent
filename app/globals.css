@@ -8401,4 +8401,3 @@ select:not([multiple]):not([size]),
   background-position: right 13px center;
   background-size: 12px;
 }
-.gx .inp select, .gx .in select { background-image: none; padding-right: 0; }
