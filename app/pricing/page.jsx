@@ -4,6 +4,7 @@ export const metadata = {
     "Start free with one email campaign from your own inbox, no card needed. Paid GNX Sales plans add lead enrichment and AI voice calling from one credit pool. Compare plans and monthly costs.",
   alternates: { canonical: "/pricing" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/pricing",
     title: "AI Sales Agent Pricing: Plans, Credits, and Limits",
     description:

@@ -4,6 +4,7 @@ export const metadata = {
     "Build an in-house outbound motion before you hire an SDR. Lead discovery, enrichment, personalized email, follow-ups, replies, and AI voice calls running in parallel across segments, from one subscription.",
   alternates: { canonical: "/solutions/b2b-startups" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/solutions/b2b-startups",
     title: "AI Sales Agent for B2B Startups Building Outbound",
     description: "An outbound motion you can run before your first SDR hire, across several segments at once.",

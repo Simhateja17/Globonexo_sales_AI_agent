@@ -10,7 +10,7 @@ import { useAuth } from "../../hooks/useAuth";
 import HeroDemo from "./hero-demo/HeroDemo";
 import LandingSections from "./LandingSections";
 
-const CALENDLY_URL = "https://calendly.com/gnxsales-support/30min";
+const CALENDLY_URL = "https://cal.com/gnx-sales/30mins-meeting";
 
 export default function LandingPage() {
   const router = useRouter();

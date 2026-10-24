@@ -4,6 +4,7 @@ export const metadata = {
     "Run B2B outbound without a full sales team. GNX Sales helps individual sellers find and qualify leads, prepare personalized email sequences, follow up, handle replies, and place AI voice calls.",
   alternates: { canonical: "/solutions/individuals" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/solutions/individuals",
     title: "AI Sales Agent for Individual Sellers and Founders",
     description: "A practical outbound workflow for one person, with review controls for email and AI voice campaigns.",

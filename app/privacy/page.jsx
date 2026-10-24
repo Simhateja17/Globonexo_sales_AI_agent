@@ -2,7 +2,7 @@ export const metadata = {
   title: { absolute: "Privacy policy for GNX Sales" },
   description: "Learn how GNX Sales collects, uses, protects, and deletes account, lead, campaign, integration, and analytics data.",
   alternates: { canonical: "/privacy" },
-  openGraph: { url: "/privacy" },
+  openGraph: { url: "/privacy", images: ["/og-image.png"] },
 };
 
 import Link from "next/link";

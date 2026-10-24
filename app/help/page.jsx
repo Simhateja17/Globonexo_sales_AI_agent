@@ -2,7 +2,7 @@ export const metadata = {
   title: { absolute: "GNX Sales help center" },
   description: "Guides for setting up agents, sourcing leads, running campaigns, handling replies, and managing billing in GNX sales.",
   alternates: { canonical: "/help" },
-  openGraph: { url: "/help" },
+  openGraph: { url: "/help", images: ["/og-image.png"] },
 };
 
 import Link from "next/link";
