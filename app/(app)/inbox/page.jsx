@@ -242,6 +242,14 @@ export default function InboxPage() {
     }
   };
 
+  // There is no server call for turning a reply draft down, so Reject clears the
+  // draft from the box and leaves the thread alone. Nothing is sent.
+  const rejectDraft = () => {
+    setComposerBody("");
+    setDraftBody("");
+    setSuccess("Draft discarded. Nothing was sent.");
+  };
+
   const regenerateDraft = async () => {
     if (!selectedId || drafting) return;
     setDrafting(true);
@@ -482,12 +490,23 @@ export default function InboxPage() {
               />
               <div className="dft-f">
                 <div className="x">
+                  <button type="button" className="ibt" title="Attachments are not supported yet" aria-label="Attach a file" disabled>
+                    <Icon name="paperclip" size={14} />
+                  </button>
                   {hasReply ? (
                     <button type="button" className="ibt" title="Write a new draft" aria-label="Write a new draft" disabled={detailLoading || drafting || !selectedId} onClick={regenerateDraft}>
                       <Icon name="refresh" size={14} />
                     </button>
                   ) : null}
                 </div>
+                {draftIsWaiting ? (
+                  <>
+                    <button type="button" className="bt bt-g sm" disabled={sending} onClick={rejectDraft}>Reject</button>
+                    <button type="button" className="bt bt-g sm" disabled={sending} onClick={() => composerRef.current?.focus()}>
+                      <Icon name="edit" size={14} /> Edit
+                    </button>
+                  </>
+                ) : null}
                 {!composerBody.trim() ? (
                   <button type="button" className="bt bt-g sm" disabled={detailLoading || drafting || !selectedId} onClick={fillComposerWithDraft}>
                     <Icon name="spark" size={14} /> {drafting ? "Drafting..." : "Draft with AI"}
