@@ -47,6 +47,22 @@ function linkify(text) {
   ));
 }
 
+// The highlight for a tall target (a long section or an open modal) can run up
+// under the sticky app header. Keep its top edge, glow included, below the header.
+const SPOTLIGHT_RING = 10;
+function spotlightBox(rect) {
+  const header = document.querySelector(".app-shell-header");
+  const safeTop = header ? header.getBoundingClientRect().bottom + SPOTLIGHT_RING : SPOTLIGHT_RING;
+  const top = Math.max(rect.top - SPOTLIGHT_PADDING, safeTop);
+  const bottom = Math.min(rect.bottom + SPOTLIGHT_PADDING, window.innerHeight - SPOTLIGHT_RING);
+  return {
+    top,
+    left: rect.left - SPOTLIGHT_PADDING,
+    width: rect.width + SPOTLIGHT_PADDING * 2,
+    height: Math.max(bottom - top, 0),
+  };
+}
+
 export default function TourOverlay() {
   const { tourOpen, tourIndex, goToTourStep, finishTour, steps: setupSteps, skipStep, refresh } = useSetup();
   const router = useRouter();
@@ -242,16 +258,7 @@ export default function TourOverlay() {
       <div className={`tour-scrim ${rect ? "" : "is-dimmed"}`} onClick={handleSkip} aria-hidden="true" />
 
       {rect ? (
-        <div
-          className="tour-spotlight"
-          aria-hidden="true"
-          style={{
-            top: rect.top - SPOTLIGHT_PADDING,
-            left: rect.left - SPOTLIGHT_PADDING,
-            width: rect.width + SPOTLIGHT_PADDING * 2,
-            height: rect.height + SPOTLIGHT_PADDING * 2,
-          }}
-        />
+        <div className="tour-spotlight" aria-hidden="true" style={spotlightBox(rect)} />
       ) : null}
 
       <div
