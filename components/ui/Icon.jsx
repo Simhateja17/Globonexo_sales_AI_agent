@@ -50,6 +50,16 @@ export function Icon({ name, size = 22, stroke = 1.8, color = 'currentColor', fi
     inbox: <><path d="M3 12h5l2 3h4l2-3h5"/><path d="M5 5h14l2 7v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6l2-7Z"/></>,
     flame: <path d="M12 3s5 4 5 9a5 5 0 0 1-10 0c0-1.5.6-2.7 1.3-3.6.4 1 1.2 1.6 1.7 1.6 0-2 .5-5 2-7Z"/>,
     globe: <><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></>,
+    chevronDown: <path d="m6 9 6 6 6-6"/>,
+    sparkle: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>,
+    store: <><path d="M4 9l2-5h12l2 5"/><path d="M4 9h16v11H4z"/><path d="M9 20v-6h6v6"/></>,
+    pin: <><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></>,
+    mailPhone: <><rect x="2" y="7" width="12" height="10" rx="2"/><path d="M2 9l6 4 6-4"/><path d="M16 5h2l1 3-1.3.8a6 6 0 0 0 2.5 2.5L21 10l2 1v2a1 1 0 0 1-1 1 8 8 0 0 1-7-7 1 1 0 0 1 1-1z"/></>,
+    upload: <><path d="M12 15V4M7 9l5-5 5 5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></>,
+    clipboard: <><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></>,
+    shieldPlain: <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>,
+    mic: <><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></>,
+    microsoft: <><path d="M3 3h8.5v8.5H3z" fill="#F25022" stroke="none"/><path d="M12.5 3H21v8.5h-8.5z" fill="#7FBA00" stroke="none"/><path d="M3 12.5h8.5V21H3z" fill="#00A4EF" stroke="none"/><path d="M12.5 12.5H21V21h-8.5z" fill="#FFB900" stroke="none"/></>,
     person: <><circle cx="12" cy="8" r="4" fill="currentColor" stroke="none"/><path d="M4 20.5c0-4.4 3.6-7.2 8-7.2s8 2.8 8 7.2" fill="currentColor" stroke="none"/></>,
   };
   return <svg {...p}>{paths[name] || null}</svg>;

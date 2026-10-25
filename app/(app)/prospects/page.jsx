@@ -731,6 +731,13 @@ export default function ProspectsPage() {
     setBulkEnriching(false);
   };
 
+  // Links such as /prospects?add=csv (from the after-launch checklist) open
+  // the matching tab directly.
+  useEffect(() => {
+    const add = new URLSearchParams(window.location.search).get("add");
+    if (add === "csv" || add === "manual") setTab(add);
+  }, []);
+
   const switchTab = value => {
     setTab(value);
     setError("");
