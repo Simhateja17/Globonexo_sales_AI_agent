@@ -45,6 +45,17 @@ function formatTime(date) {
   return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
+// Say why a save failed, so a problem can be told apart from a bad form.
+function describeSaveError(err) {
+  const status = err?.response?.status;
+  const message = err?.response?.data?.error;
+  if (message) return status ? `${message} (${status})` : message;
+  if (status === 404) return "The server does not support saving events yet. Please try again in a few minutes. (404)";
+  if (status) return `Could not save this event. Please try again. (${status})`;
+  if (err?.code === "ECONNABORTED") return "The server took too long to answer. Please try again.";
+  return "Could not reach the server. Check your connection and try again.";
+}
+
 function normalizeMeeting(meeting) {
   const lead = meeting.lead || {};
   return {
@@ -443,7 +454,7 @@ export default function CalendarPage() {
         if (payload.scheduledAt) setWeekStart(startOfWeek(new Date(payload.scheduledAt)));
         return loadMeetings();
       })
-      .catch((err) => setEventError(err?.response?.data?.error || "Could not save this event. Please try again."))
+      .catch((err) => setEventError(describeSaveError(err)))
       .finally(() => setEventSaving(false));
   };
 
