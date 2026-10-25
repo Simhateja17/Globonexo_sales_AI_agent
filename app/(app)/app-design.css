@@ -844,3 +844,4 @@
 .gx .cal-grid .dcol{height:auto}
 
 .gx .cv .dft{position:sticky;bottom:0}
+.gx .cv > *{flex-shrink:0}
