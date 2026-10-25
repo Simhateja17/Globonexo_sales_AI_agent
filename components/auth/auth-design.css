@@ -1,8 +1,8 @@
 /* Sign-in, sign-up and account-rule screens. Builds on the workspace design
    classes in app/(app)/app-design.css (bt, card, pl, kpi, fld, in…). */
 
-.gx.au{padding:0;gap:0;display:grid;grid-template-columns:600px minmax(0,1fr);min-height:100vh;background:#fff}
-.au-l{display:flex;flex-direction:column;padding:40px 72px;min-width:0}
+.gx.au{padding:0;gap:0;display:grid;grid-template-columns:600px minmax(0,1fr);height:100vh;height:100dvh;overflow:hidden;background:#fff}
+.au-l{display:flex;flex-direction:column;padding:40px 72px;min-width:0;overflow-y:auto}
 .au-brand{display:flex;align-items:center}
 .au-form{margin:auto 0;padding:40px 0;width:100%;display:flex;flex-direction:column;gap:16px}
 .au-form h1{margin:0;font-family:var(--font-display,'Space Grotesk'),sans-serif;font-weight:600;font-size:36px;letter-spacing:-.03em;line-height:1.1}
@@ -67,24 +67,24 @@
 .au .acts2 .bt{flex:1}
 
 /* Right-hand story panel. */
-.au-r{position:relative;overflow:hidden;background:linear-gradient(135deg,#041f16 0%,#06311f 45%,#075b3f 100%);color:#fff;padding:64px 0 0 64px;display:flex;flex-direction:column;min-width:0}
+.au-r{position:relative;overflow:hidden;background:linear-gradient(135deg,#041f16 0%,#06311f 45%,#075b3f 100%);color:#fff;padding:clamp(28px,6vh,64px) 0 0 64px;display:flex;flex-direction:column;min-width:0;min-height:0}
 .au-r::before{content:"";position:absolute;width:520px;height:520px;right:-160px;top:-200px;border-radius:50%;background:radial-gradient(circle,rgba(41,214,143,.45),rgba(41,214,143,0) 70%);filter:blur(50px)}
 .au-r > *{position:relative}
 .au-r .rh{padding-right:64px}
 .au-r .rh small{color:#a8f0c6;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
-.au-r h2{margin:14px 0 0;font-family:var(--font-display,'Space Grotesk'),sans-serif;font-weight:600;font-size:40px;line-height:1.08;letter-spacing:-.03em}
+.au-r h2{margin:14px 0 0;font-family:var(--font-display,'Space Grotesk'),sans-serif;font-weight:600;font-size:clamp(28px,4.4vh,40px);line-height:1.08;letter-spacing:-.03em}
 .au-r h2 span{color:#6fe7b0}
-.au-r .rh p{margin:12px 0 0;max-width:560px;color:rgba(255,255,255,.74);font-size:16px;line-height:1.6;font-weight:600}
-.mock{margin-top:40px;flex:1;border-radius:20px 0 0 0;background:#f6faf8;border:1px solid rgba(255,255,255,.18);border-right:0;border-bottom:0;box-shadow:0 30px 80px rgba(0,0,0,.35);overflow:hidden;color:#0a1712;display:flex;flex-direction:column}
+.au-r .rh p{margin:12px 0 0;max-width:560px;color:rgba(255,255,255,.74);font-size:clamp(14px,1.8vh,16px);line-height:1.6;font-weight:600}
+.mock{margin-top:clamp(18px,4vh,40px);flex:1;min-height:0;border-radius:20px 0 0 0;background:#f6faf8;border:1px solid rgba(255,255,255,.18);border-right:0;border-bottom:0;box-shadow:0 30px 80px rgba(0,0,0,.35);overflow:hidden;color:#0a1712;display:flex;flex-direction:column}
 .mock-bar{display:flex;align-items:center;gap:8px;height:42px;padding:0 16px;background:#fff;border-bottom:1px solid #e7ede9}
 .mock-bar i{width:9px;height:9px;border-radius:50%;background:#dfe7e2}
 .mock-bar span{margin-left:10px;padding:4px 12px;border-radius:8px;background:#f3f6f4;color:#69786f;font-size:11.5px;font-weight:700}
-.mock-b{flex:1;padding:22px;display:flex;flex-direction:column;gap:14px}
-.mock .card-h{padding:14px 16px}
+.mock-b{flex:1;padding:clamp(12px,2.4vh,22px) 22px;display:flex;flex-direction:column;gap:clamp(8px,1.5vh,14px)}
+.mock .card-h{padding:clamp(9px,1.5vh,14px) 16px}
 .mock .m2{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.mock .kpi b{display:block;margin-top:8px;font-family:var(--font-display,'Space Grotesk'),sans-serif;font-size:26px;font-weight:600}
+.mock .kpi b{display:block;margin-top:clamp(2px,.8vh,8px);font-family:var(--font-display,'Space Grotesk'),sans-serif;font-size:26px;font-weight:600}
 .mock .kpi small{color:#69786f;font-size:12px;font-weight:600}
-.mrow{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid #f0f4f2;font-size:13px}
+.mrow{display:flex;align-items:center;gap:12px;padding:clamp(7px,1.3vh,12px) 16px;border-top:1px solid #f0f4f2;font-size:13px}
 .mrow > div{flex:1;min-width:0}
 .mrow b{display:block;font-weight:800}
 .mrow small{display:block;color:#69786f;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -106,7 +106,8 @@
 .mock .cr-top span{color:#088256;font-size:12.5px;font-weight:800}
 
 @media (max-width:1100px){
-  .gx.au{grid-template-columns:minmax(0,1fr)}
+  .gx.au{grid-template-columns:minmax(0,1fr);height:auto;min-height:100vh;overflow:visible}
+  .au-l{overflow:visible}
   .au-r{display:none}
   .au-l{padding:32px 24px}
   .au-form{max-width:440px;margin:auto;padding:32px 0}
