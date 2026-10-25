@@ -8553,3 +8553,5 @@ textarea.input { height: auto; min-height: 128px; padding-top: 12px; padding-bot
   .cal-grid2 { grid-template-columns: minmax(0, 1fr); }
   .cal-modal-h, .cal-modal-b, .cal-modal-f { padding-left: 18px; padding-right: 18px; }
 }
+
+.tour-actions .btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }

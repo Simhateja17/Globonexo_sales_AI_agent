@@ -302,6 +302,16 @@ export default function TourOverlay() {
         ) : null}
         <p className="tour-body">{linkify(step.body)}</p>
         {step.footnote ? <p className="tour-footnote">{step.footnote}</p> : null}
+        {step.action && !unlocked ? (
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            style={{ alignSelf: "flex-start", marginTop: 4 }}
+            onClick={() => window.dispatchEvent(new CustomEvent(step.action.event))}
+          >
+            {step.action.label}
+          </button>
+        ) : null}
         {step.requiresStepId && !unlocked ? (
           <p className="tour-locked">
             <Icon name="clock" size={13} /> {step.lockedHint || "Next unlocks once you finish this step on the page. It updates by itself, so there's nothing else to click."}

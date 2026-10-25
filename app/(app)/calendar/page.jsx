@@ -301,6 +301,13 @@ export default function CalendarPage() {
       .finally(() => setSettingsLoading(false));
   }, []);
 
+  // The guided tour's "Open availability" button asks this page to open the editor.
+  useEffect(() => {
+    const open = () => setEditingSettings(true);
+    window.addEventListener("gnx:tour:open-availability", open);
+    return () => window.removeEventListener("gnx:tour:open-availability", open);
+  }, []);
+
   const allMeetings = useMemo(() => (data?.meetings || []).map(normalizeMeeting), [data]);
   const pastMeetings = useMemo(() => (data?.past || []).map(normalizeMeeting), [data]);
   const meetingCount = data?.summary?.total ?? 0;
