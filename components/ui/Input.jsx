@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Icon } from './Icon';
 
-export function Field({ label, icon, type = 'text', placeholder, value, onChange, toggle, hint, name, required, autoComplete }) {
+export function Field({ label, icon, type = 'text', placeholder, value, onChange, toggle, hint, name, required, autoComplete, error }) {
   const [show, setShow] = useState(false);
   const realType = toggle ? (show ? 'text' : 'password') : type;
   return (
@@ -18,6 +18,8 @@ export function Field({ label, icon, type = 'text', placeholder, value, onChange
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          aria-invalid={error ? 'true' : undefined}
+          style={error ? { borderColor: 'var(--stop)', boxShadow: '0 0 0 4px rgba(180, 35, 24, .12)' } : undefined}
           required={required}
           autoComplete={autoComplete}
         />
@@ -27,7 +29,7 @@ export function Field({ label, icon, type = 'text', placeholder, value, onChange
           </button>
         )}
       </div>
-      {hint && <span style={{ fontSize: 12.5, color: 'var(--faint)' }}>{hint}</span>}
+      {error ? <span role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--stop)' }}>{error}</span> : hint && <span style={{ fontSize: 12.5, color: 'var(--faint)' }}>{hint}</span>}
     </div>
   );
 }

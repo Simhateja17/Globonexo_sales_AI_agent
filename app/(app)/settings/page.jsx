@@ -10,7 +10,7 @@ import { useConfirm } from "../../../components/ui/ConfirmDialog";
 import { isFreePlan, isPersonalEmail, useOrg } from '../../../lib/free-plan';
 import RouteSkeleton from '../../../components/ui/RouteSkeleton';
 import { useFirstLoad } from '../../../hooks/useFirstLoad';
-import { clampNumber, cleanText, normalizeUrl } from '../../../lib/validation';
+import { clampNumber, cleanText, isValidEmail, normalizeUrl } from '../../../lib/validation';
 import { useSetup } from '../../../providers/SetupProvider';
 import { browserTimezone, DISPLAY_TIMEZONES } from '../../../lib/campaign-display';
 import { findPlan } from '../../../lib/plans';
@@ -217,13 +217,17 @@ export default function SettingsPage() {
   // if their provider genuinely uses something else.
   const setSmtpEmail = (e) => {
     const email = e.target.value;
+    setInboxErrors((errs) => (errs.email || errs.smtpUsername ? { ...errs, email: undefined, smtpUsername: undefined } : errs));
     setSmtpForm((f) => ({
       ...f,
       email,
       smtpUsername: !f.smtpUsername || f.smtpUsername === f.email ? email : f.smtpUsername,
     }));
   };
-  const setSmtp = (field) => (e) => setSmtpForm((f) => ({ ...f, [field]: e.target.value }));
+  const setSmtp = (field) => (e) => {
+    setSmtpForm((f) => ({ ...f, [field]: e.target.value }));
+    setInboxErrors((errs) => (errs[field] ? { ...errs, [field]: undefined } : errs));
+  };
 
   const applySmtpPreset = (presetKey) => {
     const preset = SMTP_PRESETS[presetKey] || SMTP_PRESETS.custom;
@@ -249,7 +253,35 @@ export default function SettingsPage() {
   };
 
   const [editingInboxId, setEditingInboxId] = useState(null);
+  const [inboxErrors, setInboxErrors] = useState({});
+
+  // Names the fields the customer left empty so they can see what to fix,
+  // instead of the button seeming to do nothing.
+  const validateInboxForm = () => {
+    const f = smtpForm;
+    const blank = value => !String(value ?? '').trim();
+    const errors = {};
+    if (blank(f.email)) errors.email = 'Enter the address you send from.';
+    else if (!isValidEmail(String(f.email).trim())) errors.email = 'Enter a full email address, like you@company.com.';
+    if (blank(f.smtpHost)) errors.smtpHost = 'Enter the SMTP host.';
+    if (blank(f.smtpPort)) errors.smtpPort = 'Required.';
+    if (blank(f.smtpUsername)) errors.smtpUsername = 'Enter the SMTP username.';
+    if (blank(f.smtpPassword) && !editingInboxId) errors.smtpPassword = 'Enter your password or app password.';
+    if (blank(f.imapHost)) errors.imapHost = 'Enter the IMAP host.';
+    if (blank(f.imapPort)) errors.imapPort = 'Required.';
+    setInboxErrors(errors);
+    const first = Object.keys(errors)[0];
+    if (first) {
+      setError('Fill in the highlighted fields to continue.');
+      const el = document.querySelector(`[name="inbox_${first}"]`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el?.focus({ preventScroll: true });
+    }
+    return !first;
+  };
+
   const addInbox = async () => {
+    if (!validateInboxForm()) return;
     if (freePlan && isPersonalEmail(smtpForm.email)) {
       setError(`Connect your company inbox. The Free plan sends from your own work inbox, like you@${organizationDomain || 'yourcompany.com'}. Personal addresses such as Gmail.com or Outlook.com cannot be connected.`);
       return;
@@ -681,7 +713,7 @@ export default function SettingsPage() {
               <div className="col" style={{ gap: 16 }}>
                 <div className="settings-two-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14 }}>
                   <Field
-                    label="Sending email"
+                    label="Sending email" name="inbox_email" error={inboxErrors.email}
                     type="email"
                     value={smtpForm.email}
                     onChange={setSmtpEmail}
@@ -692,17 +724,17 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="settings-two-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px', gap: 14 }}>
-                  <Field label="SMTP host" value={smtpForm.smtpHost} onChange={setSmtp('smtpHost')} placeholder={SMTP_PRESETS[smtpPreset].values.smtpHost || 'smtp.yourprovider.com'} autoComplete="off" />
-                  <Field label="Port" type="number" value={smtpForm.smtpPort} onChange={setSmtp('smtpPort')} placeholder="587" autoComplete="off" />
+                  <Field label="SMTP host" name="inbox_smtpHost" error={inboxErrors.smtpHost} value={smtpForm.smtpHost} onChange={setSmtp('smtpHost')} placeholder={SMTP_PRESETS[smtpPreset].values.smtpHost || 'smtp.yourprovider.com'} autoComplete="off" />
+                  <Field label="Port" name="inbox_smtpPort" error={inboxErrors.smtpPort} type="number" value={smtpForm.smtpPort} onChange={setSmtp('smtpPort')} placeholder="587" autoComplete="off" />
                 </div>
                 <div className="settings-two-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14 }}>
-                  <Field label="SMTP username" value={smtpForm.smtpUsername} onChange={setSmtp('smtpUsername')} placeholder="Usually your email" autoComplete="username" />
-                  <Field label="SMTP password / app password" type="password" toggle value={smtpForm.smtpPassword} onChange={setSmtp('smtpPassword')} autoComplete="new-password" />
+                  <Field label="SMTP username" name="inbox_smtpUsername" error={inboxErrors.smtpUsername} value={smtpForm.smtpUsername} onChange={setSmtp('smtpUsername')} placeholder="Usually your email" autoComplete="username" />
+                  <Field label="SMTP password / app password" name="inbox_smtpPassword" error={inboxErrors.smtpPassword} type="password" toggle value={smtpForm.smtpPassword} onChange={setSmtp('smtpPassword')} autoComplete="new-password" />
                 </div>
 
                 <div className="settings-two-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px', gap: 14 }}>
-                  <Field label="IMAP host" value={smtpForm.imapHost} onChange={setSmtp('imapHost')} placeholder={SMTP_PRESETS[smtpPreset].values.imapHost || 'imap.yourprovider.com'} autoComplete="off" />
-                  <Field label="Port" type="number" value={smtpForm.imapPort} onChange={setSmtp('imapPort')} placeholder="993" autoComplete="off" />
+                  <Field label="IMAP host" name="inbox_imapHost" error={inboxErrors.imapHost} value={smtpForm.imapHost} onChange={setSmtp('imapHost')} placeholder={SMTP_PRESETS[smtpPreset].values.imapHost || 'imap.yourprovider.com'} autoComplete="off" />
+                  <Field label="Port" name="inbox_imapPort" error={inboxErrors.imapPort} type="number" value={smtpForm.imapPort} onChange={setSmtp('imapPort')} placeholder="993" autoComplete="off" />
                 </div>
                 <span style={{ fontSize: 12, color: 'var(--faint)' }}>IMAP reply polling uses the same username and password as SMTP above.</span>
 
