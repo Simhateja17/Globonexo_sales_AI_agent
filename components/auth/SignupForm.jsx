@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
@@ -21,6 +21,8 @@ const PAID_NEXT = [
   [null, 'Connect your inbox', 'Nexo sends from your own work address'],
   [null, 'Start your campaign', 'Every email waits for your OK'],
 ];
+
+const DRAFT_KEY = 'signup_draft';
 
 function FieldInput({ label, error, hint, ...props }) {
   return (
@@ -48,6 +50,19 @@ export function SignupForm() {
   const [step, setStep] = useState('details');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Keep what was typed while the visitor reads Terms or Privacy in this tab.
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null');
+      if (saved?.form) setForm((f) => ({ ...f, ...saved.form }));
+      if (typeof saved?.agreed === 'boolean') setAgreed(saved.agreed);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ form, agreed })); } catch {}
+  }, [form, agreed]);
 
   const update = (field) => (e) => {
     setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -103,6 +118,7 @@ export function SignupForm() {
     setSubmitting(true);
     try {
       const data = await verifySignup(form.email, otp);
+      try { sessionStorage.removeItem(DRAFT_KEY); } catch {}
       localStorage.setItem('returning_user', '1');
       router.push(postAuthPath(data));
     } catch (err) {
@@ -192,7 +208,7 @@ export function SignupForm() {
         <label className="chkl">
           <input type="checkbox" checked={agreed} onChange={(e) => { setAgreed(e.target.checked); setErrors((current) => ({ ...current, agreed: '' })); }} />
           <span className={`cb${agreed ? ' on' : ''}`} aria-hidden="true" />
-          <span>I agree to the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms</Link> and <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link></span>
+          <span>I agree to the <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link></span>
         </label>
         {errors.agreed ? <span className="ferr" role="alert">{errors.agreed}</span> : null}
         {error ? <span className="ferr" role="alert">{error}</span> : null}
