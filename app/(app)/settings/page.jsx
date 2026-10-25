@@ -280,9 +280,15 @@ export default function SettingsPage() {
     return !first;
   };
 
+  useEffect(() => {
+    if (!error || !addingInbox) return;
+    document.getElementById('inbox-form-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [error, addingInbox]);
+
   const addInbox = async () => {
     if (!validateInboxForm()) return;
     if (freePlan && isPersonalEmail(smtpForm.email)) {
+      setInboxErrors({ email: 'Use your company address, not Gmail or Outlook.' });
       setError(`Connect your company inbox. The Free plan sends from your own work inbox, like you@${organizationDomain || 'yourcompany.com'}. Personal addresses such as Gmail.com or Outlook.com cannot be connected.`);
       return;
     }
@@ -738,6 +744,8 @@ export default function SettingsPage() {
                 </div>
                 <span style={{ fontSize: 12, color: 'var(--faint)' }}>IMAP reply polling uses the same username and password as SMTP above.</span>
 
+                {error ? <div className="note" role="alert" id="inbox-form-error" style={{ color: 'var(--stop)', fontWeight: 700 }}>{error}</div> : null}
+
                 <div className="row spread" style={{ gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45, maxWidth: 520 }}>
                     The selected preset only fills server settings. Enter the mailbox address and password/app password, then test before saving.
@@ -1015,7 +1023,7 @@ export default function SettingsPage() {
               </div>
             </section>
 
-            {error && <div className="note">{error}</div>}
+            {error && !addingInbox && <div className="note">{error}</div>}
             {success && <div className="gnote ok"><b>Settings saved.</b> New drafts use these defaults. Drafts already waiting keep their wording.</div>}
           </form>
 
