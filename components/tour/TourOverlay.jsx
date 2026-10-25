@@ -223,6 +223,29 @@ export default function TourOverlay() {
     return () => window.clearInterval(timer);
   }, [tourOpen, step, unlocked, refresh]);
 
+  // A step marked autoAdvance moves on by itself once the customer finishes the
+  // action, but only if it was still locked when they arrived, so revisiting an
+  // already-completed step doesn't skip past it.
+  const wasLockedAt = useRef(null);
+  useEffect(() => {
+    if (!tourOpen || !step?.requiresStepId) {
+      wasLockedAt.current = null;
+      return undefined;
+    }
+    if (!unlocked) {
+      wasLockedAt.current = tourIndex;
+      return undefined;
+    }
+    if (!step.autoAdvance || wasLockedAt.current !== tourIndex) return undefined;
+    const timer = window.setTimeout(() => {
+      wasLockedAt.current = null;
+      const intent = advance(tourIndex, TOUR_STEPS);
+      if (intent.action === "finish") finishTour("completed");
+      else goToTourStep(intent.index);
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, [tourOpen, step, tourIndex, unlocked, finishTour, goToTourStep]);
+
   // Forgetting this campaign id across tour sessions means a later step
   // re-resolves it fresh rather than trusting a possibly stale value.
   useEffect(() => {
