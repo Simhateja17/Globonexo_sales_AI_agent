@@ -313,10 +313,10 @@ export default function OnboardingPage() {
             {step === 0 && (
               <div className="col" style={{ gap: 22 }}>
                 <div className="onboarding-name-grid">
-                  <Field label="First name" icon="user" placeholder="Poojitha" value={d.firstName} onChange={e => set('firstName', e.target.value)} />
-                  <Field label="Last name" icon="user" placeholder="Gobburu" value={d.lastName} onChange={e => set('lastName', e.target.value)} />
+                  <Field label="First name" icon="user" placeholder="Maya" value={d.firstName} onChange={e => set('firstName', e.target.value)} />
+                  <Field label="Last name" icon="user" placeholder="Collins" value={d.lastName} onChange={e => set('lastName', e.target.value)} />
                 </div>
-                <Field label="Company" icon="building" placeholder="Globonexo" value={d.company} onChange={e => set('company', e.target.value)}
+                <Field label="Company" icon="building" placeholder="Northwind Logistics" value={d.company} onChange={e => set('company', e.target.value)}
                   hint="Used to create your organization profile." />
                 <OSelect label="Your role" value={d.role} onChange={v => set('role', v)}
                   options={['Account Executive', 'SDR / BDR', 'Sales Manager', 'VP of Sales', 'Founder / CEO', 'RevOps']} />
