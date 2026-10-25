@@ -172,8 +172,8 @@ export default function InboxPage() {
         setDraftBody(res.data?.ai_draft_reply || "");
         // A reply arrives with the agent's draft already written, so open it in
         // the box ready to approve instead of an empty field.
-        const waitingDraft = res.data?.kind !== "sent" && res.data?.ai_draft_reply && (res.data?.ai_draft_status || "pending") === "pending";
-        if (waitingDraft) setComposerBody(res.data.ai_draft_reply);
+        const hasDraft = res.data?.kind !== "sent" && res.data?.ai_draft_reply;
+        if (hasDraft) setComposerBody(res.data.ai_draft_reply);
       })
       .catch(() => {
         const selectedThread = threads.find(item => item.id === selectedId);
@@ -316,7 +316,15 @@ export default function InboxPage() {
   const draftStatus = detail?.ai_draft_status || thread?.aiDraftStatus || "pending";
   const hasReply = detail?.kind === "reply";
   const canReply = Boolean(thread);
-  const draftIsWaiting = hasReply && draftStatus === "pending" && composerBody.trim() && composerBody === draftBody;
+  // Every reply gets the agent's draft card, as in the design. Its label says
+  // where the draft stands: waiting, already handled, or not written yet.
+  const isReplyCard = hasReply;
+  const draftIsWaiting = isReplyCard && draftStatus === "pending" && Boolean(composerBody.trim());
+  const draftNote = !isReplyCard ? ""
+    : draftIsWaiting ? "Waiting for your OK"
+    : draftStatus === "approved" || draftStatus === "sent" || draftStatus === "sent_email" ? "Already approved"
+    : draftStatus === "rejected" ? "Rejected"
+    : composerBody.trim() ? "Ready when you are" : "No draft yet";
   const leadStatusKey = lead.status || thread?.leadStatus || thread?.stage || "";
   const stageLabel = LEAD_STAGE_LABELS[leadStatusKey] || (hasReply ? "Replied" : "Awaiting reply");
   const leadProfileId = lead.id || detail?.lead_id || thread?.leadId || "";
@@ -470,8 +478,8 @@ export default function InboxPage() {
           {thread && canReply ? (
             <form className="dft" onSubmit={sendManualMessage}>
               <div className="dft-h">
-                <Icon name="spark" size={15} /> {draftIsWaiting ? "Nexo's draft reply" : "Your reply"}
-                <span>{draftIsWaiting ? "Waiting for your OK" : composerBody.trim() ? "Ready when you are" : "Write it, or ask for a draft"}</span>
+                <Icon name="spark" size={15} /> {isReplyCard ? "Nexo's draft reply" : "Your reply"}
+                <span>{isReplyCard ? draftNote : composerBody.trim() ? "Ready when you are" : "Write it, or ask for a draft"}</span>
               </div>
               <textarea
                 ref={composerRef}
@@ -499,9 +507,9 @@ export default function InboxPage() {
                     </button>
                   ) : null}
                 </div>
-                {draftIsWaiting ? (
+                {isReplyCard ? (
                   <>
-                    <button type="button" className="bt bt-g sm" disabled={sending} onClick={rejectDraft}>Reject</button>
+                    <button type="button" className="bt bt-g sm" disabled={sending || !composerBody.trim()} onClick={rejectDraft}>Reject</button>
                     <button type="button" className="bt bt-g sm" disabled={sending} onClick={() => composerRef.current?.focus()}>
                       <Icon name="edit" size={14} /> Edit
                     </button>
@@ -513,7 +521,7 @@ export default function InboxPage() {
                   </button>
                 ) : null}
                 <button type="submit" className="bt bt-p sm" disabled={!composerBody.trim() || sending}>
-                  <Icon name="send" size={14} color="#06231a" /> {sending ? "Sending..." : draftIsWaiting ? "Approve and send" : "Send"}
+                  <Icon name="send" size={14} color="#06231a" /> {sending ? "Sending..." : isReplyCard ? "Approve and send" : "Send"}
                 </button>
               </div>
             </form>
