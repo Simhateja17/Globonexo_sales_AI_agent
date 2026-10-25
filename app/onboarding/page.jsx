@@ -241,8 +241,11 @@ export default function OnboardingPage() {
     }
     if (step === 0 && d.role === 'Other') return 'Tell us your role, since you chose Other.';
     if (step === 0 && d.industry === 'Other') return 'Tell us your industry, since you chose Other.';
-    if (step === 1 && (cleanText(d.productDescription, { max: 4000, multiline: true }).length < 20 || cleanText(d.valueProp, { max: 2000, multiline: true }).length < 10)) {
-      return 'Add product context and a measurable customer outcome.';
+    if (step === 1) {
+      const productLen = cleanText(d.productDescription, { max: 4000, multiline: true }).length;
+      const outcomeLen = cleanText(d.valueProp, { max: 2000, multiline: true }).length;
+      if (productLen < 20) return `Tell us a bit more about what your product does (at least 20 characters, you have ${productLen}).`;
+      if (outcomeLen < 10) return `Add the outcome customers get (at least 10 characters, you have ${outcomeLen}).`;
     }
     if (step === 2 && (d.titles.length === 0 || d.targetIndustries.length === 0)) {
       return 'Select at least one target title and industry.';
