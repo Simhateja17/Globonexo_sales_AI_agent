@@ -60,12 +60,14 @@ export function SignupForm() {
     } catch {}
   }, []);
 
-  useEffect(() => {
-    try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ form, agreed })); } catch {}
-  }, [form, agreed]);
+  const saveDraft = (nextForm, nextAgreed) => {
+    try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ form: nextForm, agreed: nextAgreed })); } catch {}
+  };
 
   const update = (field) => (e) => {
-    setForm((f) => ({ ...f, [field]: e.target.value }));
+    const nextForm = { ...form, [field]: e.target.value };
+    setForm(nextForm);
+    saveDraft(nextForm, agreed);
     setErrors((current) => ({ ...current, [field]: '' }));
     if (field === 'email') setPersonalOk(false);
   };
@@ -206,7 +208,7 @@ export function SignupForm() {
         </label>
         <FieldInput label="Company" placeholder="Your company" value={form.company} onChange={update('company')} error={errors.company} autoComplete="organization" maxLength={160} />
         <label className="chkl">
-          <input type="checkbox" checked={agreed} onChange={(e) => { setAgreed(e.target.checked); setErrors((current) => ({ ...current, agreed: '' })); }} />
+          <input type="checkbox" checked={agreed} onChange={(e) => { setAgreed(e.target.checked); saveDraft(form, e.target.checked); setErrors((current) => ({ ...current, agreed: '' })); }} />
           <span className={`cb${agreed ? ' on' : ''}`} aria-hidden="true" />
           <span>I agree to the <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link></span>
         </label>
