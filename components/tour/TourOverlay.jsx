@@ -37,6 +37,16 @@ function isEditingTarget(target) {
   return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
 }
 
+// Turns bare URLs with a path in a step's text into links that open in a new tab.
+const LINK_RE = /((?:[a-z0-9-]+\.)+(?:com|org|net|io)\/[\w\-./]*[\w\-])/gi;
+function linkify(text) {
+  return String(text).split(LINK_RE).map((part, i) => (
+    i % 2 === 1
+      ? <a key={i} href={`https://${part.replace(/[.,]+$/, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--g-700)', fontWeight: 800, textDecoration: 'underline' }}>{part}</a>
+      : part
+  ));
+}
+
 export default function TourOverlay() {
   const { tourOpen, tourIndex, goToTourStep, finishTour, steps: setupSteps, skipStep, refresh } = useSetup();
   const router = useRouter();
@@ -260,11 +270,11 @@ export default function TourOverlay() {
         {navigating && !onStepRoute ? (
           <p className="tour-navigating">Opening {effectiveRoute}…</p>
         ) : null}
-        <p className="tour-body">{step.body}</p>
+        <p className="tour-body">{linkify(step.body)}</p>
         {step.footnote ? <p className="tour-footnote">{step.footnote}</p> : null}
         {step.requiresStepId && !unlocked ? (
           <p className="tour-locked">
-            <Icon name="clock" size={13} /> Waiting for this to be done. I'll unlock automatically.
+            <Icon name="clock" size={13} /> {step.lockedHint || "Next unlocks once you finish this step on the page. It updates by itself, so there's nothing else to click."}
           </p>
         ) : null}
 
