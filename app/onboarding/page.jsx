@@ -6,6 +6,7 @@ import Aurora from "../../components/ui/Aurora";
 import Icon from "../../components/ui/Icon";
 import Field from "../../components/ui/Field";
 import api from "../../lib/api";
+import { suggestProductText } from "../../lib/onboarding-suggestions";
 import { clampNumber, cleanList, cleanText, normalizeUrl } from "../../lib/validation";
 
 const STEPS = [
@@ -426,6 +427,23 @@ export default function OnboardingPage() {
             {/* Step 1: Product */}
             {step === 1 && (
               <div className="col" style={{ gap: 22 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', padding: '14px 16px', borderRadius: 'var(--r-md)', border: '1.5px solid var(--g-200)', background: 'var(--g-50)' }}>
+                  <div style={{ flex: 1, minWidth: 220 }}>
+                    <b style={{ fontSize: 14 }}>Skip the typing</b>
+                    <div style={{ fontSize: 13, color: 'var(--ink-2)', marginTop: 2 }}>
+                      Start from a draft written for {d.industry && d.industry !== 'Other' ? <span style={{ textTransform: 'capitalize' }}>{d.industry}</span> : 'your industry'}. Edit anything, and fields you already filled stay as they are.
+                    </div>
+                  </div>
+                  <button type="button" className="btn btn-ghost" onClick={() => {
+                    const draft = suggestProductText(d.industry, d.company);
+                    setD(prev => ({
+                      ...prev,
+                      productDescription: prev.productDescription.trim() ? prev.productDescription : draft.productDescription,
+                      valueProp: prev.valueProp.trim() ? prev.valueProp : draft.valueProp,
+                      painPoints: prev.painPoints.trim() ? prev.painPoints : draft.painPoints,
+                    }));
+                  }}>Fill with a draft</button>
+                </div>
                 <OTextarea
                   label="What does your product do?"
                   rows={5}
