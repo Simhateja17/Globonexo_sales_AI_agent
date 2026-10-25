@@ -203,6 +203,67 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
   );
 }
 
+// The four-stage strip under the header: what has happened to this campaign and
+// what is waiting on a person. Built only from numbers the page already has.
+function CampaignProgress({ campaign, leadCount, preparationDone, drafts }) {
+  const stats = campaign?.stats || {};
+  const enrolled = stats.enrolled ?? leadCount;
+  const missing = Number(stats.missingEmail ?? 0);
+  const queued = Number(stats.queued ?? 0);
+  const sent = Number(stats.sent ?? 0);
+  const written = Number(drafts?.total ?? 0);
+  const waiting = Number(drafts?.draft ?? 0);
+  const audienceDone = preparationDone || enrolled > 0;
+  const emailsDone = audienceDone && written > 0 && !drafts?.generating;
+  const approvalsDone = emailsDone && waiting === 0;
+  const stages = [
+    {
+      key: "audience",
+      done: audienceDone,
+      title: audienceDone ? "Audience found" : "Finding your audience",
+      text: audienceDone
+        ? `${enrolled} lead${enrolled === 1 ? "" : "s"} enrolled${missing > 0 ? ` · ${missing} without an email` : ""}`
+        : "Searching and checking contacts before any credits are spent",
+    },
+    {
+      key: "written",
+      done: emailsDone,
+      title: emailsDone ? "Emails written" : "Writing emails",
+      text: emailsDone
+        ? `${drafts.steps || 1}-step sequence from verified facts only`
+        : drafts?.generating ? "Your agent is writing each email now" : "Starts once leads finish enriching",
+    },
+    {
+      key: "approve",
+      done: approvalsDone,
+      title: approvalsDone ? "Emails approved" : `${waiting} email${waiting === 1 ? "" : "s"} need${waiting === 1 ? "s" : ""} your OK`,
+      text: approvalsDone
+        ? (drafts?.autopilotEnabled ? "Autopilot approves new emails as they are written" : "Nothing is waiting on you")
+        : "Approve below, or turn on autopilot for this campaign",
+    },
+    {
+      key: "sending",
+      done: sent > 0 && queued === 0 && approvalsDone,
+      title: "Sending",
+      text: `${queued} queued · ${sent} sent · 9 AM to 5 PM in each lead's timezone`,
+    },
+  ];
+  const currentIndex = stages.findIndex(stage => !stage.done);
+  return (
+    <div className="card prep" aria-label="Campaign progress">
+      {stages.map((stage, index) => {
+        const cls = stage.done ? "" : index === currentIndex ? " cur" : " todo";
+        return (
+          <div key={stage.key} className={`ps${cls}`}>
+            <span className="ps-ic">{stage.done ? <Icon name="check" size={15} color="#fff" /> : index + 1}</span>
+            <div><b>{stage.title}</b><small>{stage.text}</small></div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const LEADS_PER_PAGE = 10;
 
 export default function CampaignDetailPage() {
@@ -228,6 +289,7 @@ export default function CampaignDetailPage() {
   const [schedule, setSchedule] = useState([]);
   const [displayTimezone, setDisplayTimezone] = useState(browserTimezone());
   const [preparationData, setPreparationData] = useState(null);
+  const [draftSummary, setDraftSummary] = useState(null);
   // Set when the server refuses "Call now" for being over a limit; greys out
   // every Call now button until `until` passes.
   const [callNowLimit, setCallNowLimit] = useState(null);
@@ -507,6 +569,17 @@ export default function CampaignDetailPage() {
   const leadWeightTotal = leadColumnWeights.reduce((sum, column) => sum + column.weight, 0);
   const leadColumns = leadColumnWeights.map(column => ({ header: column.header, width: `${(column.weight / leadWeightTotal * 100).toFixed(2)}%` }));
 
+  const campaignTabs = (
+    <div className="seg" role="tablist" aria-label="Campaign sections">
+      {[...(emailEnabled ? [["emails", "Emails"]] : []), ["leads", "Leads"], ["settings", "Settings"]].map(([key, label]) => (
+        <button key={key} type="button" role="tab" aria-selected={activeTab === key} className={activeTab === key ? "on" : ""} onClick={() => selectTab(key)}>
+          {label}{key === "leads" ? <em>{leads.length}</em> : null}
+          {key === "emails" && draftSummary?.total ? <em>{draftSummary.total}</em> : null}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <main className="gx">
       {toast && (
@@ -588,6 +661,7 @@ export default function CampaignDetailPage() {
       ) : null}
 
       <div className="col" style={{ gap: 16 }}>
+          {emailEnabled ? <CampaignProgress campaign={campaign} leadCount={leads.length} preparationDone={Number(preparationData?.campaign?.preparation_progress ?? 0) >= 100} drafts={draftSummary} /> : null}
           {canOperate ? <CampaignPreparationPanel campaignId={campaign.id} channel={campaign.channel} campaignStatus={campaign.status} onChanged={handlePreparationChanged} /> : <div className="card" style={{ padding: 16, color: "#69786f", fontSize: 13, fontWeight: 600 }}>This campaign is assigned to another teammate. You can review its status and history, but operational controls are read-only.</div>}
 
           <div className="mets">
@@ -599,15 +673,7 @@ export default function CampaignDetailPage() {
             ))}
           </div>
 
-          <div>
-            <div className="seg" role="tablist" aria-label="Campaign sections">
-              {[...(emailEnabled ? [["emails", "Emails"]] : []), ["leads", "Leads"], ["settings", "Settings"]].map(([key, label]) => (
-                <button key={key} type="button" role="tab" aria-selected={activeTab === key} className={activeTab === key ? "on" : ""} onClick={() => selectTab(key)}>
-                  {label}{key === "leads" ? <em>{leads.length}</em> : null}
-                </button>
-              ))}
-            </div>
-          </div>
+          {!(emailEnabled && activeTab === "emails" && canOperate) ? <div>{campaignTabs}</div> : null}
 
           {activeTab === "settings" && (
             <div className="col" style={{ gap: 16 }}>
@@ -618,7 +684,7 @@ export default function CampaignDetailPage() {
           )}
 
           {emailEnabled && activeTab === "emails" && (
-            canOperate ? <DraftReview campaignId={campaign.id} displayTimezone={displayTimezone} onChanged={load} /> : <div className="card" style={{ padding: 20, color: "var(--muted)", fontSize: 13 }}>Message drafts are read-only for campaigns assigned to another teammate.</div>
+            canOperate ? <DraftReview campaignId={campaign.id} displayTimezone={displayTimezone} onChanged={load} tabs={campaignTabs} onSummary={setDraftSummary} /> : <div className="card" style={{ padding: 20, color: "var(--muted)", fontSize: 13 }}>Message drafts are read-only for campaigns assigned to another teammate.</div>
           )}
 
           {activeTab === "leads" && (

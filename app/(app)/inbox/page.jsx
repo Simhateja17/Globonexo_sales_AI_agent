@@ -23,6 +23,27 @@ const STATUS_LABELS = {
   bounced: "Bounced",
 };
 
+const LEAD_STAGE_LABELS = {
+  new: "New",
+  queued: "Queued",
+  contacted: "Contacted",
+  engaged: "Engaged",
+  meeting_booked: "Meeting set",
+  not_interested: "Not interested",
+  unsubscribed: "Unsubscribed",
+};
+
+// The small pill under each thread says what the person has to do, or how the
+// conversation ended, rather than only whether it is a reply or a send.
+function threadPill(item) {
+  const stage = item.leadStatus || item.stage || item.leadStage;
+  if (stage === "meeting_booked") return { label: "Meeting set", cls: "pl-dark" };
+  if (stage === "not_interested" || stage === "unsubscribed") return { label: LEAD_STAGE_LABELS[stage], cls: "pl-mute" };
+  if (item.kind === "reply" && item.aiDraftStatus === "pending") return { label: "Draft ready", cls: "pl-ok" };
+  if (item.kind === "reply") return { label: "Replied", cls: "pl-info" };
+  return { label: "Sent", cls: "pl-mute" };
+}
+
 const EMAIL_FILTERS = [
   { id: "all", label: "All" },
   { id: "replies", label: "Replies" },
@@ -73,7 +94,7 @@ function buildFallbackDraft(detail, thread, displayName) {
 function MessageBubble({ side, label, meta, avatar, children }) {
   const isOutbound = side === "outbound";
   return (
-    <div className={`msg ${isOutbound ? "" : "in"}`}>
+    <div className={`msg ${isOutbound ? "" : "msg-in"}`}>
       <div className="msg-h">
         {isOutbound ? <span className="pl pl-mute">{label}</span> : <>{avatar}<b>{label}</b></>}
         {meta ? <span>{meta}</span> : null}
@@ -149,6 +170,10 @@ export default function InboxPage() {
       .then(res => {
         setDetail({ ...res.data, kind: res.data?.kind || "reply" });
         setDraftBody(res.data?.ai_draft_reply || "");
+        // A reply arrives with the agent's draft already written, so open it in
+        // the box ready to approve instead of an empty field.
+        const waitingDraft = res.data?.kind !== "sent" && res.data?.ai_draft_reply && (res.data?.ai_draft_status || "pending") === "pending";
+        if (waitingDraft) setComposerBody(res.data.ai_draft_reply);
       })
       .catch(() => {
         const selectedThread = threads.find(item => item.id === selectedId);
@@ -217,6 +242,26 @@ export default function InboxPage() {
     }
   };
 
+  const regenerateDraft = async () => {
+    if (!selectedId || drafting) return;
+    setDrafting(true);
+    setError("");
+    setSuccess("");
+    try {
+      const { data } = await api.post(`/emails/${selectedId}/regenerate`);
+      const body = cleanText(data?.ai_draft_reply || "", { max: 8000, multiline: true });
+      if (body) {
+        setDraftBody(body);
+        setComposerBody(body);
+        setDetail(current => current ? { ...current, ...data } : current);
+      }
+    } catch {
+      setError("Draft could not be generated. Check AI configuration and backend logs.");
+    } finally {
+      setDrafting(false);
+    }
+  };
+
   const fillComposerWithDraft = async () => {
     if (!selectedId || drafting) return;
     setDrafting(true);
@@ -263,6 +308,15 @@ export default function InboxPage() {
   const draftStatus = detail?.ai_draft_status || thread?.aiDraftStatus || "pending";
   const hasReply = detail?.kind === "reply";
   const canReply = Boolean(thread);
+  const draftIsWaiting = hasReply && draftStatus === "pending" && composerBody.trim() && composerBody === draftBody;
+  const leadStatusKey = lead.status || thread?.leadStatus || thread?.stage || "";
+  const stageLabel = LEAD_STAGE_LABELS[leadStatusKey] || (hasReply ? "Replied" : "Awaiting reply");
+  const leadProfileId = lead.id || detail?.lead_id || thread?.leadId || "";
+  const stepNumber = thread?.stepNumber || originalMessage.step_number;
+  const timeline = [
+    hasReply && detail?.received_at ? { title: stepNumber ? `Replied to step ${stepNumber}` : "Replied", text: formatDateTime(detail.received_at) } : null,
+    originalMessage.sent_at || originalMessage.created_at ? { title: stepNumber ? `Step ${stepNumber} sent` : "Email sent", text: formatDateTime(originalMessage.sent_at || originalMessage.created_at) } : null,
+  ].filter(Boolean);
   const manualMessages = selectedId ? sentMessages[selectedId] || [] : [];
   const filteredThreads = filterThreads(threads, activeFilter).filter(item => !senderFilter || item.connectedAccountId === senderFilter);
   const filterCounts = {
@@ -287,7 +341,7 @@ export default function InboxPage() {
       <div className="ph">
         <div>
           <h1>Inbox</h1>
-          <p>{threads.length} lead conversation{threads.length === 1 ? "" : "s"} across your campaign mailboxes.</p>
+          <p>Replies from every campaign mailbox, with a Nexo draft ready on each.</p>
         </div>
         <div className="acts">
           <select className="sel-box" style={{ background: "#fff" }} aria-label="Filter by inbox" value={senderFilter} onChange={event => setSenderFilter(event.target.value)}>
@@ -336,7 +390,7 @@ export default function InboxPage() {
                     <span className="th-s">{item.subject}</span>
                     <span className="th-p">{item.preview}</span>
                     <div style={{ marginTop: 7 }}>
-                      <span className={`pl ${item.kind === "reply" ? "pl-ok" : "pl-mute"}`}>{item.kind === "reply" ? "Reply" : "Sent"}</span>
+                      {(() => { const pill = threadPill(item); return <span className={`pl ${pill.cls}`}>{pill.label}</span>; })()}
                     </div>
                   </div>
                 </button>
@@ -363,7 +417,7 @@ export default function InboxPage() {
               <button type="button" className="ibt cv-back" aria-label="Back to inbox" onClick={() => setMobileView("list")}><Icon name="arrowLeft" size={15} /></button>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <b className="ellip" style={{ display: "block" }}>{originalMessage.subject || thread.subject || displayName}</b>
-                <small className="ellip">{[thread.company, thread.inboxAddress ? `via ${thread.inboxAddress}` : null].filter(Boolean).join(" · ") || lead.email || thread.email}</small>
+                <small className="ellip">{[thread.campaignName, thread.stepNumber ? `step ${thread.stepNumber}` : null, thread.inboxAddress ? `via ${thread.inboxAddress}` : (thread.campaignName ? null : thread.company)].filter(Boolean).join(" · ") || lead.email || thread.email}</small>
               </div>
               <span className="pl pl-mute">{STATUS_LABELS[draftStatus] || draftStatus}</span>
             </div>
@@ -408,8 +462,8 @@ export default function InboxPage() {
           {thread && canReply ? (
             <form className="dft" onSubmit={sendManualMessage}>
               <div className="dft-h">
-                <Icon name="spark" size={15} /> Your reply
-                <span>{composerBody.trim() ? "Ready when you are" : "Write it, or ask for a draft"}</span>
+                <Icon name="spark" size={15} /> {draftIsWaiting ? "Nexo's draft reply" : "Your reply"}
+                <span>{draftIsWaiting ? "Waiting for your OK" : composerBody.trim() ? "Ready when you are" : "Write it, or ask for a draft"}</span>
               </div>
               <textarea
                 ref={composerRef}
@@ -427,12 +481,20 @@ export default function InboxPage() {
                 placeholder={`Message ${displayName}`}
               />
               <div className="dft-f">
-                <div className="x" />
-                <button type="button" className="bt bt-g sm" disabled={detailLoading || drafting || !selectedId} onClick={fillComposerWithDraft}>
-                  <Icon name="spark" size={14} /> {drafting ? "Drafting..." : "Draft with AI"}
-                </button>
+                <div className="x">
+                  {hasReply ? (
+                    <button type="button" className="ibt" title="Write a new draft" aria-label="Write a new draft" disabled={detailLoading || drafting || !selectedId} onClick={regenerateDraft}>
+                      <Icon name="refresh" size={14} />
+                    </button>
+                  ) : null}
+                </div>
+                {!composerBody.trim() ? (
+                  <button type="button" className="bt bt-g sm" disabled={detailLoading || drafting || !selectedId} onClick={fillComposerWithDraft}>
+                    <Icon name="spark" size={14} /> {drafting ? "Drafting..." : "Draft with AI"}
+                  </button>
+                ) : null}
                 <button type="submit" className="bt bt-p sm" disabled={!composerBody.trim() || sending}>
-                  <Icon name="send" size={14} color="#06231a" /> {sending ? "Sending..." : "Send"}
+                  <Icon name="send" size={14} color="#06231a" /> {sending ? "Sending..." : draftIsWaiting ? "Approve and send" : "Send"}
                 </button>
               </div>
             </form>
@@ -447,10 +509,16 @@ export default function InboxPage() {
                 <b>{displayName}</b>
                 <small>{[lead.title, lead.company || thread.company].filter(Boolean).join(" · ") || "Lead"}</small>
                 <div className="pv-tags" style={{ justifyContent: "center" }}>
-                  <span className={`pl ${hasReply ? "pl-ok" : "pl-mute"}`}>{hasReply ? "Replied" : "Awaiting reply"}</span>
+                  <span className={`pl ${hasReply ? "pl-ok" : "pl-mute"}`}>{stageLabel}</span>
                   {lead.score != null ? <span className="pl pl-dark">Score {lead.score}</span> : null}
                 </div>
               </div>
+              {lead.status || thread.leadStatus ? (
+                <div className="ctx-sec">
+                  <small className="h">Stage</small>
+                  <div className="sel-box" aria-label="Lead stage"><span>{stageLabel}</span></div>
+                </div>
+              ) : null}
               <div className="ctx-sec">
                 <small className="h">Contact</small>
                 <div className="kv"><span>Email</span><b className="ellip">{lead.email || thread.email || "Unknown"}</b></div>
@@ -458,6 +526,19 @@ export default function InboxPage() {
                 {lead.location ? <div className="kv"><span>Location</span><b>{lead.location}</b></div> : null}
                 {thread.inboxAddress ? <div className="kv"><span>Inbox</span><b className="ellip">{thread.inboxAddress}</b></div> : null}
               </div>
+              {timeline.length > 0 ? (
+                <div className="ctx-sec">
+                  <small className="h">Sequence</small>
+                  <div className="tl">
+                    {timeline.map(entry => (
+                      <div key={entry.title}><i /><b>{entry.title}</b><span>{entry.text}</span></div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {leadProfileId ? (
+                <button type="button" className="bt bt-g" style={{ justifyContent: "center" }} onClick={() => router.push(`/prospects/${leadProfileId}`)}>Open lead profile</button>
+              ) : null}
             </>
           ) : null}
         </aside>

@@ -226,7 +226,7 @@ export default function LeadProfilePage() {
             ) : (
               <div className="tl2">
                 {visibleTimeline.map(event => (
-                  <div key={event.id} className="ev">
+                  <div key={event.id} className="tev">
                     <span className={`ei ${event.tone}`}><Icon name={event.icon} size={16} /></span>
                     <div>
                       <b>{event.title}</b><small>{formatDateTime(event.time)}</small>
