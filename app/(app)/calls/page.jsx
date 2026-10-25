@@ -80,7 +80,7 @@ function StatCard({ label, value, icon, tone, detail, series }) {
       <div className="kpi-top">{label}<span className={`kpi-ic ${warn ? "warn" : ""}`}><Icon name={icon} size={16} /></span></div>
       <b>{value}</b>
       {detail ? <small>{detail}</small> : null}
-      {series && series.some(Boolean) ? <Spark values={series} /> : null}
+      {series ? <Spark values={series} /> : null}
     </div>
   );
 }
