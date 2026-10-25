@@ -174,95 +174,99 @@ function SettingsPanel({ settings, onSave, saving, onDone }) {
   };
 
   return (
-    <div className="card cal-settings-card" style={{ padding: 18 }}>
-      <div className="card-h" style={{ padding: "0 0 12px", marginBottom: 14 }}>
-        <div><b>Availability</b><small>What the AI agent offers leads when it books a meeting.</small></div>
-        <button type="button" className="lnk" onClick={onDone}>Done</button>
-      </div>
-
-      <div className="col" style={{ gap: 14 }}>
-        <div className="field">
-          <label>Working days</label>
-          <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
-            {WEEKDAY_SHORT.map((label, dow) => {
-              const active = form.workingDays.includes(dow);
-              return (
-                <button
-                  key={dow}
-                  type="button"
-                  onClick={() => toggleDay(dow)}
-                  className="cal-day-toggle"
-                  style={{
-                    background: active ? "var(--g-500)" : "var(--bg)",
-                    color: active ? "#06231a" : "var(--muted)",
-                    borderColor: active ? "var(--g-500)" : "var(--line)",
-                  }}
-                >
-                  {label[0]}
-                </button>
-              );
-            })}
+    <div className="cal-modal-bg" onMouseDown={(e) => { if (e.target === e.currentTarget) onDone(); }}>
+      <div className="cal-modal" role="dialog" aria-modal="true" aria-labelledby="cal-av-title" data-tour="calendar-availability">
+        <div className="cal-modal-h">
+          <div>
+            <h2 id="cal-av-title">Availability</h2>
+            <p>What the AI agent offers leads when it books a meeting.</p>
           </div>
+          <button type="button" className="ibt" aria-label="Close availability" onClick={onDone}><Icon name="close" size={16} /></button>
         </div>
 
-        <div className="row" style={{ gap: 10 }}>
-          <div className="field" style={{ flex: 1 }}>
-            <label>Start</label>
-            <input className="input" type="time" value={form.dayStartTime} onChange={(e) => set("dayStartTime")(e.target.value)} />
-          </div>
-          <div className="field" style={{ flex: 1 }}>
-            <label>End</label>
-            <input className="input" type="time" value={form.dayEndTime} onChange={(e) => set("dayEndTime")(e.target.value)} />
-          </div>
+        <div className="cal-modal-b">
+          <section className="cal-sec">
+            <h3>Working hours</h3>
+            <div className="field">
+              <label>Working days</label>
+              <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+                {WEEKDAY_SHORT.map((label, dow) => {
+                  const active = form.workingDays.includes(dow);
+                  return (
+                    <button
+                      key={dow}
+                      type="button"
+                      onClick={() => toggleDay(dow)}
+                      className="cal-day-toggle"
+                      aria-pressed={active}
+                      title={label}
+                      style={{
+                        background: active ? "var(--g-500)" : "var(--bg)",
+                        color: active ? "#06231a" : "var(--muted)",
+                        borderColor: active ? "var(--g-500)" : "var(--line)",
+                      }}
+                    >
+                      {label[0]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="cal-grid2">
+              <div className="field">
+                <label>Start</label>
+                <input className="input" type="time" value={form.dayStartTime} onChange={(e) => set("dayStartTime")(e.target.value)} />
+              </div>
+              <div className="field">
+                <label>End</label>
+                <input className="input" type="time" value={form.dayEndTime} onChange={(e) => set("dayEndTime")(e.target.value)} />
+              </div>
+            </div>
+            <div className="field">
+              <label>Timezone</label>
+              <select className="input" value={form.timezone} onChange={(e) => set("timezone")(e.target.value)}>
+                {(TIMEZONES.includes(form.timezone) ? TIMEZONES : [form.timezone, ...TIMEZONES]).map((zone) => (
+                  <option key={zone} value={zone}>{zone}</option>
+                ))}
+              </select>
+              <span className="cal-hint">Slot times are spoken to leads in this timezone.</span>
+            </div>
+          </section>
+
+          <section className="cal-sec">
+            <h3>Meeting rules</h3>
+            <div className="cal-grid2">
+              <div className="field">
+                <label>Duration (min)</label>
+                <input className="input" type="number" min={5} max={240} value={form.meetingDurationMinutes} onChange={(e) => set("meetingDurationMinutes")(Number(e.target.value))} />
+              </div>
+              <div className="field">
+                <label>Buffer (min)</label>
+                <input className="input" type="number" min={0} max={120} value={form.bufferMinutes} onChange={(e) => set("bufferMinutes")(Number(e.target.value))} />
+              </div>
+              <div className="field">
+                <label>Min notice (min)</label>
+                <input className="input" type="number" min={0} max={10080} value={form.minNoticeMinutes} onChange={(e) => set("minNoticeMinutes")(Number(e.target.value))} />
+              </div>
+              <div className="field">
+                <label>Book within (days)</label>
+                <input className="input" type="number" min={1} max={90} value={form.bookingWindowDays} onChange={(e) => set("bookingWindowDays")(Number(e.target.value))} />
+              </div>
+            </div>
+            <div className="field">
+              <label>Default meeting link</label>
+              <input className="input" type="url" value={form.defaultMeetingUrl || ""} onChange={(e) => set("defaultMeetingUrl")(e.target.value)} placeholder="https://meet.google.com/…" />
+              <span className="cal-hint">Sent automatically to the prospect and your connected mailbox after a call booking.</span>
+            </div>
+          </section>
         </div>
 
-        <div className="field">
-          <label>Timezone</label>
-          <select className="input" value={form.timezone} onChange={(e) => set("timezone")(e.target.value)}>
-            {(TIMEZONES.includes(form.timezone) ? TIMEZONES : [form.timezone, ...TIMEZONES]).map((zone) => (
-              <option key={zone} value={zone}>{zone}</option>
-            ))}
-          </select>
-          <span style={{ fontSize: 11.5, color: "var(--faint)" }}>Slot times are spoken to leads in this timezone.</span>
+        <div className="cal-modal-f">
+          <button type="button" className="bt bt-g" onClick={onDone}>Cancel</button>
+          <button type="button" className="bt bt-p" disabled={saving} onClick={() => onSave(form)}>
+            {saving ? "Saving…" : "Save availability"}
+          </button>
         </div>
-
-        <div className="row" style={{ gap: 10 }}>
-          <div className="field" style={{ flex: 1 }}>
-            <label>Duration (min)</label>
-            <input className="input" type="number" min={5} max={240} value={form.meetingDurationMinutes} onChange={(e) => set("meetingDurationMinutes")(Number(e.target.value))} />
-          </div>
-          <div className="field" style={{ flex: 1 }}>
-            <label>Buffer (min)</label>
-            <input className="input" type="number" min={0} max={120} value={form.bufferMinutes} onChange={(e) => set("bufferMinutes")(Number(e.target.value))} />
-          </div>
-        </div>
-
-        <div className="row" style={{ gap: 10 }}>
-          <div className="field" style={{ flex: 1 }}>
-            <label>Min notice (min)</label>
-            <input className="input" type="number" min={0} max={10080} value={form.minNoticeMinutes} onChange={(e) => set("minNoticeMinutes")(Number(e.target.value))} />
-          </div>
-          <div className="field" style={{ flex: 1 }}>
-            <label>Book within (days)</label>
-            <input className="input" type="number" min={1} max={90} value={form.bookingWindowDays} onChange={(e) => set("bookingWindowDays")(Number(e.target.value))} />
-          </div>
-        </div>
-
-        <div className="field">
-          <label>Default meeting link</label>
-          <input className="input" type="url" value={form.defaultMeetingUrl || ""} onChange={(e) => set("defaultMeetingUrl")(e.target.value)} placeholder="https://meet.google.com/…" />
-          <span style={{ fontSize: 11.5, color: "var(--faint)" }}>Sent automatically to the prospect and your connected mailbox after a call booking.</span>
-        </div>
-
-        <button
-          type="button"
-          className="bt bt-p"
-          style={{ justifyContent: "center" }}
-          disabled={!dirty || saving}
-          onClick={() => { onSave(form); setDirty(false); }}
-        >
-          {saving ? "Saving…" : "Save availability"}
-        </button>
       </div>
     </div>
   );
@@ -319,7 +323,7 @@ export default function CalendarPage() {
   const handleSaveSettings = (form) => {
     setSavingSettings(true);
     api.put("/calendar/settings", form)
-      .then((res) => setSettings(res.data))
+      .then((res) => { setSettings(res.data); setEditingSettings(false); })
       .catch(() => setError("Could not save availability settings."))
       .finally(() => setSavingSettings(false));
   };
@@ -442,11 +446,7 @@ export default function CalendarPage() {
             ))}
           </div>
 
-          {editingSettings ? (
-            <SettingsPanel settings={settings} onSave={handleSaveSettings} saving={savingSettings} onDone={() => setEditingSettings(false)} />
-          ) : (
-            <AvailabilitySummary settings={settings} onEdit={() => setEditingSettings(true)} />
-          )}
+          <AvailabilitySummary settings={settings} onEdit={() => setEditingSettings(true)} />
         </div>
       </div>
 
@@ -467,6 +467,10 @@ export default function CalendarPage() {
           ))}
         </div>
       )}
+
+      {editingSettings ? (
+        <SettingsPanel settings={settings} onSave={handleSaveSettings} saving={savingSettings} onDone={() => setEditingSettings(false)} />
+      ) : null}
     </main>
   );
 }
