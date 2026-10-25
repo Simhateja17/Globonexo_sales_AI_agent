@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Logo from "../../components/ui/Logo";
 import Aurora from "../../components/ui/Aurora";
@@ -16,11 +16,20 @@ const STEPS = [
   { title: 'Review & launch', sub: "Everything looks right? Let's go.", ico: 'checkCircle' },
 ];
 
+// Apollo's seniority levels and department titles, so the role matches how
+// leads are filtered when searching Apollo.
 const ROLES = [
-  'Account Executive', 'SDR / BDR', 'Sales Manager', 'VP of Sales', 'Founder / CEO', 'RevOps',
-  'Business Development Manager', 'Sales Director', 'Chief Revenue Officer', 'Head of Growth',
-  'Marketing Manager', 'Demand Generation', 'Customer Success Manager', 'Account Manager',
-  'Sales Engineer', 'Consultant', 'Freelancer', 'Agency Owner', 'Product Manager', 'Other',
+  'Owner', 'Founder', 'Co-Founder', 'Partner', 'C-Suite', 'CEO', 'COO', 'CFO', 'CTO', 'CMO', 'CRO', 'CIO', 'CISO', 'CPO', 'CHRO',
+  'President', 'Managing Director', 'General Manager',
+  'VP of Sales', 'VP of Marketing', 'VP of Engineering', 'VP of Product', 'VP of Operations', 'VP of Finance', 'VP of Customer Success', 'VP of HR',
+  'Head of Sales', 'Head of Marketing', 'Head of Growth', 'Head of Product', 'Head of Engineering', 'Head of Operations', 'Head of Partnerships',
+  'Sales Director', 'Marketing Director', 'Director of Business Development', 'Director of Operations', 'Director of Engineering', 'Director of Product', 'Director of Finance', 'Director of HR', 'Director of IT',
+  'Account Executive', 'Senior Account Executive', 'SDR / BDR', 'Sales Manager', 'Business Development Manager', 'Account Manager', 'Key Account Manager', 'Sales Engineer', 'Sales Operations / RevOps',
+  'Marketing Manager', 'Demand Generation Manager', 'Growth Manager', 'Content Marketing Manager', 'Product Marketing Manager', 'Brand Manager', 'Digital Marketing Manager',
+  'Customer Success Manager', 'Customer Support Manager', 'Partnerships Manager', 'Operations Manager', 'Project Manager', 'Product Manager', 'Program Manager',
+  'Engineering Manager', 'Software Engineer', 'Data Analyst', 'Designer', 'IT Manager',
+  'Finance Manager', 'HR Manager', 'Recruiter / Talent Acquisition', 'Legal Counsel',
+  'Consultant', 'Freelancer', 'Agency Owner', 'Senior Individual Contributor', 'Entry Level', 'Intern', 'Other',
 ];
 
 const INDUSTRIES = [
@@ -86,6 +95,51 @@ function OSelect({ label, value, onChange, options }) {
           }}>{o}</button>
         ))}
       </div>
+    </div>
+  );
+}
+
+function OSearchSelect({ label, value, onChange, options, placeholder, icon, hint }) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const box = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = e => { if (box.current && !box.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+  const shown = options.filter(o => o.toLowerCase().includes(q.trim().toLowerCase()));
+  const pick = o => { onChange(o); setOpen(false); setQ(''); };
+  return (
+    <div className="field" ref={box} style={{ position: 'relative' }}>
+      <label>{label}</label>
+      <button type="button" className={'input' + (icon ? ' has-ico' : '')} onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox" aria-expanded={open}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left', cursor: 'pointer', position: 'relative', color: value ? 'var(--ink)' : 'var(--faint)' }}>
+        {icon && <span className="lead-ico" style={{ position: 'absolute', left: 15, color: 'var(--faint)', display: 'flex' }}><Icon name={icon} size={19} /></span>}
+        <span>{value || placeholder}</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }}><path d="m6 9 6 6 6-6" /></svg>
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', zIndex: 30, top: '100%', left: 0, right: 0, marginTop: 6, background: '#fff', border: '1.5px solid var(--line)', borderRadius: 'var(--r-md)', boxShadow: '0 16px 40px rgba(10,23,18,.14)', padding: 8 }}>
+          <input className="input" autoFocus placeholder="Search..." value={q} onChange={e => setQ(e.target.value)} style={{ height: 40, fontSize: 14, marginBottom: 6 }} />
+          <div role="listbox" style={{ maxHeight: 240, overflowY: 'auto' }}>
+            {shown.length === 0 && <div style={{ padding: '10px 12px', fontSize: 13.5, color: 'var(--faint)' }}>No matches</div>}
+            {shown.map(o => (
+              <button type="button" key={o} role="option" aria-selected={value === o} onClick={() => pick(o)} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 10,
+                fontSize: 14, fontWeight: value === o ? 800 : 600, color: value === o ? 'var(--g-700)' : 'var(--ink-2)', background: value === o ? 'var(--g-50)' : 'transparent',
+              }}
+                onMouseEnter={e => { if (value !== o) e.currentTarget.style.background = 'var(--g-50)'; }}
+                onMouseLeave={e => { if (value !== o) e.currentTarget.style.background = 'transparent'; }}>
+                {o}{value === o && <Icon name="check" size={14} color="var(--g-600)" stroke={2.5} />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {hint && <span style={{ fontSize: 12.5, color: 'var(--faint)' }}>{hint}</span>}
     </div>
   );
 }
@@ -334,19 +388,9 @@ export default function OnboardingPage() {
                 </div>
                 <Field label="Company" icon="building" placeholder="Northwind Logistics" value={d.company} onChange={e => set('company', e.target.value)}
                   hint="Used to create your organization profile." />
-                <OSelect label="Your role" value={d.role} onChange={v => set('role', v)}
-                  options={ROLES} />
-                <div className="field">
-                  <label>Industry</label>
-                  <div className="input-wrap">
-                    <span className="lead-ico"><Icon name="target" size={19} /></span>
-                    <select className="input has-ico" value={d.industry} onChange={e => set('industry', e.target.value)}>
-                      <option value="">Select your industry</option>
-                      {INDUSTRIES.map(o => <option key={o} value={o}>{o}</option>)}
-                    </select>
-                  </div>
-                  <span style={{ fontSize: 12.5, color: 'var(--faint)' }}>Helps GNX sales frame outreach around your market.</span>
-                </div>
+                <OSearchSelect label="Your role" icon="user" value={d.role} onChange={v => set('role', v)} options={ROLES} placeholder="Select your role" />
+                <OSearchSelect label="Industry" icon="target" value={d.industry} onChange={v => set('industry', v)} options={INDUSTRIES} placeholder="Select your industry"
+                  hint="Helps GNX sales frame outreach around your market." />
               </div>
             )}
 
