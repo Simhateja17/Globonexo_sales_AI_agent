@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import Icon from "../../../components/ui/Icon";
+import Spinner from "../../../components/ui/Spinner";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import useBillingCheckout from "../../../hooks/useBillingCheckout";
 import api from "../../../lib/api";
@@ -341,8 +342,10 @@ export default function BillingPage() {
           </p>
         </div>
         {freePlan ? (
-          <button type="button" className="bt bt-p" onClick={() => handlePlanAction(upgradePlan().id)} disabled={!canManageBilling}>
-            <Icon name="star" size={14} color="#06231a" /> Upgrade · ${upgradePlan().monthly}/mo
+          <button type="button" className="bt bt-p" onClick={() => handlePlanAction(upgradePlan().id)} disabled={!canManageBilling || busy === upgradePlan().id} aria-busy={busy === upgradePlan().id} style={busy === upgradePlan().id ? { opacity: 1, cursor: 'progress' } : undefined}>
+            {busy === upgradePlan().id
+              ? <><Spinner size={14} style={{ borderColor: 'rgba(6,35,26,.25)', borderTopColor: '#06231a' }} /> Opening checkout…</>
+              : <><Icon name="star" size={14} color="#06231a" /> Upgrade · ${upgradePlan().monthly}/mo</>}
           </button>
         ) : canManageBilling && hasEntitlement ? (
           <div className="acts">
