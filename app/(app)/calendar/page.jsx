@@ -50,7 +50,7 @@ function normalizeMeeting(meeting) {
   return {
     ...meeting,
     scheduled: new Date(meeting.scheduledAt),
-    name: lead.name || "Guest",
+    name: lead.name || meeting.title || "Guest",
     companyLine: [lead.title, lead.company].filter(Boolean).join(" · "),
     duration: meeting.durationMinutes ?? 30,
   };
@@ -90,7 +90,7 @@ function blockTop(date) {
   return (clamped - GRID_START_HOUR) * HOUR_PX + 2;
 }
 
-function MeetingDetail({ meeting, onCancel, canceling, onClose }) {
+function MeetingDetail({ meeting, onCancel, canceling, onClose, onEdit }) {
   const style = STATUS_STYLES[meeting.status] ?? STATUS_STYLES.scheduled;
   return (
     <div className="card">
@@ -98,6 +98,7 @@ function MeetingDetail({ meeting, onCancel, canceling, onClose }) {
         <div style={{ minWidth: 0 }}>
           <b className="ellip" style={{ display: "block" }}>{meeting.title || meeting.name}</b>
           <small>{meeting.scheduled.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · {formatTime(meeting.scheduled)} · {meeting.duration} min</small>
+          {meeting.notes ? <small style={{ display: "block", marginTop: 4, whiteSpace: "pre-wrap" }}>{meeting.notes}</small> : null}
         </div>
         <button type="button" className="ibt" aria-label="Close meeting details" onClick={onClose}><Icon name="close" size={14} /></button>
       </div>
@@ -113,6 +114,9 @@ function MeetingDetail({ meeting, onCancel, canceling, onClose }) {
         <div className="acts">
           {meeting.joinUrl ? <a className="bt bt-p sm" href={meeting.joinUrl} target="_blank" rel="noreferrer"><Icon name="link" size={13} color="#06231a" /> Join</a> : null}
           {meeting.attendeePhone ? <a className="bt bt-g sm" href={`tel:${meeting.attendeePhone}`}><Icon name="phone" size={13} /> Call</a> : null}
+          {meeting.status === "scheduled" ? (
+            <button type="button" className="bt bt-g sm" onClick={() => onEdit(meeting)}><Icon name="edit" size={13} /> Edit</button>
+          ) : null}
           {meeting.status === "scheduled" ? (
             <button type="button" className="bt bt-x sm" disabled={canceling} onClick={() => onCancel(meeting.id)}>
               {canceling ? "Cancelling…" : "Cancel meeting"}
@@ -146,6 +150,90 @@ function AvailabilitySummary({ settings, onEdit }) {
         <div className="kv"><span>Book within</span><b>{settings.bookingWindowDays} days</b></div>
         <div className="kv"><span>Meeting link</span><b className="ellip" style={{ maxWidth: 170 }}>{settings.defaultMeetingUrl ? settings.defaultMeetingUrl.replace(/^https?:\/\//, "") : "Not set"}</b></div>
       </div>
+    </div>
+  );
+}
+
+function pad2(n) { return String(n).padStart(2, "0"); }
+function toDateInput(date) { return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`; }
+function toTimeInput(date) { return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`; }
+
+// Create or edit an event by hand. The agent only books into free time, so
+// anything written here also blocks that slot for the agent.
+function EventPanel({ event, defaults, onSave, onDelete, saving, error, onDone }) {
+  const editing = Boolean(event?.id);
+  const start = event?.scheduled || defaults?.start || new Date();
+  const [form, setForm] = useState({
+    title: event?.title || "",
+    date: toDateInput(start),
+    time: toTimeInput(start),
+    duration: event?.duration ?? defaults?.duration ?? 30,
+    joinUrl: event?.joinUrl || defaults?.joinUrl || "",
+    notes: event?.notes || "",
+  });
+  const set = key => value => setForm(current => ({ ...current, [key]: value }));
+  const when = new Date(`${form.date}T${form.time}`);
+  const valid = form.title.trim() && !Number.isNaN(when.getTime()) && Number(form.duration) >= 5;
+
+  const submit = e => {
+    e.preventDefault();
+    if (!valid || saving) return;
+    onSave({
+      title: form.title.trim(),
+      scheduledAt: when.toISOString(),
+      durationMinutes: Number(form.duration),
+      joinUrl: form.joinUrl.trim() || null,
+      notes: form.notes.trim() || null,
+    });
+  };
+
+  return (
+    <div className="cal-modal-bg" onMouseDown={e => { if (e.target === e.currentTarget && !saving) onDone(); }}>
+      <form className="cal-modal" role="dialog" aria-modal="true" aria-labelledby="cal-ev-title" onSubmit={submit}>
+        <div className="cal-modal-h">
+          <div>
+            <h2 id="cal-ev-title">{editing ? "Edit event" : "Add event"}</h2>
+            <p>{editing ? "Change the details of this event." : "Block time on your calendar. Your agent will not book over it."}</p>
+          </div>
+          <button type="button" className="ibt" aria-label="Close" onClick={onDone}><Icon name="close" size={16} /></button>
+        </div>
+
+        <div className="cal-modal-b">
+          <div className="field">
+            <label htmlFor="ev-title">Title</label>
+            <input id="ev-title" className="input" autoFocus value={form.title} onChange={e => set("title")(e.target.value)} placeholder="Call with a customer, lunch, focus time…" maxLength={120} />
+          </div>
+          <div className="cal-grid2">
+            <div className="field">
+              <label htmlFor="ev-date">Date</label>
+              <input id="ev-date" className="input" type="date" value={form.date} onChange={e => set("date")(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="ev-time">Start time</label>
+              <input id="ev-time" className="input" type="time" value={form.time} onChange={e => set("time")(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="ev-dur">Length (min)</label>
+              <input id="ev-dur" className="input" type="number" min={5} max={720} step={5} value={form.duration} onChange={e => set("duration")(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="ev-url">Meeting link</label>
+              <input id="ev-url" className="input" type="url" value={form.joinUrl} onChange={e => set("joinUrl")(e.target.value)} placeholder="https://meet.google.com/…" />
+            </div>
+          </div>
+          <div className="field">
+            <label htmlFor="ev-notes">Notes</label>
+            <textarea id="ev-notes" className="input" rows={3} value={form.notes} onChange={e => set("notes")(e.target.value)} placeholder="Anything you want to remember" style={{ resize: "vertical", height: "auto", padding: "10px 12px" }} />
+          </div>
+          {error ? <div className="note">{error}</div> : null}
+        </div>
+
+        <div className="cal-modal-f">
+          {editing ? <button type="button" className="bt bt-x" style={{ marginRight: "auto" }} disabled={saving} onClick={() => onDelete(event.id)}>Delete</button> : null}
+          <button type="button" className="bt bt-g" onClick={onDone}>Cancel</button>
+          <button type="submit" className="bt bt-p" disabled={!valid || saving}>{saving ? "Saving…" : editing ? "Save changes" : "Add event"}</button>
+        </div>
+      </form>
     </div>
   );
 }
@@ -281,6 +369,9 @@ export default function CalendarPage() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [cancelingId, setCancelingId] = useState(null);
   const [editingSettings, setEditingSettings] = useState(false);
+  const [eventPanel, setEventPanel] = useState(null); // { event } or { defaults }
+  const [eventSaving, setEventSaving] = useState(false);
+  const [eventError, setEventError] = useState("");
   const [selectedMeetingId, setSelectedMeetingId] = useState(null);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const showSkeleton = useFirstLoad(loading || settingsLoading);
@@ -335,6 +426,35 @@ export default function CalendarPage() {
       .finally(() => setSavingSettings(false));
   };
 
+  const openNewEvent = (start) => {
+    const base = start || (() => { const d = new Date(); d.setMinutes(d.getMinutes() < 30 ? 30 : 0, 0, 0); if (d.getMinutes() === 0) d.setHours(d.getHours() + 1); return d; })();
+    setEventError("");
+    setEventPanel({ defaults: { start: base, duration: settings.meetingDurationMinutes || 30, joinUrl: settings.defaultMeetingUrl || "" } });
+  };
+
+  const handleSaveEvent = (payload) => {
+    setEventSaving(true);
+    setEventError("");
+    const editingId = eventPanel?.event?.id;
+    const request = editingId ? api.patch(`/meetings/${editingId}`, payload) : api.post("/meetings", payload);
+    request
+      .then(() => {
+        setEventPanel(null);
+        if (payload.scheduledAt) setWeekStart(startOfWeek(new Date(payload.scheduledAt)));
+        return loadMeetings();
+      })
+      .catch((err) => setEventError(err?.response?.data?.error || "Could not save this event. Please try again."))
+      .finally(() => setEventSaving(false));
+  };
+
+  const handleDeleteEvent = (meetingId) => {
+    setEventSaving(true);
+    api.delete(`/meetings/${meetingId}`)
+      .then(() => { setEventPanel(null); setSelectedMeetingId(null); return loadMeetings(); })
+      .catch(() => setEventError("Could not delete this event."))
+      .finally(() => setEventSaving(false));
+  };
+
   const handleCancel = (meetingId) => {
     setCancelingId(meetingId);
     api.delete(`/meetings/${meetingId}`)
@@ -374,6 +494,7 @@ export default function CalendarPage() {
           <button type="button" className="bt bt-g sm" onClick={() => setWeekStart(startOfWeek(new Date()))}>Today</button>
           <span className="sel-box" style={{ background: "#fff" }}>{rangeLabel}</span>
           <button type="button" className="bt bt-g" onClick={() => setEditingSettings(true)}><Icon name="sliders" size={14} /> Availability</button>
+          <button type="button" className="bt bt-p" onClick={() => openNewEvent()}><Icon name="plus" size={14} color="#06231a" /> Add event</button>
         </div>
       </div>
 
@@ -399,7 +520,20 @@ export default function CalendarPage() {
                 const weekend = !settings.workingDays.includes(day.getDay());
                 const dayMeetings = meetingsByDay.get(day.toDateString()) || [];
                 return (
-                  <div key={day.toISOString()} className={`dcol ${weekend ? "wk" : ""} ${isToday ? "today" : ""}`} style={{ minHeight: hours.length * HOUR_PX }}>
+                  <div
+                    key={day.toISOString()}
+                    className={`dcol ${weekend ? "wk" : ""} ${isToday ? "today" : ""}`}
+                    style={{ minHeight: hours.length * HOUR_PX, cursor: "cell" }}
+                    title="Click to add an event"
+                    onClick={event => {
+                      if (event.target !== event.currentTarget) return;
+                      const box = event.currentTarget.getBoundingClientRect();
+                      const hoursFromTop = (event.clientY - box.top) / HOUR_PX + GRID_START_HOUR;
+                      const slot = new Date(day);
+                      slot.setHours(Math.floor(hoursFromTop), hoursFromTop % 1 >= 0.5 ? 30 : 0, 0, 0);
+                      openNewEvent(slot);
+                    }}
+                  >
                     {dayMeetings.map(meeting => {
                       const past = meeting.status !== "scheduled" || meeting.scheduled.getTime() + meeting.duration * 60000 < now;
                       return (
@@ -408,7 +542,7 @@ export default function CalendarPage() {
                           type="button"
                           className={`mb ${past ? "done" : meeting.id === nextId ? "next" : ""}`}
                           style={{ top: blockTop(meeting.scheduled), textAlign: "left" }}
-                          onClick={() => setSelectedMeetingId(meeting.id)}
+                          onClick={e => { e.stopPropagation(); setSelectedMeetingId(meeting.id); }}
                         >
                           <b>{meeting.name}</b>
                           <span>{formatTime(meeting.scheduled)}{meeting.companyLine ? ` · ${meeting.companyLine}` : ""}</span>
@@ -425,7 +559,7 @@ export default function CalendarPage() {
 
         <div className="col" style={{ gap: 16 }}>
           {selectedMeeting ? (
-            <MeetingDetail meeting={selectedMeeting} onCancel={handleCancel} canceling={cancelingId === selectedMeeting.id} onClose={() => setSelectedMeetingId(null)} />
+            <MeetingDetail meeting={selectedMeeting} onCancel={handleCancel} canceling={cancelingId === selectedMeeting.id} onClose={() => setSelectedMeetingId(null)} onEdit={meeting => { setEventError(""); setEventPanel({ event: meeting }); }} />
           ) : null}
 
           <div className="card">
@@ -474,6 +608,18 @@ export default function CalendarPage() {
           ))}
         </div>
       )}
+
+      {eventPanel ? (
+        <EventPanel
+          event={eventPanel.event}
+          defaults={eventPanel.defaults}
+          onSave={handleSaveEvent}
+          onDelete={handleDeleteEvent}
+          saving={eventSaving}
+          error={eventError}
+          onDone={() => setEventPanel(null)}
+        />
+      ) : null}
 
       {editingSettings ? (
         <SettingsPanel settings={settings} onSave={handleSaveSettings} saving={savingSettings} onDone={() => setEditingSettings(false)} />
