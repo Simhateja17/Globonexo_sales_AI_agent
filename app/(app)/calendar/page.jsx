@@ -173,7 +173,7 @@ function EventPanel({ event, defaults, onSave, onDelete, saving, error, onDone }
   });
   const set = key => value => setForm(current => ({ ...current, [key]: value }));
   const when = new Date(`${form.date}T${form.time}`);
-  const valid = form.title.trim() && !Number.isNaN(when.getTime()) && Number(form.duration) >= 5;
+  const valid = form.title.trim() && !Number.isNaN(when.getTime()) && Number(form.duration) >= 5 && Number(form.duration) <= 480;
 
   const submit = e => {
     e.preventDefault();
@@ -214,7 +214,7 @@ function EventPanel({ event, defaults, onSave, onDelete, saving, error, onDone }
             </div>
             <div className="field">
               <label htmlFor="ev-dur">Length (min)</label>
-              <input id="ev-dur" className="input" type="number" min={5} max={720} step={5} value={form.duration} onChange={e => set("duration")(e.target.value)} />
+              <input id="ev-dur" className="input" type="number" min={5} max={480} step={5} value={form.duration} onChange={e => set("duration")(e.target.value)} />
             </div>
             <div className="field">
               <label htmlFor="ev-url">Meeting link</label>
