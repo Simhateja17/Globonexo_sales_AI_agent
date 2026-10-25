@@ -32,13 +32,33 @@ const ROLES = [
   'Consultant', 'Freelancer', 'Agency Owner', 'Senior Individual Contributor', 'Entry Level', 'Intern', 'Other',
 ];
 
+// Apollo's industry list, kept in its lowercase form so values match Apollo
+// searches. The dropdown capitalizes them for display.
 const INDUSTRIES = [
-  'B2B SaaS', 'Software / IT Services', 'Artificial Intelligence', 'Cybersecurity', 'Fintech', 'Banking & Financial Services',
-  'Insurance', 'Healthcare', 'Biotech & Pharma', 'Education / EdTech', 'E-commerce & Retail', 'Consumer Goods',
-  'Manufacturing', 'Logistics & Supply Chain', 'Transportation', 'Construction & Engineering', 'Real Estate / PropTech',
-  'Energy & Utilities', 'Telecommunications', 'Media & Entertainment', 'Marketing & Advertising Agency', 'Recruiting & HR',
-  'Legal Services', 'Consulting & Professional Services', 'Hospitality & Travel', 'Food & Beverage', 'Automotive',
-  'Agriculture', 'Nonprofit', 'Government / Public Sector', 'Other',
+  'accounting', 'airlines/aviation', 'alternative dispute resolution', 'alternative medicine', 'animation', 'apparel & fashion',
+  'architecture & planning', 'arts & crafts', 'automotive', 'aviation & aerospace', 'banking', 'biotechnology', 'broadcast media',
+  'building materials', 'business supplies & equipment', 'capital markets', 'chemicals', 'civic & social organization', 'civil engineering',
+  'commercial real estate', 'computer & network security', 'computer games', 'computer hardware', 'computer networking', 'computer software',
+  'construction', 'consumer electronics', 'consumer goods', 'consumer services', 'cosmetics', 'dairy', 'defense & space', 'design',
+  'e-learning', 'education management', 'electrical/electronic manufacturing', 'entertainment', 'environmental services', 'events services',
+  'executive office', 'facilities services', 'farming', 'financial services', 'fine art', 'fishery', 'food & beverages', 'food production',
+  'fund-raising', 'furniture', 'gambling & casinos', 'glass, ceramics & concrete', 'government administration', 'government relations',
+  'graphic design', 'health, wellness & fitness', 'higher education', 'hospital & health care', 'hospitality', 'human resources',
+  'import & export', 'individual & family services', 'industrial automation', 'information services', 'information technology & services',
+  'insurance', 'international affairs', 'international trade & development', 'internet', 'investment banking', 'investment management',
+  'judiciary', 'law enforcement', 'law practice', 'legal services', 'legislative office', 'leisure, travel & tourism', 'libraries',
+  'logistics & supply chain', 'luxury goods & jewelry', 'machinery', 'management consulting', 'maritime', 'market research',
+  'marketing & advertising', 'mechanical or industrial engineering', 'media production', 'medical devices', 'medical practice',
+  'mental health care', 'military', 'mining & metals', 'motion pictures & film', 'museums & institutions', 'music',
+  'nanotechnology', 'newspapers', 'non-profit organization management', 'oil & energy', 'online media', 'outsourcing/offshoring',
+  'package/freight delivery', 'packaging & containers', 'paper & forest products', 'performing arts', 'pharmaceuticals', 'philanthropy',
+  'photography', 'plastics', 'political organization', 'primary/secondary education', 'printing', 'professional training & coaching',
+  'program development', 'public policy', 'public relations & communications', 'public safety', 'publishing', 'railroad manufacture',
+  'ranching', 'real estate', 'recreational facilities & services', 'religious institutions', 'renewables & environment', 'research',
+  'restaurants', 'retail', 'security & investigations', 'semiconductors', 'shipbuilding', 'sporting goods', 'sports',
+  'staffing & recruiting', 'supermarkets', 'telecommunications', 'textiles', 'think tanks', 'tobacco', 'translation & localization',
+  'transportation/trucking/railroad', 'utilities', 'venture capital & private equity', 'veterinary', 'warehousing', 'wholesale',
+  'wine & spirits', 'wireless', 'writing & editing',
 ];
 
 const TONE_API_VALUE = {
@@ -99,7 +119,8 @@ function OSelect({ label, value, onChange, options }) {
   );
 }
 
-function OSearchSelect({ label, value, onChange, options, placeholder, icon, hint }) {
+function OSearchSelect({ label, value, onChange, options, placeholder, icon, hint, capitalize }) {
+  const cap = capitalize ? { textTransform: 'capitalize' } : null;
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const box = useRef(null);
@@ -118,7 +139,7 @@ function OSearchSelect({ label, value, onChange, options, placeholder, icon, hin
         aria-haspopup="listbox" aria-expanded={open}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left', cursor: 'pointer', position: 'relative', color: value ? 'var(--ink)' : 'var(--faint)' }}>
         {icon && <span className="lead-ico" style={{ position: 'absolute', left: 15, color: 'var(--faint)', display: 'flex' }}><Icon name={icon} size={19} /></span>}
-        <span>{value || placeholder}</span>
+        <span style={value ? cap : null}>{value || placeholder}</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }}><path d="m6 9 6 6 6-6" /></svg>
       </button>
       {open && (
@@ -129,7 +150,7 @@ function OSearchSelect({ label, value, onChange, options, placeholder, icon, hin
             {shown.map(o => (
               <button type="button" key={o} role="option" aria-selected={value === o} onClick={() => pick(o)} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 10,
-                fontSize: 14, fontWeight: value === o ? 800 : 600, color: value === o ? 'var(--g-700)' : 'var(--ink-2)', background: value === o ? 'var(--g-50)' : 'transparent',
+                fontSize: 14, fontWeight: value === o ? 800 : 600, ...cap, color: value === o ? 'var(--g-700)' : 'var(--ink-2)', background: value === o ? 'var(--g-50)' : 'transparent',
               }}
                 onMouseEnter={e => { if (value !== o) e.currentTarget.style.background = 'var(--g-50)'; }}
                 onMouseLeave={e => { if (value !== o) e.currentTarget.style.background = 'transparent'; }}>
@@ -389,7 +410,7 @@ export default function OnboardingPage() {
                 <Field label="Company" icon="building" placeholder="Northwind Logistics" value={d.company} onChange={e => set('company', e.target.value)}
                   hint="Used to create your organization profile." />
                 <OSearchSelect label="Your role" icon="user" value={d.role} onChange={v => set('role', v)} options={ROLES} placeholder="Select your role" />
-                <OSearchSelect label="Industry" icon="target" value={d.industry} onChange={v => set('industry', v)} options={INDUSTRIES} placeholder="Select your industry"
+                <OSearchSelect label="Industry" icon="target" value={d.industry} onChange={v => set('industry', v)} options={INDUSTRIES} capitalize placeholder="Select your industry"
                   hint="Helps GNX sales frame outreach around your market." />
               </div>
             )}
