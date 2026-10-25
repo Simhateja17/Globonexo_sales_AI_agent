@@ -192,7 +192,7 @@ export function SignupForm() {
         <label className="chkl">
           <input type="checkbox" checked={agreed} onChange={(e) => { setAgreed(e.target.checked); setErrors((current) => ({ ...current, agreed: '' })); }} />
           <span className={`cb${agreed ? ' on' : ''}`} aria-hidden="true" />
-          <span>I agree to the <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link></span>
+          <span>I agree to the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms</Link> and <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link></span>
         </label>
         {errors.agreed ? <span className="ferr" role="alert">{errors.agreed}</span> : null}
         {error ? <span className="ferr" role="alert">{error}</span> : null}
