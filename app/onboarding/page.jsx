@@ -16,6 +16,22 @@ const STEPS = [
   { title: 'Review & launch', sub: "Everything looks right? Let's go.", ico: 'checkCircle' },
 ];
 
+const ROLES = [
+  'Account Executive', 'SDR / BDR', 'Sales Manager', 'VP of Sales', 'Founder / CEO', 'RevOps',
+  'Business Development Manager', 'Sales Director', 'Chief Revenue Officer', 'Head of Growth',
+  'Marketing Manager', 'Demand Generation', 'Customer Success Manager', 'Account Manager',
+  'Sales Engineer', 'Consultant', 'Freelancer', 'Agency Owner', 'Product Manager', 'Other',
+];
+
+const INDUSTRIES = [
+  'B2B SaaS', 'Software / IT Services', 'Artificial Intelligence', 'Cybersecurity', 'Fintech', 'Banking & Financial Services',
+  'Insurance', 'Healthcare', 'Biotech & Pharma', 'Education / EdTech', 'E-commerce & Retail', 'Consumer Goods',
+  'Manufacturing', 'Logistics & Supply Chain', 'Transportation', 'Construction & Engineering', 'Real Estate / PropTech',
+  'Energy & Utilities', 'Telecommunications', 'Media & Entertainment', 'Marketing & Advertising Agency', 'Recruiting & HR',
+  'Legal Services', 'Consulting & Professional Services', 'Hospitality & Travel', 'Food & Beverage', 'Automotive',
+  'Agriculture', 'Nonprofit', 'Government / Public Sector', 'Other',
+];
+
 const TONE_API_VALUE = {
   'Consultative': 'consultative',
   'Direct & concise': 'direct',
@@ -319,9 +335,18 @@ export default function OnboardingPage() {
                 <Field label="Company" icon="building" placeholder="Northwind Logistics" value={d.company} onChange={e => set('company', e.target.value)}
                   hint="Used to create your organization profile." />
                 <OSelect label="Your role" value={d.role} onChange={v => set('role', v)}
-                  options={['Account Executive', 'SDR / BDR', 'Sales Manager', 'VP of Sales', 'Founder / CEO', 'RevOps']} />
-                <Field label="Industry" icon="target" placeholder="B2B SaaS" value={d.industry} onChange={e => set('industry', e.target.value)}
-                  hint="Helps GNX sales frame outreach around your market." />
+                  options={ROLES} />
+                <div className="field">
+                  <label>Industry</label>
+                  <div className="input-wrap">
+                    <span className="lead-ico"><Icon name="target" size={19} /></span>
+                    <select className="input has-ico" value={d.industry} onChange={e => set('industry', e.target.value)}>
+                      <option value="">Select your industry</option>
+                      {INDUSTRIES.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <span style={{ fontSize: 12.5, color: 'var(--faint)' }}>Helps GNX sales frame outreach around your market.</span>
+                </div>
               </div>
             )}
 
