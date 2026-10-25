@@ -15,6 +15,7 @@ const STATUS_STYLES = {
 };
 
 const WEEKDAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_LETTER = ["S", "M", "T", "W", "Th", "F", "Sa"];
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Curated shortlist covering the regions this tool's orgs actually operate
@@ -42,7 +43,7 @@ function startOfWeek(date) {
 }
 
 function formatTime(date) {
-  return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
 // Say why a save failed, so a problem can be told apart from a bad form.
@@ -147,11 +148,13 @@ function AvailabilitySummary({ settings, onEdit }) {
         <button type="button" className="lnk" onClick={onEdit}>Edit</button>
       </div>
       <div className="av-rows" style={{ padding: "6px 18px 16px" }}>
+        <div style={{ padding: "8px 0" }}>
         <span className="muted" style={{ fontSize: 12, fontWeight: 800 }}>Working days</span>
         <div className="days">
-          {WEEKDAY_SHORT.map((label, dow) => (
-            <span key={label} className={settings.workingDays.includes(dow) ? "" : "off"}>{label.slice(0, 2)}</span>
+          {WEEKDAY_LETTER.map((label, dow) => (
+            <span key={label} className={settings.workingDays.includes(dow) ? "" : "off"}>{label}</span>
           ))}
+        </div>
         </div>
         <div className="kv"><span>Hours</span><b>{formatClock(settings.dayStartTime)} to {formatClock(settings.dayEndTime)}</b></div>
         <div className="kv"><span>Timezone</span><b>{settings.timezone}</b></div>
@@ -159,7 +162,7 @@ function AvailabilitySummary({ settings, onEdit }) {
         <div className="kv"><span>Buffer</span><b>{settings.bufferMinutes} min</b></div>
         <div className="kv"><span>Minimum notice</span><b>{settings.minNoticeMinutes >= 60 && settings.minNoticeMinutes % 60 === 0 ? `${settings.minNoticeMinutes / 60} hours` : `${settings.minNoticeMinutes} min`}</b></div>
         <div className="kv"><span>Book within</span><b>{settings.bookingWindowDays} days</b></div>
-        <div className="kv"><span>Meeting link</span><b className="ellip" style={{ maxWidth: 170 }}>{settings.defaultMeetingUrl ? settings.defaultMeetingUrl.replace(/^https?:\/\//, "") : "Not set"}</b></div>
+        <div className="kv"><span>Meeting link</span><b className="ellip" style={{ maxWidth: 200 }}>{settings.defaultMeetingUrl ? settings.defaultMeetingUrl.replace(/^https?:\/\//, "") : "Not set"}</b></div>
       </div>
     </div>
   );
@@ -497,15 +500,15 @@ export default function CalendarPage() {
         </div>
         <div className="acts">
           <button type="button" className="ibt" aria-label="Previous week" onClick={() => setWeekStart(startOfWeek(new Date(weekStart.getTime() - 7 * DAY_MS)))}>
-            <Icon name="arrowLeft" size={15} />
+            <Icon name="chevronLeft" size={15} />
           </button>
           <button type="button" className="ibt" aria-label="Next week" onClick={() => setWeekStart(startOfWeek(new Date(weekStart.getTime() + 7 * DAY_MS)))}>
-            <Icon name="arrow" size={15} />
+            <Icon name="chevronRight" size={15} />
           </button>
-          <button type="button" className="bt bt-g sm" onClick={() => setWeekStart(startOfWeek(new Date()))}>Today</button>
-          <span className="sel-box" style={{ background: "#fff" }}>{rangeLabel}</span>
-          <button type="button" className="bt bt-g" onClick={() => setEditingSettings(true)}><Icon name="sliders" size={14} /> Availability</button>
-          <button type="button" className="bt bt-p" onClick={() => openNewEvent()}><Icon name="plus" size={14} color="#06231a" /> Add event</button>
+          <button type="button" className="bt bt-g" onClick={() => setWeekStart(startOfWeek(new Date()))}>Today</button>
+          <span className="sel-box" style={{ gap: 10, background: "#fff" }}>{rangeLabel}<Icon name="chevronDown" size={14} /></span>
+          <button type="button" className="bt bt-g" onClick={() => openNewEvent()}><Icon name="plus" size={14} /> Add event</button>
+          <button type="button" className="bt bt-d" onClick={() => setEditingSettings(true)}><Icon name="cog" size={15} color="#fff" /> Availability</button>
         </div>
       </div>
 
@@ -524,7 +527,7 @@ export default function CalendarPage() {
             </div>
             <div className="wk-b">
               <div className="hrs">
-                {hours.map(hour => <div key={hour} className="hr"><span>{hour === GRID_START_HOUR ? "" : formatHour(hour)}</span></div>)}
+                {hours.map(hour => <div key={hour} className="hr"><span>{formatHour(hour)}</span></div>)}
               </div>
               {weekDays.map(day => {
                 const isToday = sameDay(day, today);
@@ -587,13 +590,13 @@ export default function CalendarPage() {
               <div key={meeting.id} className="upc">
                 <div className="upc-t">
                   <small>{sameDay(meeting.scheduled, today) ? "Today" : WEEKDAY_SHORT[meeting.scheduled.getDay()]}</small>
-                  <b>{meeting.scheduled.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }).replace(/\s?[AP]M$/i, "")}</b>
+                  <b>{formatTime(meeting.scheduled).replace(/\s?[AP]M$/i, "")}</b>
                 </div>
                 <div>
                   <button type="button" className="nm" style={{ textAlign: "left" }} onClick={() => setSelectedMeetingId(meeting.id)}>{meeting.name}</button>
                   <div className="co">{meeting.companyLine ? `${meeting.companyLine} · ` : ""}{meeting.duration} min</div>
                 </div>
-                {meeting.joinUrl ? <a className="bt bt-g sm" href={meeting.joinUrl} target="_blank" rel="noreferrer">Join</a> : null}
+                {meeting.id === nextId && meeting.joinUrl ? <a className="bt bt-p sm" href={meeting.joinUrl} target="_blank" rel="noreferrer">Join</a> : null}
               </div>
             ))}
           </div>
