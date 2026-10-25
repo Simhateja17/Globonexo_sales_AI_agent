@@ -58,7 +58,7 @@ const INDUSTRIES = [
   'restaurants', 'retail', 'security & investigations', 'semiconductors', 'shipbuilding', 'sporting goods', 'sports',
   'staffing & recruiting', 'supermarkets', 'telecommunications', 'textiles', 'think tanks', 'tobacco', 'translation & localization',
   'transportation/trucking/railroad', 'utilities', 'venture capital & private equity', 'veterinary', 'warehousing', 'wholesale',
-  'wine & spirits', 'wireless', 'writing & editing',
+  'wine & spirits', 'wireless', 'writing & editing', 'Other',
 ];
 
 const TONE_API_VALUE = {
@@ -123,6 +123,8 @@ function OSearchSelect({ label, value, onChange, options, placeholder, icon, hin
   const cap = capitalize ? { textTransform: 'capitalize' } : null;
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
+  const [otherMode, setOtherMode] = useState(false);
+  const isOther = otherMode || (!!value && !options.includes(value));
   const box = useRef(null);
   useEffect(() => {
     if (!open) return;
@@ -131,7 +133,7 @@ function OSearchSelect({ label, value, onChange, options, placeholder, icon, hin
     return () => document.removeEventListener('mousedown', close);
   }, [open]);
   const shown = options.filter(o => o.toLowerCase().includes(q.trim().toLowerCase()));
-  const pick = o => { onChange(o); setOpen(false); setQ(''); };
+  const pick = o => { setOtherMode(o === 'Other'); onChange(o); setOpen(false); setQ(''); };
   return (
     <div className="field" ref={box} style={{ position: 'relative' }}>
       <label>{label}</label>
@@ -139,7 +141,7 @@ function OSearchSelect({ label, value, onChange, options, placeholder, icon, hin
         aria-haspopup="listbox" aria-expanded={open}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left', cursor: 'pointer', position: 'relative', color: value ? 'var(--ink)' : 'var(--faint)' }}>
         {icon && <span className="lead-ico" style={{ position: 'absolute', left: 15, color: 'var(--faint)', display: 'flex' }}><Icon name={icon} size={19} /></span>}
-        <span style={value ? cap : null}>{value || placeholder}</span>
+        <span style={value && !isOther ? cap : null}>{isOther ? 'Other' : value || placeholder}</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }}><path d="m6 9 6 6 6-6" /></svg>
       </button>
       {open && (
@@ -148,17 +150,21 @@ function OSearchSelect({ label, value, onChange, options, placeholder, icon, hin
           <div role="listbox" style={{ maxHeight: 240, overflowY: 'auto' }}>
             {shown.length === 0 && <div style={{ padding: '10px 12px', fontSize: 13.5, color: 'var(--faint)' }}>No matches</div>}
             {shown.map(o => (
-              <button type="button" key={o} role="option" aria-selected={value === o} onClick={() => pick(o)} style={{
+              <button type="button" key={o} role="option" aria-selected={o === 'Other' ? isOther : value === o} onClick={() => pick(o)} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 10,
-                fontSize: 14, fontWeight: value === o ? 800 : 600, ...cap, color: value === o ? 'var(--g-700)' : 'var(--ink-2)', background: value === o ? 'var(--g-50)' : 'transparent',
+                fontSize: 14, fontWeight: (o === 'Other' ? isOther : value === o) ? 800 : 600, ...(o === 'Other' ? null : cap), color: (o === 'Other' ? isOther : value === o) ? 'var(--g-700)' : 'var(--ink-2)', background: (o === 'Other' ? isOther : value === o) ? 'var(--g-50)' : 'transparent',
               }}
-                onMouseEnter={e => { if (value !== o) e.currentTarget.style.background = 'var(--g-50)'; }}
-                onMouseLeave={e => { if (value !== o) e.currentTarget.style.background = 'transparent'; }}>
-                {o}{value === o && <Icon name="check" size={14} color="var(--g-600)" stroke={2.5} />}
+                onMouseEnter={e => { if (!(o === 'Other' ? isOther : value === o)) e.currentTarget.style.background = 'var(--g-50)'; }}
+                onMouseLeave={e => { if (!(o === 'Other' ? isOther : value === o)) e.currentTarget.style.background = 'transparent'; }}>
+                {o}{(o === 'Other' ? isOther : value === o) && <Icon name="check" size={14} color="var(--g-600)" stroke={2.5} />}
               </button>
             ))}
           </div>
         </div>
+      )}
+      {isOther && (
+        <input className="input" placeholder={`Type your ${label.toLowerCase().replace('your ', '')}`} value={value === 'Other' ? '' : value}
+          onChange={e => onChange(e.target.value || 'Other')} maxLength={80} style={{ marginTop: 8 }} />
       )}
       {hint && <span style={{ fontSize: 12.5, color: 'var(--faint)' }}>{hint}</span>}
     </div>
