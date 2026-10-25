@@ -163,7 +163,7 @@ function OSearchSelect({ label, value, onChange, options, placeholder, icon, hin
         </div>
       )}
       {isOther && (
-        <input className="input" placeholder={`Type your ${label.toLowerCase().replace('your ', '')}`} value={value === 'Other' ? '' : value}
+        <input className="input" placeholder={`Type your ${label.toLowerCase().replace('your ', '')} (required)`} value={value === 'Other' ? '' : value}
           onChange={e => onChange(e.target.value || 'Other')} maxLength={80} style={{ marginTop: 8 }} />
       )}
       {hint && <span style={{ fontSize: 12.5, color: 'var(--faint)' }}>{hint}</span>}
@@ -238,6 +238,8 @@ export default function OnboardingPage() {
     if (step === 0 && (!cleanText(d.firstName, { max: 80 }) || !cleanText(d.company, { max: 160 }))) {
       return 'Enter your first name and company.';
     }
+    if (step === 0 && d.role === 'Other') return 'Tell us your role, since you chose Other.';
+    if (step === 0 && d.industry === 'Other') return 'Tell us your industry, since you chose Other.';
     if (step === 1 && (cleanText(d.productDescription, { max: 4000, multiline: true }).length < 20 || cleanText(d.valueProp, { max: 2000, multiline: true }).length < 10)) {
       return 'Add product context and a measurable customer outcome.';
     }
