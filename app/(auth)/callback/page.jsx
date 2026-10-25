@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { postAuthPath, rememberPausedWorkspace } from '../../../lib/billingAccess';
 import { AuthFrame } from '../../../components/auth/AuthFrame';
-import { DomainTaken, FreePaused, PersonalGoogle } from '../../../components/auth/FreeRules';
+import { DomainTaken, FreePaused, JoinRequestSent, PersonalGoogle } from '../../../components/auth/FreeRules';
 
 // Free plan rules that leave a new Google sign-up on a paid plan. The account
 // already exists, so each screen explains why before checkout.
@@ -15,6 +15,9 @@ const RULE_SCREENS = new Set(['personal_email', 'domain_taken', 'paused']);
 export default function AuthCallbackPage() {
   const router = useRouter();
   const [rule, setRule] = useState(null);
+  const [asking, setAsking] = useState(false);
+  const [joinError, setJoinError] = useState('');
+  const [joinResult, setJoinResult] = useState(null);
 
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -53,6 +56,24 @@ export default function AuthCallbackPage() {
 
   const email = rule.data.user?.email || '';
   const continuePaid = () => router.replace(postAuthPath(rule.data));
+  // Swaps the empty workspace Google sign-up just made for a join request.
+  // The backend signs the visitor out, since they have no workspace yet.
+  const askToJoin = async () => {
+    setAsking(true);
+    setJoinError('');
+    try {
+      const { data } = await api.post('/auth/join-requests/from-signup');
+      setJoinResult(data);
+    } catch (err) {
+      setJoinError(err.response?.data?.error || 'Could not send your request. Please try again.');
+    } finally {
+      setAsking(false);
+    }
+  };
+
+  if (joinResult) {
+    return <AuthFrame panel="free"><JoinRequestSent result={joinResult} /></AuthFrame>;
+  }
   const signOutThen = async (href) => {
     try { await api.post('/auth/logout'); } catch { /* cookies expire anyway */ }
     window.location.href = href;
@@ -70,7 +91,14 @@ export default function AuthCallbackPage() {
           <div className="au-foot"><Link href="/signup" onClick={(event) => { event.preventDefault(); signOutThen('/signup'); }}>Sign up with your work email</Link></div>
         </>
       ) : rule.kind === 'domain_taken' ? (
-        <DomainTaken email={email} onContinuePaid={continuePaid} onBack={() => signOutThen('/login')} />
+        <DomainTaken
+          email={email}
+          workspace={rule.data.workspace}
+          asking={asking}
+          error={joinError}
+          onAskToJoin={askToJoin}
+          onContinuePaid={continuePaid}
+        />
       ) : (
         <FreePaused email={email} company={rule.data.organization?.name} onContinuePaid={continuePaid} />
       )}
