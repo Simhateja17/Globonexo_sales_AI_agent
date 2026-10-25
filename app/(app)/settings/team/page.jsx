@@ -38,6 +38,7 @@ export default function TeamPage() {
 
   const members = team?.members ?? [];
   const invitations = team?.invitations ?? [];
+  const joinRequests = team?.joinRequests ?? [];
   const viewerRole = team?.viewer?.role;
   const canManage = canSee(viewerRole, 'team.invite') && team?.viewer?.membership_status === 'active';
   const canManageRoles = canSee(viewerRole, 'team.changeRole');
@@ -96,6 +97,11 @@ export default function TeamPage() {
   };
 
   const pendingInvitations = invitations.filter(inv => inv.status === 'pending');
+  const approveJoin = request => run(() => api.post(`/team/join-requests/${request.id}/approve`), `Invitation sent to ${request.email}.`);
+  const declineJoin = async request => {
+    if (!(await confirm({ title: `Decline ${nameOf(request)}?`, body: 'They are not told, and they can ask again later.', confirmLabel: 'Decline request' }))) return;
+    await run(() => api.post(`/team/join-requests/${request.id}/decline`), 'Request declined.');
+  };
 
   return (
     <main className="gx">
@@ -140,6 +146,22 @@ export default function TeamPage() {
             ))}
             {members.length === 0 && <div className="empty">No members found.</div>}
           </section>
+
+          {canManage && joinRequests.length > 0 && (
+            <section className="card" style={{ overflow: 'hidden' }}>
+              <div className="card-h"><div><b>Asking to join</b><small>People from your company. Letting someone in sends them an invitation.</small></div></div>
+              {joinRequests.map(request => (
+                <div key={request.id} className="srow" style={{ flexWrap: 'wrap' }}>
+                  <Avatar name={nameOf(request)} size={36} />
+                  <div><b className="ellip">{nameOf(request)}</b><small className="ellip">{request.email} · asked {new Date(request.created_at).toLocaleDateString()}</small></div>
+                  <span className="mc" style={{ gap: 6 }}>
+                    <button type="button" className="bt bt-p sm" disabled={busy} onClick={() => approveJoin(request)}>Let them in</button>
+                    <button type="button" className="bt bt-g sm" disabled={busy} onClick={() => declineJoin(request)}>Decline</button>
+                  </span>
+                </div>
+              ))}
+            </section>
+          )}
 
           {canManage && (
             <section className="card" style={{ overflow: 'hidden' }}>

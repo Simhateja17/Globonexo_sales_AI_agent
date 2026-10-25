@@ -14,20 +14,47 @@ function domainOf(email) {
 // Screens for the Free plan's sign-up rules (gnx_backend free-plan.service):
 // one Free workspace per company domain, a work email, and an admin switch
 // that pauses new Free workspaces. Each offers the paid route, which the
-// backend allows in every case.
+// backend allows in every case. A second person from a company that already
+// has a workspace can instead ask its Owner to let them in.
 
-export function DomainTaken({ email, onContinuePaid, onBack }) {
-  const domain = domainOf(email);
+export function DomainTaken({ email, workspace, asking, error, onAskToJoin, onContinuePaid }) {
+  const name = workspace?.name || domainOf(email);
+  const plan = workspace?.planId === 'free' || !workspace ? 'Free plan' : 'GNX workspace';
   return (
     <>
-      <h1>{domain} is already on GNX</h1>
-      <p>Your company has a Free workspace. To share its campaign, leads and Inbox, ask its Owner to invite you from Settings, Team.</p>
+      <h1>{name} is already on GNX</h1>
+      <p>Your company has a Free workspace. Join it to share the campaign, leads and Inbox with your team.</p>
       <div className="wsrow">
-        <span className="orgav">{domain.charAt(0).toUpperCase() || 'G'}</span>
-        <div><b>{domain}</b><small>Free plan · one per company</small></div>
+        <span className="orgav">{name.charAt(0).toUpperCase() || 'G'}</span>
+        <div><b>{name}</b><small>{workspace?.ownerFirstName ? `${plan} · owned by ${workspace.ownerFirstName}` : plan}</small></div>
       </div>
-      <button type="button" className="bt bt-p" onClick={onContinuePaid}>Start on a paid plan instead</button>
-      <div className="au-foot">Already invited? Open the link in your invitation email, or <button type="button" onClick={onBack}>go back</button></div>
+      {error ? <span className="ferr" role="alert">{error}</span> : null}
+      <button type="button" className="bt bt-p" onClick={onAskToJoin} disabled={asking}>{asking ? 'Sending…' : `Ask to join ${name}`}</button>
+      <div className="au-foot">Need a separate workspace? <button type="button" onClick={onContinuePaid}>Start on a paid plan</button></div>
+    </>
+  );
+}
+
+// After "Ask to join": the Owner was emailed and approving sends an invitation.
+export function JoinRequestSent({ result }) {
+  const name = result?.workspace?.name || 'the workspace';
+  const owner = result?.workspace?.ownerFirstName;
+  if (result?.alreadyInvited) {
+    return (
+      <>
+        <span className="kpi-ic big"><Icon name="mail" size={24} /></span>
+        <h1>You are already invited</h1>
+        <p>Look for the invitation to {name} in your inbox. If it expired, ask {owner || 'the Owner'} to send it again.</p>
+        <Link className="bt bt-g" href="/login">Back to sign in</Link>
+      </>
+    );
+  }
+  return (
+    <>
+      <span className="kpi-ic big"><Icon name="clock" size={24} /></span>
+      <h1>Request sent to {owner || 'the Owner'}</h1>
+      <p>We emailed {owner ? `${owner}, the Owner of ${name}` : `the Owner of ${name}`}. You will get an email as soon as they let you in.</p>
+      <Link className="bt bt-g" href="/login">Back to sign in</Link>
     </>
   );
 }

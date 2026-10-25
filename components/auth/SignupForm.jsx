@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
+import { api } from '../../lib/api';
 import { postAuthPath } from '../../lib/billingAccess';
 import { FREE_PLAN, isPersonalEmail } from '../../lib/free-plan';
 import { cleanText, isValidEmail } from '../../lib/validation';
 import { GoogleButton } from './AuthFrame';
-import { CodeExpired, DomainTaken, FreePaused } from './FreeRules';
+import { CodeExpired, DomainTaken, FreePaused, JoinRequestSent } from './FreeRules';
 import { NextSteps, VerifyStep } from './VerifyStep';
 
 const FREE_NEXT = [
@@ -20,6 +21,12 @@ const PAID_NEXT = [
   [null, 'Choose a plan', 'Monthly or annual, cancel whenever you want'],
   [null, 'Connect your inbox', 'Nexo sends from your own work address'],
   [null, 'Start your campaign', 'Every email waits for your OK'],
+];
+
+const JOIN_NEXT = (workspace) => [
+  [null, `${workspace?.ownerFirstName || 'The Owner'} gets your request`, 'By email, with a link to review it'],
+  [null, 'You get an invitation', `Once you are let in to ${workspace?.name || 'the workspace'}`],
+  [null, 'Create your sign-in', 'Then share the campaign, leads and Inbox'],
 ];
 
 const DRAFT_KEY = 'signup_draft';
@@ -44,9 +51,13 @@ export function SignupForm() {
   const [errors, setErrors] = useState({});
   const [personalOk, setPersonalOk] = useState(false);
   const [freePlan, setFreePlan] = useState(null);
+  const [workspace, setWorkspace] = useState(null);
+  // True once the visitor chose "Ask to join" instead of a new workspace.
+  const [joining, setJoining] = useState(false);
+  const [joinResult, setJoinResult] = useState(null);
   const [otp, setOtp] = useState('');
   const [codeError, setCodeError] = useState('');
-  // details | domain_taken | paused | otp | expired
+  // details | domain_taken | paused | otp | expired | join_sent
   const [step, setStep] = useState('details');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -72,11 +83,15 @@ export function SignupForm() {
     if (field === 'email') setPersonalOk(false);
   };
 
-  const send = async (payload) => {
-    const eligibility = await startSignup(payload);
+  const send = async (payload, { resend = false } = {}) => {
+    const { freePlan: eligibility, workspace: existing } = await startSignup(payload);
     setFreePlan(eligibility || null);
+    setWorkspace(existing);
     setOtp('');
     setCodeError('');
+    // A new code for someone already asking to join keeps them on that path.
+    if (resend && joining && eligibility === 'domain_taken') { setStep('otp'); return; }
+    setJoining(false);
     // The code is already on its way; these screens only explain why the
     // account will start on a paid plan before asking for it.
     setStep(eligibility === 'domain_taken' || eligibility === 'paused' ? eligibility : 'otp');
@@ -118,6 +133,23 @@ export function SignupForm() {
     setCodeError('');
     if (!/^\d{6}$/.test(otp)) return;
     setSubmitting(true);
+    if (joining) {
+      // The sign-up code proves the email; no account is created yet.
+      try {
+        const { data } = await api.post('/auth/join-requests', { email: form.email, otp });
+        try { sessionStorage.removeItem(DRAFT_KEY); } catch {}
+        setJoinResult(data);
+        setStep('join_sent');
+      } catch (err) {
+        const status = err.response?.status;
+        if (status === 401) setCodeError('wrong');
+        else if (status === 400) setStep('expired');
+        else setError(err.response?.data?.error || 'Something went wrong. Please try again.');
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
     try {
       const data = await verifySignup(form.email, otp);
       try { sessionStorage.removeItem(DRAFT_KEY); } catch {}
@@ -137,7 +169,7 @@ export function SignupForm() {
     setError('');
     setSubmitting(true);
     try {
-      await send(form);
+      await send(form, { resend: true });
       return true;
     } catch (err) {
       setError(err.response?.data?.error || 'Could not send a new code. Please try again in a minute.');
@@ -147,10 +179,20 @@ export function SignupForm() {
     }
   };
 
-  const startOver = () => { setStep('details'); setOtp(''); setCodeError(''); setError(''); };
+  const startOver = () => { setStep('details'); setOtp(''); setCodeError(''); setError(''); setJoining(false); };
 
+  if (step === 'join_sent') {
+    return <JoinRequestSent result={joinResult} />;
+  }
   if (step === 'domain_taken') {
-    return <DomainTaken email={form.email} onContinuePaid={() => setStep('otp')} onBack={startOver} />;
+    return (
+      <DomainTaken
+        email={form.email}
+        workspace={workspace}
+        onAskToJoin={() => { setJoining(true); setError(''); setStep('otp'); }}
+        onContinuePaid={() => { setJoining(false); setStep('otp'); }}
+      />
+    );
   }
   if (step === 'paused') {
     return <FreePaused email={form.email} company={form.company} onContinuePaid={() => setStep('otp')} />;
@@ -167,12 +209,16 @@ export function SignupForm() {
         codeError={codeError}
         error={error}
         submitting={submitting}
-        submitLabel="Verify and continue"
+        submitLabel={joining ? 'Verify and send request' : 'Verify and continue'}
         onSubmit={handleOtpSubmit}
         onResend={handleResend}
         onChangeEmail={startOver}
       >
-        <NextSteps title="What happens next" steps={freePlan === 'eligible' ? FREE_NEXT : PAID_NEXT} />
+        {joining ? (
+          <NextSteps title="What happens next" steps={JOIN_NEXT(workspace)} />
+        ) : (
+          <NextSteps title="What happens next" steps={freePlan === 'eligible' ? FREE_NEXT : PAID_NEXT} />
+        )}
       </VerifyStep>
     );
   }
