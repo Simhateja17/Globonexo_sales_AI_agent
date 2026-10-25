@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import Icon from "../ui/Icon";
 import Spinner from "../ui/Spinner";
 import api from "../../lib/api";
-import { TOUR_STEPS } from "../../lib/tour-steps";
+import { tourStepsFor } from "../../lib/tour-steps";
+import { isFreePlan } from "../../lib/free-plan";
+import { useAuth } from "../../hooks/useAuth";
 import {
   advance,
   computePopoverPosition,
@@ -75,6 +77,8 @@ export default function TourOverlay() {
   const [onboardingCampaignId, setOnboardingCampaignId] = useState(null);
   const popoverRef = useRef(null);
 
+  const { organization } = useAuth();
+  const TOUR_STEPS = useMemo(() => tourStepsFor(isFreePlan(organization)), [organization]);
   const step = stepAt(TOUR_STEPS, tourIndex);
   const needsNav = Boolean(step?.target?.startsWith('[data-tour="nav-'));
   const effectiveRoute = resolveStepRoute(step, { onboardingCampaignId });

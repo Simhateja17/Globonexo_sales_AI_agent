@@ -158,9 +158,9 @@ function timeOfDayGreeting() {
   return "Good evening";
 }
 
-function NeedCard({ tone, icon, title, detail, action, primary, onClick, highlight }) {
+function NeedCard({ tone, icon, title, detail, action, primary, onClick, highlight, dataTour }) {
   return (
-    <div className={`need ${highlight ? "hi" : ""}`}>
+    <div className={`need ${highlight ? "hi" : ""}`} data-tour={dataTour}>
       <span className={`need-ic ${tone || ""}`}><Icon name={icon} size={19} /></span>
       <div>
         <b>{title}</b>
@@ -335,6 +335,7 @@ function FreeDashboard({ firstName, kpis, tasks, activity, campaigns, router }) 
           />
         ))}
         <NeedCard
+          dataTour="dashboard-free-leads"
           tone="warn"
           icon="users"
           title={`${leadsLeft} leads left on Free`}
