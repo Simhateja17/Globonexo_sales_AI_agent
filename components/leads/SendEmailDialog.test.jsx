@@ -48,6 +48,20 @@ describe("SendEmailDialog", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it("asks for a missing job title, saves it on the lead and hands it back to the AI", async () => {
+    apiMock.get.mockResolvedValue(outreach({ state: "needs_info", missing: ["title"], reason: "The AI needs this lead's job title to write the email." }));
+    apiMock.patch = vi.fn().mockResolvedValue({ data: { ...lead, title: "CEO" } });
+    apiMock.post.mockResolvedValue(outreach({ state: "writing" }));
+    render(<SendEmailDialog lead={lead} onClose={() => {}} />);
+
+    fireEvent.change(await screen.findByLabelText("Job title"), { target: { value: "CEO" } });
+    fireEvent.click(screen.getByRole("button", { name: /Save and write email/ }));
+
+    await waitFor(() => expect(apiMock.patch).toHaveBeenCalledWith("/leads/lead-1", { title: "CEO" }));
+    expect(apiMock.post).toHaveBeenCalledWith("/leads/lead-1/draft/generate", { campaignId: "campaign-1" });
+    expect(await screen.findByText(/Writing an email to Simha Teja Ugrarapu/)).toBeTruthy();
+  });
+
   it("sends exactly the email that was shown", async () => {
     apiMock.get.mockResolvedValue(outreach({ state: "ready", status: "draft", messageId: "message-9", subject: "Quick idea", body: "Hi Simha, ..." }));
     apiMock.post.mockResolvedValue({ data: { success: true } });
