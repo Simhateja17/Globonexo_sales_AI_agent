@@ -1,9 +1,10 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
+import api from "../../lib/api";
 import Icon from "../ui/Icon";
 import { Live, Marked, NumberStepper, RuleChips } from "./ui";
 import { CADENCES, EMAIL_RULES, HOOKS, MAX_EMAILS, TONES, TOOLS } from "../../lib/onboarding-data";
-import { cadenceDays, followUpGaps, hasVoice, sampleEmail, stepsFor, toneSample } from "../../lib/onboarding-flow";
+import { buildPreviewRequest, cadenceDays, followUpGaps, hasVoice, sampleEmail, stepsFor, toneSample } from "../../lib/onboarding-flow";
 
 function OptionCard({ on, custom, onClick, title, children, extra }) {
   return (
@@ -23,6 +24,31 @@ export default function EmailStyleStep({ d, set, footer }) {
   const days = cadenceDays(gaps);
   const ruleLabels = EMAIL_RULES.filter(r => d.emailRules.split("\n").map(l => l.trim()).includes(r.line)).map(r => r.label.toLowerCase());
   const ownLines = d.emailRules.split("\n").map(l => l.trim()).filter(l => l && !EMAIL_RULES.some(r => r.line === l));
+
+  // "Generate" asks Nexo to write email 1 for real from these answers. The
+  // sample above it is instant but cannot follow custom wording.
+  const request = buildPreviewRequest(d);
+  const requestKey = JSON.stringify(request);
+  const [generated, setGenerated] = useState(null);
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState("");
+  const stale = generated && generated.key !== requestKey;
+  const usesOwnWords = d.tone === "custom" || d.hook === "custom" || ownLines.length > 0;
+  const generate = async () => {
+    setGenerating(true);
+    setGenError("");
+    try {
+      const { data } = await api.post("/onboarding/preview-email", request, { timeout: 45000 });
+      setGenerated({ ...data, key: requestKey });
+    } catch (err) {
+      setGenError(err?.response?.data?.error || err?.response?.data?.message || `${agent} could not write a preview right now. Try again.`);
+    } finally {
+      setGenerating(false);
+    }
+  };
+  const words = generated
+    ? generated.body.split(/\s+/).filter(Boolean).length
+    : email.words;
 
   const setGap = (i, value) => {
     const next = [...d.customGaps];
@@ -144,20 +170,41 @@ export default function EmailStyleStep({ d, set, footer }) {
 
       <aside className="side">
         <div className="pv">
-          <div className="pv-h">Email 1, in this style<Live /></div>
-          <div className="mail-meta"><span>To: <b>{email.to}</b></span><span>Subject: <b>{email.subject}</b></span></div>
-          <div className="mail">
-            <p>{email.greeting}</p>
-            {email.body.map((parts, i) => <p key={i}><Marked parts={parts} /></p>)}
-            <p>{email.signoff}</p>
+          <div className="pv-h">Email 1, in this style{generated ? <span className="gen-tag"><Icon name="sparkle" size={11} stroke={2.4} />Written by {agent}</span> : <Live />}</div>
+          <div className="mail-meta"><span>To: <b>{email.to}</b></span><span>Subject: <b>{generated ? generated.subject : email.subject}</b></span></div>
+          {generated ? (
+            <div className="mail gen">
+              {generated.body.split(/\n{2,}/).map((para, i) => <p key={i}>{para.trim()}</p>)}
+            </div>
+          ) : (
+            <div className="mail">
+              <p>{email.greeting}</p>
+              {email.body.map((parts, i) => <p key={i}><Marked parts={parts} /></p>)}
+              <p>{email.signoff}</p>
+            </div>
+          )}
+          {stale && <div className="stale" role="status">You changed the style since this was written. Generate again to see it.</div>}
+          <div className="pv-f">
+            <span className="hint">
+              {generated ? "Sample lead. Real emails use details Nexo finds about each one."
+                : usesOwnWords ? "Your own tone, opening and rules only show in a generated email."
+                  : "Instant sample. Generate to see how Nexo really writes it."}
+            </span>
+            <span className="acts">
+              {generated && <button type="button" className="mini" onClick={() => setGenerated(null)}>Show sample</button>}
+              <button type="button" className="mini p" onClick={generate} disabled={generating}>
+                <Icon name="sparkle" size={13} stroke={2.4} />{generating ? "Writing…" : generated ? "Generate again" : "Generate"}
+              </button>
+            </span>
           </div>
+          {genError && <div className="stale" role="alert" style={{ background: "#fdf3f2", borderColor: "#f6cfcb", color: "#b42318" }}>{genError}</div>}
           {days.slice(1).map((day, i) => (
             <div className="fu" key={i}><i>{i + 2}</i><span>{i === days.length - 2 ? "Last note, offers to step back" : "Follow-up, if no reply"}</span><em>Day {day}</em></div>
           ))}
         </div>
         <div className="rules">
           <b>Your rules applied</b>
-          {[`${email.words} words`, ...ruleLabels, ...(ownLines.length ? [`${ownLines.length} rule${ownLines.length > 1 ? "s" : ""} of your own`] : [])].join(" · ")}
+          {[`${words} words`, ...ruleLabels, ...(ownLines.length ? [`${ownLines.length} rule${ownLines.length > 1 ? "s" : ""} of your own`] : [])].join(" · ")}
           {gaps.length + 1 > 3 && <><br />{gaps.length + 1} emails in the sequence.</>}
         </div>
       </aside>

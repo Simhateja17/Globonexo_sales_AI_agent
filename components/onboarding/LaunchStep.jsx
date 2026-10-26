@@ -25,7 +25,7 @@ function CheckRow({ on, required, onClick, title, tag, children }) {
   );
 }
 
-export default function LaunchStep({ d, set, onJump, onBack, onLaunch, loading, error }) {
+export default function LaunchStep({ d, set, onJump, onBack, onLaunch, loading, error, free }) {
   const email = hasEmail(d.channels);
   const voice = hasVoice(d.channels);
   const both = email && voice;
@@ -48,9 +48,11 @@ export default function LaunchStep({ d, set, onJump, onBack, onLaunch, loading, 
 
   const next = [{ t: "Your setup is saved", s: "Every future campaign starts from these answers" }];
   if (both) next.push({ t: "Connect your inbox, and we set up your calling number", s: "The two things campaigns send and call from" });
-  else if (voice) next.push({ t: "We set up your calling number and voice agent", s: "Usually a few minutes, no extra cost" });
-  else next.push({ t: "Connect the inbox " + agent + " sends from", s: "About 2 minutes" });
-  next.push({ t: "Add leads and start your first campaign", s: voice ? "Nothing goes out until you launch it" : "Nothing is sent until you approve it" });
+  else if (voice) next.push({ t: "We set up your calling number and voice agent", s: "Included in your plan. We let you know when it's ready" });
+  else next.push({ t: "Connect the inbox " + agent + " sends from", s: free ? "Your company address, about 2 minutes" : "About 2 minutes" });
+  next.push(free
+    ? { t: "Add your leads and start your first campaign", s: "Import a CSV or add people yourself. Nothing is sent until you approve it" }
+    : { t: "Add leads and start your first campaign", s: voice ? "Nothing goes out until you launch it" : "Nothing is sent until you approve it" });
 
   return (
     <main className="wrap">
@@ -107,7 +109,7 @@ export default function LaunchStep({ d, set, onJump, onBack, onLaunch, loading, 
           )}
           {voice && (
             <Summary icon="phone" title="Call style" onEdit={() => onJump("voice")}>
-              <p>{voiceDef?.name} voice, {d.callLanguage}. Goal: {goal?.custom ? "your own" : goal?.label.toLowerCase()}. {callDaysSummary(d.callDays)}, up to {d.maxAttempts} {d.maxAttempts === 1 ? "try" : "tries"}.</p>
+              <p>{d.voiceId && d.voiceName ? `${d.voiceName}` : `${voiceDef?.name} style`} voice, {d.callLanguage}. Goal: {goal?.custom ? "your own" : goal?.label.toLowerCase()}. {callDaysSummary(d.callDays)}, up to {d.maxAttempts} {d.maxAttempts === 1 ? "try" : "tries"}.</p>
               <div className="pills">
                 <span className="pl">{usableObjections(d).length + 1} objection answers</span>
                 {callRules.slice(0, 2).map(r => <span className="pl" key={r}>{r.replace(/\.$/, "")}</span>)}

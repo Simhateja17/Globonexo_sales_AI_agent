@@ -491,3 +491,26 @@
 /* Goal cards nest their text in a span, which must not inherit the tone cards' italic sample style. */
 .ob .oc.row > span{font-style:normal}
 .ob .pills .pl{height:auto;min-height:24px;padding:3px 9px;line-height:1.4}
+
+/* Voice cards with a playable Retell sample. */
+.ob .vc .play{flex:none;width:40px;height:40px;border-radius:50%;border:0;background:#ecfdf3;color:#088256;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.ob .vc.on .play{background:#0a5d3f;color:#6fe7b0}
+.ob .vc .play:hover{filter:brightness(.96)}
+.ob .vc b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ob .wave.go i{animation:obWave .9s ease-in-out infinite alternate}
+.ob .wave.go i:nth-child(2n){animation-delay:.25s}
+.ob .wave.go i:nth-child(3n){animation-delay:.5s}
+@keyframes obWave{from{transform:scaleY(.4)}to{transform:scaleY(1)}}
+@media (prefers-reduced-motion: reduce){.ob .wave.go i{animation:none}}
+
+/* AI-written email preview on the Email style step. */
+.ob .gen-tag{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:999px;background:#0a5d3f;color:#fff;font-size:11px;font-weight:800}
+.ob .stale{padding:10px 18px;background:#fffaf0;border-top:1px solid #f5dfb3;color:#5c3d00;font-size:12.5px;font-weight:700;line-height:1.5}
+.ob .mail.gen p{white-space:pre-wrap}
+
+/* Channel cards a plan does not include. */
+.ob .chc.lock{cursor:default;background:#fbfdfc}
+.ob .chc.lock:hover{border-color:#e1e8e4}
+.ob .chc.lock .chc-ic{background:#f1f4f2;color:#9aa8a0}
+.ob .chc.lock .chc-t,.ob .chc.lock p{color:#69786f}
+.ob .chc.lock .rdo{opacity:.4}

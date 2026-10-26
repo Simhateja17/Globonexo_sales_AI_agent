@@ -11,6 +11,7 @@ import EmailStyleStep from "../../components/onboarding/EmailStyleStep";
 import CallStyleStep from "../../components/onboarding/CallStyleStep";
 import LaunchStep from "../../components/onboarding/LaunchStep";
 import { useAuth } from "../../hooks/useAuth";
+import { isFreePlan } from "../../lib/free-plan";
 import api from "../../lib/api";
 import { suggestAudience, suggestProductText } from "../../lib/onboarding-suggestions";
 import {
@@ -89,6 +90,13 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (ready) writeDraft(storage(), step, d);
   }, [ready, step, d]);
+
+  // The Free plan has no AI calling: keep it on email even if a draft or an
+  // earlier setup chose voice.
+  const free = isFreePlan(organization);
+  useEffect(() => {
+    if (ready && free && d.channels !== "email") setD(prev => ({ ...prev, channels: "email" }));
+  }, [ready, free, d.channels]);
 
   const set = useCallback((key, value) => {
     setD(prev => ({ ...prev, [key]: value }));
@@ -197,13 +205,13 @@ export default function OnboardingPage() {
       {step !== "channel" && step !== "launch" && (
         <div className="path"><button type="button" onClick={() => go("channel")}>Setting up: {CHANNEL_LABEL[d.channels]}<span>Change</span></button></div>
       )}
-      {step === "channel" && <ChannelStep d={d} set={set} firstName={d.firstName || user?.first_name} onContinue={next} />}
+      {step === "channel" && <ChannelStep d={d} set={set} firstName={d.firstName || user?.first_name} onContinue={next} free={free} />}
       {step === "profile" && <ProfileStep {...props} fromSignup={fromSignup} />}
       {step === "product" && <ProductStep {...props} />}
       {step === "audience" && <AudienceStep {...props} />}
       {step === "email" && <EmailStyleStep {...props} />}
       {step === "voice" && <CallStyleStep {...props} />}
-      {step === "launch" && <LaunchStep d={d} set={set} onJump={go} onBack={back} onLaunch={launch} loading={loading} error={error} />}
+      {step === "launch" && <LaunchStep d={d} set={set} onJump={go} onBack={back} onLaunch={launch} loading={loading} error={error} free={free} />}
     </div>
   );
 }

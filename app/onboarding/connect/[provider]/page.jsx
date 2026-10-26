@@ -7,6 +7,7 @@ import { Brand } from "../../../../components/onboarding/ui";
 import { useAuth } from "../../../../hooks/useAuth";
 import api from "../../../../lib/api";
 import { isValidEmail } from "../../../../lib/validation";
+import { isFreePlan, isPersonalEmail } from "../../../../lib/free-plan";
 
 const SERVERS = {
   gmail: { smtpHost: "smtp.gmail.com", smtpPort: "587", smtpSecurity: "STARTTLS", imapHost: "imap.gmail.com", imapPort: "993", imapSecurity: "SSL" },
@@ -59,7 +60,8 @@ export default function ConnectInboxPage() {
   const params = useParams();
   const provider = ["gmail", "outlook", "other"].includes(params?.provider) ? params.provider : "gmail";
   const copy = COPY[provider];
-  const { user } = useAuth();
+  const { user, organization } = useAuth();
+  const free = isFreePlan(organization);
   const [preset, setPreset] = useState("Zoho Mail");
   const [server, setServer] = useState(provider === "other" ? PRESETS["Zoho Mail"] : SERVERS[provider]);
   const [editingServer, setEditingServer] = useState(false);
@@ -90,6 +92,10 @@ export default function ConnectInboxPage() {
   const connect = async () => {
     setError("");
     if (!isValidEmail(email)) { setError("Enter the email address Nexo should send from."); return; }
+    if (free && isPersonalEmail(email)) {
+      setError("On the Free plan, connect your company address (like you@yourcompany.com). Personal Gmail.com or Outlook.com addresses can't be connected.");
+      return;
+    }
     const secret = provider === "gmail" ? password.replace(/\s+/g, "") : password;
     if (!secret) { setError(`Enter your ${copy.pwLabel.toLowerCase()}.`); return; }
     if (!server.smtpHost.trim() || !server.imapHost.trim()) { setError("Fill in both server names."); return; }
@@ -141,8 +147,13 @@ export default function ConnectInboxPage() {
             <span className={`logo ${provider === "other" ? "alt" : ""}`}>
               <Icon name={provider === "gmail" ? "google" : provider === "outlook" ? "microsoft" : "mail"} size={provider === "other" ? 26 : 30} stroke={provider === "other" ? 2 : 1.8} />
             </span>
-            <div><h1 className="h1" style={{ margin: 0 }}>{copy.title}</h1><p className="csub">{copy.sub}</p></div>
+            <div><h1 className="h1" style={{ margin: 0 }}>{copy.title}</h1><p className="csub">{free && provider === "gmail" ? "Google Workspace. Takes about 2 minutes."
+              : free && provider === "outlook" ? "Microsoft 365. Takes about 2 minutes." : copy.sub}</p></div>
           </div>
+
+          {free && (
+            <div className="warnnote">On the Free plan you send from your company inbox, like you@yourcompany.com. Personal Gmail.com, Outlook.com or Yahoo addresses can&apos;t be connected. <Link href="/billing">See plans</Link></div>
+          )}
 
           <div className="ccard">
             {provider === "gmail" && (

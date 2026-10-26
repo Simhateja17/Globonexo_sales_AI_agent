@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import PhoneNumbers from '@/components/settings/PhoneNumbers';
+import OutreachStyle from '@/components/settings/OutreachStyle';
 import { Field } from '../../../components/ui/Input';
 import Icon from '../../../components/ui/Icon';
 import { useConfirm } from "../../../components/ui/ConfirmDialog";
@@ -505,6 +506,7 @@ export default function SettingsPage() {
               ['settings-profile', 'Profile', 'user'],
               ['settings-organisation', 'Organisation', 'building'],
               ['settings-agent', 'Agent configuration', 'spark'],
+              ['settings-style', 'Outreach style', 'edit'],
               ['settings-inboxes', 'Sending inboxes', 'mail'],
               ['phone-numbers', 'Phone numbers', 'phone'],
               ['settings-voice', 'Voice agent', 'sliders'],
@@ -859,6 +861,7 @@ export default function SettingsPage() {
               </div>
             </section>
 
+            <OutreachStyle />
             <PhoneNumbers teamMembers={teamMembers} />
             <section id="settings-voice" className="card sec" style={{ scrollMarginTop: 16 }}>
               <div className="sec-h">
