@@ -333,7 +333,7 @@ export const automateOutboundArticleHtml = `<article style="max-width:1160px;mar
     <p data-reveal style="font-size:17px;line-height:1.75;color:var(--ink-2);margin:20px 0 0">Automate outbound in order: who, then data, then follow-ups, then calls. Skip a stage and the next one breaks.</p>
     <blockquote data-reveal style="margin:40px 0 0;padding-left:22px;border-left:3px solid var(--g-500);font-family:var(--font-display);font-size:clamp(19px,2.4vw,24px);line-height:1.45;letter-spacing:-.025em;color:var(--ink)">Automate the effort. Keep the judgment.</blockquote>
     <div data-reveal style="margin-top:28px">
-      <a href="https://calendly.com/gnxsales-support/30min" target="_blank" rel="noopener" style="border:none;display:inline-block">
+      <a href="https://cal.com/gnx-sales/30mins-meeting" target="_blank" rel="noopener" style="border:none;display:inline-block">
         <span class="btn btn-primary btn-lg">Book a 30 minute walkthrough</span>
       </a>
     </div>

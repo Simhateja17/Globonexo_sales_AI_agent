@@ -80,7 +80,7 @@ export default function CampaignSettingsForm({ campaign, disabled = false, onSav
         <input className="input" disabled={disabled} value={form.name} onChange={e => set("name", e.target.value)} maxLength={120} />
       </Row>
       <Row label="Prompt notes" hint="Who you're targeting, positioning, qualifying rules, exclusions and pain points.">
-        <textarea className="input" disabled={disabled} rows={5} maxLength={2000} value={form.promptNotes} onChange={e => set("promptNotes", e.target.value)} style={{ resize: "vertical" }} />
+        <textarea className="input" disabled={disabled} rows={5} maxLength={2000} value={form.promptNotes} onChange={e => set("promptNotes", e.target.value)} style={{ resize: "vertical", height: "auto", minHeight: 140, padding: "12px 16px", lineHeight: 1.55 }} />
       </Row>
     </div>
 

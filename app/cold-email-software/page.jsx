@@ -4,6 +4,7 @@ export const metadata = {
     "Cold email software sends sequences to a list you supply. An AI sales agent decides who belongs on the list, writes each message from what it knows, and calls when email is not landing. Here is the honest comparison.",
   alternates: { canonical: "/cold-email-software" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/cold-email-software",
     title: "Cold Email Software vs an AI Sales Agent",
     description:

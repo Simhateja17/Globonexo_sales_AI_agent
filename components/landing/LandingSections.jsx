@@ -4,9 +4,9 @@ import Icon from "../ui/Icon";
 import FaqSection from "../marketing/FaqSection";
 import { LoopAnimator, QualifyCards, ReadyCard, VoiceStage } from "./LandingInteractive";
 import { MOST_POPULAR_PLAN_ID, PLAN_CONFIG } from "../../lib/plans";
-import FreePlanStrip from "../marketing/FreePlanStrip";
+import { FREE_PLAN } from "../../lib/free-plan";
 
-const CALENDLY_URL = "https://calendly.com/gnxsales-support/30min";
+const CALENDLY_URL = "https://cal.com/gnx-sales/30mins-meeting";
 
 const PRIMARY_BTN = {
   background: "linear-gradient(180deg, #29d68f, #00c27a)",
@@ -23,11 +23,11 @@ const faqs = [
   },
   {
     q: "Am I locked into a contract?",
-    a: "No. Plans run month to month, or yearly at a lower price. There is no setup fee and upgrades are prorated. You can also start on the Free plan with a work email, no card needed.",
+    a: "No. Start on the Free plan with no card. Paid plans run month to month, or yearly at a lower price. There is no setup fee and upgrades are prorated.",
   },
   {
     q: "Will it hurt my email deliverability?",
-    a: "It sends from your own inbox inside a daily cap, only to verified emails by default, and every email carries the one-click unsubscribe header that Gmail and Yahoo require of bulk senders.",
+    a: "It sends from your own inbox inside a daily cap, only to verified emails by default on paid plans (Free checks each address's format and domain), and every email carries the one-click unsubscribe header that Gmail and Yahoo require of bulk senders.",
   },
   {
     q: "Does the caller say it is an AI?",
@@ -69,8 +69,8 @@ export default function LandingSections({ user, loading }) {
               </svg>
             </span>
             <div>
-              <b>Verified emails only</b>
-              <span>Unverified addresses are skipped by default, so bounces stay low.</span>
+              <b>Every address checked</b>
+              <span>Paid plans email only verified addresses. Free checks each address&apos;s format and domain.</span>
             </div>
           </div>
           <div className="gd-fact">
@@ -134,8 +134,8 @@ export default function LandingSections({ user, loading }) {
               </svg>
             </span>
             <div>
-              <b>Month to month</b>
-              <span>No setup fee. Upgrade, downgrade or cancel when you need to.</span>
+              <b>Free to start</b>
+              <span>{FREE_PLAN.emailCampaigns} email campaign from your own inbox. No card needed.</span>
             </div>
           </div>
         </div>
@@ -1183,14 +1183,48 @@ export default function LandingSections({ user, loading }) {
         <div style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
           <div style={{ maxWidth: "760px", textAlign: "center", margin: "0 auto" }}>
             <div className="gd-eyebrow">Pricing</div>
-            <h2 className="gd-h2">Start free. Add calling when you are ready.</h2>
+            <h2 className="gd-h2">Start free. Upgrade when it works.</h2>
             <p className="gd-lead">
-              Pay month to month or save about 17% yearly. Credits cover emails, contact reveals and call minutes, at
-              cost.
+              Free runs one email campaign from your own inbox. Paid plans add lead enrichment, AI calling and more
+              volume, month to month or about 17% less yearly.
             </p>
           </div>
-          <FreePlanStrip style={{ marginTop: "40px" }} />
-          <div className="gd-g3" style={{ alignItems: "stretch" }}>
+          <div className="gd-g4 gd-plans" style={{ marginTop: "40px", alignItems: "stretch" }}>
+            <div className="gd-plan">
+              <div className="gd-phd">
+                <small>Free</small>
+              </div>
+              <div className="gd-pp">
+                $0
+                <span>/month</span>
+              </div>
+              <div className="gd-py">No card needed</div>
+              <ul>
+                <li>
+                  <span>AI emails a month</span>
+                  <b>~{FREE_PLAN.monthlyAiEmails}</b>
+                </li>
+                <li>
+                  <span>Email campaigns</span>
+                  <b>{FREE_PLAN.emailCampaigns}</b>
+                </li>
+                <li>
+                  <span>Voice campaigns</span>
+                  <b>None</b>
+                </li>
+                <li>
+                  <span>Emails a day</span>
+                  <b>{FREE_PLAN.dailyEmailCap}</b>
+                </li>
+                <li>
+                  <span>Seats</span>
+                  <b>Shared</b>
+                </li>
+              </ul>
+              <Link href="/signup" className="gd-lbtn" style={OUTLINE_BTN}>
+                Start free
+              </Link>
+            </div>
             {PLAN_CONFIG.map((plan) => {
               const featured = plan.id === MOST_POPULAR_PLAN_ID;
               return (
@@ -1392,7 +1426,7 @@ export default function LandingSections({ user, loading }) {
               <span style={{ color: "#6fe7b0" }}>to work this week.</span>
             </h2>
             <p style={{ margin: "16px 0 0", color: "rgba(255,255,255,.74)", fontSize: "16.5px", lineHeight: "1.7" }}>
-              Month to month. No setup fee. Plans from $59, with calling in every one.
+              Free to start, no card needed. Paid plans from $59, with calling included.
             </p>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", visibility: loading ? "hidden" : undefined }}>
@@ -1402,7 +1436,7 @@ export default function LandingSections({ user, loading }) {
               </Link>
             ) : (
               <Link href="/signup" className="gd-lbtn" style={PRIMARY_BTN}>
-                Choose a plan <Icon name="arrow" size={16} color="#06231a" />
+                Start free <Icon name="arrow" size={16} color="#06231a" />
               </Link>
             )}
             <a href={CALENDLY_URL} target="_blank" rel="noopener noreferrer" className="gd-lbtn" style={GHOST_BTN}>
@@ -1411,7 +1445,6 @@ export default function LandingSections({ user, loading }) {
           </div>
         </div>
       </section>
-      <div style={{ background: "#041f16", borderBottom: "1px solid rgba(255,255,255,.08)" }}></div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ export const metadata = {
     "Sales automation software that does more than send on a schedule. GNX Sales sources and qualifies leads, writes personalized sequences, follows up, handles replies, places AI voice calls, and books meetings, from one subscription.",
   alternates: { canonical: "/sales-automation-software" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/sales-automation-software",
     title: "Sales Automation Software That Runs the Whole Motion",
     description:
@@ -40,7 +41,7 @@ const faqs = [
   },
   {
     q: "How quickly can I be running campaigns?",
-    a: "Most people launch their first campaign in one sitting. Choose a plan, answer the guided onboarding so the agent learns your offer and ideal customer, connect your mailbox, and launch. When meetings come depends on your market and offer.",
+    a: "Most people launch their first campaign in one sitting. Start free, answer the guided onboarding so the agent learns your offer and ideal customer, connect your mailbox, and launch. When meetings come depends on your market and offer.",
   },
 ];
 
@@ -151,7 +152,7 @@ export default function SalesAutomationSoftwarePage() {
                 boxShadow: "0 12px 30px rgba(0,194,122,.35)",
               }}
             >
-              Choose a plan{" "}
+              Start free{" "}
               <svg
                 width="16"
                 height="16"
@@ -929,7 +930,7 @@ export default function SalesAutomationSoftwarePage() {
               <span style={{ color: "#6fe7b0" }}>not just the sending.</span>
             </h2>
             <p style={{ margin: "16px 0 0", color: "rgba(255,255,255,.74)", fontSize: "16.5px", lineHeight: "1.7" }}>
-              Choose a plan, connect your inbox, and launch your first campaign.
+              Start free, connect your inbox, and launch your first campaign.
             </p>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
@@ -948,7 +949,7 @@ export default function SalesAutomationSoftwarePage() {
                 fontWeight: "800",
               }}
             >
-              Choose a plan
+              Start free
             </Link>
             <Link
               href="/contact"

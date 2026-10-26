@@ -90,7 +90,7 @@ export default function PostHogProvider({ children }) {
           source_path: window.location.pathname,
           destination: href,
         });
-      } else if (href.includes("calendly.com/gnxsales-support")) {
+      } else if (href.includes("cal.com/gnx-sales")) {
         captureEvent("demo_booking_started", {
           cta_text: link.textContent?.trim(),
           source_path: window.location.pathname,

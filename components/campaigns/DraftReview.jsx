@@ -201,184 +201,147 @@ function EditDraftModal({ message, onClose, onSave, onRegenerate, busy }) {
   );
 }
 
-function DraftRow({ message, displayTimezone, onApprove, onSendThin, onSave, onRegenerate, busy }) {
+const EMAILS_PER_PAGE = 10;
+
+// Row and detail share one vocabulary so the list pill and the detail pill can
+// never disagree. Thin-context drafts say "Needs your OK" because autopilot
+// cannot take that decision off the customer.
+function statusPill(message) {
+  if (message.status === "approved") {
+    return { label: message.approvedBy === "autopilot" ? "Approved by autopilot" : "Approved", cls: "pl-ok" };
+  }
+  if (message.status === "queued") return { label: "Scheduled", cls: "pl-info" };
+  if (message.status === "sent") return { label: "Sent", cls: "pl-mute" };
+  return { label: message.thinContext ? "Needs your OK" : "Needs your OK", cls: "pl-warn" };
+}
+
+function factLabels(message) {
+  const raw = message.verifiedFacts ?? message.facts ?? message.usedFacts;
+  if (!Array.isArray(raw)) return [];
+  return raw.map(fact => (typeof fact === "string" ? fact : fact?.label || fact?.text || "")).filter(Boolean);
+}
+
+function DraftListRow({ message, selected, onSelect }) {
+  const lead = message.lead ?? {};
+  const pill = statusPill(message);
+  return (
+    <button type="button" className={`dr${selected ? " on" : ""}`} onClick={() => onSelect(message.id)} aria-current={selected ? "true" : undefined}>
+      <Avatar name={lead.name || "Unnamed lead"} src={lead.photoUrl || undefined} size={32} />
+      <span className="dr-m">
+        <b className="ellip">{lead.name || "Unnamed lead"}</b>
+        <small className="ellip">{[lead.title, lead.company].filter(Boolean).join(" · ") || lead.email || "No title or company"}</small>
+        <span>{message.subject || "No subject"}</span>
+      </span>
+      <span className={`pl ${pill.cls}`}>{pill.label}</span>
+    </button>
+  );
+}
+
+function DraftDetail({ message, displayTimezone, onApprove, onSendThin, onSave, onRegenerate, busy }) {
   const [editing, setEditing] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const closeEditor = useCallback(() => setEditing(false), []);
   const lead = message.lead ?? {};
   const sent = message.status === "sent";
+  const pill = statusPill(message);
   const scheduledAt = message.schedule?.scheduledAt;
   const selectedTime = formatScheduledInTimezone(scheduledAt, displayTimezone);
   const leadTime = message.schedule?.leadTimezone && message.schedule.leadTimezone !== displayTimezone
     ? formatScheduledInTimezone(scheduledAt, message.schedule.leadTimezone)
     : null;
-
-  const closeEditor = useCallback(() => setEditing(false), []);
+  const facts = factLabels(message);
+  const hasContextScore = message.contextScoreMax != null;
+  const blocked = !selectedTime && !sent ? blockedMessage(message.schedule?.blockedReason) : null;
 
   return (
-    <div className="campaign-email-row">
+    <div className="ev">
       {editing && (
-        <EditDraftModal
-          message={message}
-          busy={busy}
-          onClose={closeEditor}
-          onSave={onSave}
-          onRegenerate={onRegenerate}
-        />
+        <EditDraftModal message={message} busy={busy} onClose={closeEditor} onSave={onSave} onRegenerate={onRegenerate} />
       )}
-      <button
-        type="button"
-        className="campaign-email-summary"
-        aria-expanded={expanded}
-        onClick={() => setExpanded(value => !value)}
-      >
+      <div className="ev-top">
         <Avatar name={lead.name || "Unnamed lead"} src={lead.photoUrl || undefined} size={40} />
-        <span className="campaign-email-copy">
-          <strong>{message.subject || "No subject"}</strong>
-          <span className="faint campaign-email-recipient">
-            {lead.name || "Unnamed lead"}{lead.company ? ` at ${lead.company}` : ""}
-          </span>
-          <span className="faint campaign-email-preview">{message.body}</span>
-        </span>
-        <span className="campaign-email-state">
-          {/* On the collapsed row, not only inside the detail: an email you have
-              to open to discover is unreviewed is one nobody reviews. */}
-          {message.thinContext && (
-            <span className="chip" style={{ background: THIN_CHIP.bg, color: THIN_CHIP.color, fontSize: 11, fontWeight: 700 }} title={thinTitle(message)}>
-              Thin context
+        <div>
+          <b>{lead.name || "Unnamed lead"}</b>
+          <small>{[[lead.title, lead.company].filter(Boolean).join(" · "), lead.email].filter(Boolean).join(" · ") || "No title or company"}</small>
+        </div>
+        {message.thinContext && (
+          <span className="pl pl-warn" title={thinTitle(message)}>Thin context</span>
+        )}
+        <span className={`pl ${pill.cls}`}>{pill.label}</span>
+      </div>
+
+      {facts.length > 0 ? (
+        <div className="used">
+          <small>Written from these verified facts</small>
+          <div className="facts">
+            {facts.map(fact => (
+              <span key={fact} className="fact" style={{ background: "#fff" }}><Icon name="check" size={12} />{fact}</span>
+            ))}
+          </div>
+        </div>
+      ) : hasContextScore ? (
+        <div className="used">
+          <small>Written from what we verified</small>
+          <div className="facts">
+            <span className={message.thinContext ? "fact miss" : "fact"} style={message.thinContext ? undefined : { background: "#fff" }}>
+              {message.contextScore ?? 0} of {message.contextScoreMax} optional details found
             </span>
-          )}
-          <StatusChip status={message.status} approvedBy={message.approvedBy} thinContext={message.thinContext} />
-          <span className={expanded ? "campaign-email-expand-icon is-open" : "campaign-email-expand-icon"}>
-            <Icon name="arrow" size={15} />
-          </span>
-        </span>
-      </button>
-
-      {expanded && (
-        <div className="campaign-email-detail">
-          <div className="row spread campaign-email-meta" style={{ gap: 12, flexWrap: "wrap" }}>
-            <div className="col" style={{ gap: 2, minWidth: 0 }}>
-              <strong style={{ fontSize: 13.5 }}>{lead.name || "Unnamed lead"}</strong>
-              <span className="faint" style={{ fontSize: 12 }}>
-                {[lead.title, lead.company].filter(Boolean).join(" at ") || "No title or company"}
-              </span>
-              <span className="faint" style={{ fontSize: 11.5 }}>{lead.email}</span>
-              {selectedTime ? (
-                <span style={{ fontSize: 11.5, color: "var(--g-700)", fontWeight: 700, marginTop: 3 }}>
-                  <Icon name="clock" size={12} /> {message.schedule?.status === "sent" ? "Sent" : "Scheduled"} {selectedTime} · your timezone
-                </span>
-              ) : null}
-              {leadTime ? <span className="faint" style={{ fontSize: 11 }}>Lead local time: {leadTime}</span> : null}
-              {/* Scheduled, but in the campaign's hours rather than the lead's,
-                  because we do not know where they are. Saying so stops the
-                  time above from reading as a fact about the prospect. */}
-              {selectedTime && !message.schedule?.leadTimezone ? (
-                <span className="faint" style={{ fontSize: 11 }}>
-                  Sent during your business hours. We do not know this lead&apos;s timezone.
-                </span>
-              ) : null}
-              {!selectedTime && !sent && blockedMessage(message.schedule?.blockedReason) ? (
-                <span style={{ fontSize: 11.5, color: "#9a3412", marginTop: 3, lineHeight: 1.5 }}>
-                  <Icon name="clock" size={12} /> Not scheduled: {blockedMessage(message.schedule.blockedReason)}
-                </span>
-              ) : null}
-            </div>
-            {/* The chip is already on the collapsed row, so the space here is
-                better spent saying what it means and what happens next. */}
-            {message.thinContext && message.status !== "sent" && (
-              <span style={{ fontSize: 11.5, color: THIN_CHIP.color, maxWidth: 340, lineHeight: 1.5 }}>
-                We returned {message.contextScore ?? 0} of {message.contextScoreMax ?? 10} optional details for this lead, so this email is
-                short and role-based rather than padded with guesses. Your agent will not send it on its own.
-              </span>
-            )}
           </div>
+        </div>
+      ) : null}
 
-          <div style={{ padding: "14px 16px" }}>
-            <div className="col" style={{ gap: 8 }}>
-              <strong style={{ fontSize: 13.5 }}>{message.subject}</strong>
-              <p style={{ fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap", color: "var(--ink-2)", margin: 0 }}>
-                {message.body}
-              </p>
-            </div>
-          </div>
-
-          {!sent && (
-            <div className="row spread campaign-email-actions" style={{ gap: 8, flexWrap: "wrap" }}>
-              <div className="row" style={{ gap: 8 }}>
-                <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => setEditing(true)}>
-                  <Icon name="doc" size={14} /> Edit
-                </button>
-                <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => onRegenerate(message.id)}>
-                  <Icon name="refresh" size={14} /> Regenerate
-                </button>
-              </div>
-              {message.status === "draft" && (
-                message.thinContext ? (
-                  <button
-                    className="btn btn-primary btn-sm"
-                    disabled={busy}
-                    onClick={() => onSendThin([message.id])}
-                    title="Send this email even though we know little about the lead. Any follow-ups to this person go with it, so you are not asked again."
-                  >
-                    Send anyway
-                  </button>
-                ) : (
-                  <button className="btn btn-primary btn-sm" disabled={busy} onClick={() => onApprove([message.id])}>
-                    Approve
-                  </button>
-                )
-              )}
-            </div>
-          )}
+      {message.thinContext && !sent && (
+        <div className="note" style={{ background: "#fefce8", borderColor: "#fde68a", color: "#854d0e", fontWeight: 700, lineHeight: 1.5 }}>
+          {thinTitle(message)}
         </div>
       )}
+
+      <div className="mail">
+        <div className="mail-sub"><span>Subject</span><b>{message.subject || "No subject"}</b></div>
+        <div className="mail-body">{message.body}</div>
+      </div>
+
+      <div className="ev-foot">
+        <span className="sched">
+          <Icon name="clock" size={15} />
+          {selectedTime
+            ? `${message.schedule?.status === "sent" ? "Sent" : "Sends"} ${leadTime ? `${leadTime} their time` : `${selectedTime} your time`}${message.status === "draft" ? ", once approved" : ""}`
+            : blocked
+              ? `Not scheduled: ${blocked}`
+              : "Scheduled once approved"}
+        </span>
+        {!sent && (
+          <>
+            <button type="button" className="bt bt-g sm" disabled={busy} onClick={() => setEditing(true)}>
+              <Icon name="edit" size={14} /> Edit
+            </button>
+            <button type="button" className="bt bt-g sm" disabled={busy} onClick={() => onRegenerate(message.id)}>
+              <Icon name="refresh" size={14} /> Regenerate
+            </button>
+            {message.status === "draft" && (
+              message.thinContext ? (
+                <button
+                  type="button"
+                  className="bt bt-p sm"
+                  disabled={busy}
+                  onClick={() => onSendThin([message.id])}
+                  title="Send this email even though we know little about the lead. Any follow-ups to this person go with it, so you are not asked again."
+                >
+                  Send anyway
+                </button>
+              ) : (
+                <button type="button" className="bt bt-p sm" disabled={busy} onClick={() => onApprove([message.id])}>
+                  <Icon name="check" size={14} color="#06231a" /> Approve
+                </button>
+              )
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
-function StepSection({ step, messages, displayTimezone, onApprove, onSendThin, onSave, onRegenerate, busy }) {
-  // Thin drafts are deliberately not in this list. Approving a step is a bulk
-  // judgement about copy the agent wrote well; the thin ones are the copy it
-  // could not write well, and sweeping them in here would quietly undo the
-  // whole point of holding them back.
-  const draftIds = messages
-    .filter(message => message.status === "draft" && !message.thinContext)
-    .map(message => message.id);
-
-  return (
-    <section className="campaign-email-step" aria-labelledby={`campaign-email-step-${step.stepNumber}`}>
-      <div className="campaign-email-step-head">
-        <span className="campaign-email-step-number">{String(step.stepNumber).padStart(2, "0")}</span>
-        <span className="campaign-email-step-title">
-          <strong id={`campaign-email-step-${step.stepNumber}`}>Step {step.stepNumber} · {stepLabel(step.stepNumber)}</strong>
-          <span className="faint">{stepTiming(step.delayDays)} · {messages.length} email{messages.length === 1 ? "" : "s"} ready</span>
-        </span>
-        {draftIds.length > 0 && (
-          <button className="campaign-email-step-action" type="button" disabled={busy} onClick={() => onApprove(draftIds)}>
-            Approve {draftIds.length} draft{draftIds.length === 1 ? "" : "s"}
-          </button>
-        )}
-      </div>
-      {step.bodyPromptContext && <p className="campaign-email-step-instruction">{step.bodyPromptContext}</p>}
-      <div>
-        {messages.map(message => (
-          <DraftRow
-            key={message.id}
-            message={message}
-            displayTimezone={displayTimezone || message.schedule?.displayTimezone}
-            busy={busy}
-            onApprove={onApprove}
-            onSendThin={onSendThin}
-            onSave={onSave}
-            onRegenerate={onRegenerate}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-export default function DraftReview({ campaignId, displayTimezone, onChanged }) {
+export default function DraftReview({ campaignId, displayTimezone, onChanged, tabs = null, onSummary = null }) {
   const [messages, setMessages] = useState([]);
   const [sequenceSteps, setSequenceSteps] = useState([]);
   const [state, setState] = useState(null);
@@ -386,6 +349,9 @@ export default function DraftReview({ campaignId, displayTimezone, onChanged }) 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [activeStep, setActiveStep] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const [page, setPage] = useState(1);
 
   const load = useCallback(async () => {
     try {
@@ -476,132 +442,187 @@ export default function DraftReview({ campaignId, displayTimezone, onChanged }) 
       }));
   }, [messages, sequenceSteps]);
 
+  // The campaign page draws its progress stepper from these numbers, so it
+  // never has to fetch the drafts a second time.
+  useEffect(() => {
+    if (!onSummary || loading) return;
+    onSummary({
+      total: messages.length,
+      steps: messageGroups.length,
+      draft: counts.draft ?? 0,
+      thinWaiting,
+      approved: counts.approved ?? 0,
+      sent: counts.sent ?? 0,
+      generating: Boolean(generating),
+      autopilotEnabled: Boolean(state?.autopilotEnabled),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, messages.length, messageGroups.length, counts.draft, thinWaiting, counts.approved, counts.sent, generating, state?.autopilotEnabled]);
+
   if (loading) {
     return <div className="card" style={{ padding: 20 }}><span className="faint" style={{ fontSize: 13 }}>Loading your drafts…</span></div>;
   }
 
+  const current = messageGroups.find(group => group.step.stepNumber === activeStep) ?? messageGroups[0] ?? null;
+  const stepMessages = current?.messages ?? [];
+  const pageCount = Math.max(1, Math.ceil(stepMessages.length / EMAILS_PER_PAGE));
+  const currentPage = Math.min(page, pageCount);
+  const pageMessages = stepMessages.slice((currentPage - 1) * EMAILS_PER_PAGE, currentPage * EMAILS_PER_PAGE);
+  const selected = pageMessages.find(message => message.id === selectedId) ?? pageMessages[0] ?? null;
+  const displayTz = displayTimezone || selected?.schedule?.displayTimezone;
+
+  const chooseStep = stepNumber => {
+    setActiveStep(stepNumber);
+    setSelectedId(null);
+    setPage(1);
+  };
+
   return (
-    <div className="col" style={{ gap: 12 }} data-tour="campaign-drafts">
-      <div className="card" style={{ padding: 16 }}>
-        <div className="row spread" style={{ gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
-          <div className="col" style={{ gap: 3 }}>
-            <strong style={{ fontSize: 14 }}>Generated emails · {messages.length} ready</strong>
-            <span className="faint" style={{ fontSize: 12.5 }}>
-              {generating
-                ? `Writing emails… ${generationPercent}% (${generation.processedLeads ?? 0} of ${generation.totalLeads ?? 0} leads done)`
-                : generation?.status === "not_started"
-                ? "Email writing hasn't started yet."
-                : `${ordinaryDrafts} awaiting approval, ${counts.approved} approved, ${counts.sent} sent`
-                  + (thinWaiting > 0 ? `, ${thinWaiting} needing your OK.` : ".")}
-            </span>
-          </div>
-
-          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-            {/* The tour highlights this immediately after the first manual
-                approval. Turning it on approves everything already waiting. */}
-            <button
-              className={state?.autopilotEnabled ? "btn btn-ghost btn-sm" : "btn btn-primary btn-sm"}
-              data-tour="campaign-autopilot"
-              disabled={busy}
-              onClick={() => setAutopilot(!state?.autopilotEnabled)}
-              title={
-                state?.autopilotEnabled
-                  ? "Turn autopilot off to go back to approving each email yourself."
-                  : "Approve every draft waiting now, and auto-approve anything written from here on."
-              }
-            >
-              <Icon name="bolt" size={14} /> {state?.autopilotEnabled ? "Autopilot on" : "Turn on autopilot"}
-            </button>
-
-            {ordinaryDrafts > 0 && (
-              <button className="btn btn-primary btn-sm" disabled={busy} onClick={approveAll}>
-                Approve all {ordinaryDrafts}
-              </button>
-            )}
-          </div>
+    <div className="col" style={{ gap: 16 }} data-tour="campaign-drafts">
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        {tabs}
+        <div className="auto" style={{ marginLeft: "auto" }}>
+          {/* The tour highlights this immediately after the first manual
+              approval. Turning it on approves everything already waiting. */}
+          <button
+            type="button"
+            className={`tog${state?.autopilotEnabled ? " on" : ""}`}
+            data-tour="campaign-autopilot"
+            role="switch"
+            aria-checked={Boolean(state?.autopilotEnabled)}
+            aria-label="Autopilot"
+            disabled={busy}
+            onClick={() => setAutopilot(!state?.autopilotEnabled)}
+            title={
+              state?.autopilotEnabled
+                ? "Turn autopilot off to go back to approving each email yourself."
+                : "Approve every draft waiting now, and auto-approve anything written from here on."
+            }
+          />
+          {state?.autopilotEnabled ? "Autopilot on" : "Autopilot off"}
         </div>
-
-        {state?.autopilotEnabled && (
-          <p className="faint" style={{ fontSize: 12, marginTop: 10, marginBottom: 0 }}>
-            Autopilot is on for this campaign. New emails are approved as they are written. Safety checks still
-            run on every one. An email that fails them is never saved as a draft. Emails written from thin
-            context are the exception: autopilot never sends those, so they wait here for you.
-          </p>
-        )}
-
-        {/* The pile has to be visible from the top of the screen. A customer who
-            believes autopilot has everything in hand has no reason to scroll. */}
-        {thinWaiting > 0 && (
-          <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: "var(--r-md)", background: "#fefce8", border: "1px solid #fde68a" }}>
-            <div className="row spread" style={{ gap: 10, flexWrap: "wrap" }}>
-              <div className="col" style={{ gap: 2 }}>
-                <strong style={{ fontSize: 13, color: "#854d0e" }}>
-                  {thinWaiting} email{thinWaiting === 1 ? "" : "s"} need{thinWaiting === 1 ? "s" : ""} your OK
-                </strong>
-                <span style={{ fontSize: 12, color: "#854d0e", lineHeight: 1.5 }}>
-                  We returned very little about these leads, so the emails are short and generic. Your agent
-                  will not send them on its own. Read them and send the ones that work, or narrow your targeting
-                  and import better-matched leads.
-                </span>
-              </div>
-              <button
-                className="btn btn-ghost btn-sm"
-                disabled={busy}
-                onClick={() => sendThin(null)}
-                title="Approve and schedule every thin-context email in this campaign, follow-ups included."
-              >
-                Send all {thinWaiting} anyway
-              </button>
-            </div>
-          </div>
-        )}
-
-        {failedLeads > 0 && (
-          <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: "var(--r-md)", background: "#fff7ed", border: "1px solid #fed7aa" }}>
-            <div className="row spread" style={{ gap: 10, flexWrap: "wrap" }}>
-              <div className="col" style={{ gap: 2 }}>
-                <strong style={{ fontSize: 13, color: "#9a3412" }}>
-                  {generation.generatedMessages} written, {failedLeads} lead{failedLeads === 1 ? "" : "s"} failed
-                </strong>
-                <span style={{ fontSize: 12, color: "#9a3412" }}>
-                  {(generation.failures ?? [])[0]?.reason || "The agent could not produce a usable email for these leads."}
-                </span>
-              </div>
-              <button className="btn btn-ghost btn-sm" disabled={busy} onClick={retryFailed}>Retry these</button>
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: "var(--r-md)", background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", fontSize: 13 }}>
-            {error}
-          </div>
+        {ordinaryDrafts > 0 && (
+          <button type="button" className="bt bt-p" disabled={busy} onClick={approveAll}>
+            <Icon name="check" size={15} color="#06231a" /> Approve all {ordinaryDrafts}
+          </button>
         )}
       </div>
 
-      {messages.length === 0 ? (
-        <div className="card" style={{ padding: 20 }}>
-          <span className="faint" style={{ fontSize: 13 }}>
-            {generating
+      {generating && (
+        <div className="note" style={{ background: "#f4fbf7", borderColor: "#d9efe3", color: "#0a5d3f" }}>
+          Writing emails… {generationPercent}% ({generation.processedLeads ?? 0} of {generation.totalLeads ?? 0} leads done). They appear here as they are finished.
+        </div>
+      )}
+
+      {state?.autopilotEnabled && (
+        <div className="note" style={{ background: "#f4fbf7", borderColor: "#d9efe3", color: "#0a5d3f", fontWeight: 700, lineHeight: 1.5 }}>
+          Autopilot is on for this campaign. New emails are approved as they are written. Safety checks still
+          run on every one. An email that fails them is never saved as a draft. Emails written from thin
+          context are the exception: autopilot never sends those, so they wait here for you.
+        </div>
+      )}
+
+      {/* The pile has to be visible from the top of the screen. A customer who
+          believes autopilot has everything in hand has no reason to scroll. */}
+      {thinWaiting > 0 && (
+        <div className="note" style={{ background: "#fefce8", borderColor: "#fde68a", color: "#854d0e", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <span style={{ flex: "1 1 320px", lineHeight: 1.5 }}>
+            <b>{thinWaiting} email{thinWaiting === 1 ? "" : "s"} need{thinWaiting === 1 ? "s" : ""} your OK.</b>{" "}
+            <span style={{ fontWeight: 600 }}>
+              We returned very little about these leads, so the emails are short and generic. Your agent
+              will not send them on its own. Read them and send the ones that work, or narrow your targeting
+              and import better-matched leads.
+            </span>
+          </span>
+          <button
+            type="button"
+            className="bt bt-g sm"
+            disabled={busy}
+            onClick={() => sendThin(null)}
+            title="Approve and schedule every thin-context email in this campaign, follow-ups included."
+          >
+            Send all {thinWaiting} anyway
+          </button>
+        </div>
+      )}
+
+      {failedLeads > 0 && (
+        <div className="note" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <span style={{ flex: "1 1 320px", lineHeight: 1.5 }}>
+            <b>{generation.generatedMessages} written, {failedLeads} lead{failedLeads === 1 ? "" : "s"} failed.</b>{" "}
+            <span style={{ fontWeight: 600 }}>{(generation.failures ?? [])[0]?.reason || "The agent could not produce a usable email for these leads."}</span>
+          </span>
+          <button type="button" className="bt bt-g sm" disabled={busy} onClick={retryFailed}>Retry these</button>
+        </div>
+      )}
+
+      {error && <div className="note" style={{ background: "#fef3f2", borderColor: "#fecaca", color: "#b42318" }}>{error}</div>}
+
+      {messages.length === 0 || !current ? (
+        <div className="card empty">
+          {generation?.status === "not_started"
+            ? "Email writing hasn't started yet."
+            : generating
               ? "The agent is writing your emails now. They appear here as they are finished."
               : "No emails yet. They are written automatically once your leads finish enriching."}
-          </span>
         </div>
       ) : (
-        <div className="campaign-email-sequence">
-          {messageGroups.map(({ step, messages: stepMessages }) => (
-            <StepSection
-              key={step.stepNumber}
-              step={step}
-              messages={stepMessages}
-              displayTimezone={displayTimezone}
+        <div className="card split">
+          <div className="dl">
+            <div className="dl-h">
+              <div className="steps" style={{ flexWrap: "wrap" }}>
+                {messageGroups.map(({ step }) => {
+                  const on = step.stepNumber === current.step.stepNumber;
+                  return (
+                    <button key={step.stepNumber} type="button" className={on ? "on" : ""} aria-pressed={on} onClick={() => chooseStep(step.stepNumber)}>
+                      {on ? `Step ${step.stepNumber} · ${stepLabel(step.stepNumber)}` : `Step ${step.stepNumber}`}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="faint" style={{ padding: "9px 14px", fontSize: 12, fontWeight: 700, borderBottom: "1px solid #eef3f0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              <span>{stepTiming(current.step.delayDays)} · {stepMessages.length} email{stepMessages.length === 1 ? "" : "s"} ready</span>
+              {(() => {
+                // Thin drafts are deliberately not in this list. Approving a step
+                // is a bulk judgement about copy the agent wrote well; the thin
+                // ones are the copy it could not write well.
+                const draftIds = stepMessages.filter(message => message.status === "draft" && !message.thinContext).map(message => message.id);
+                return draftIds.length > 0 ? (
+                  <button type="button" className="lnk" disabled={busy} onClick={() => approve(draftIds)}>
+                    Approve {draftIds.length} draft{draftIds.length === 1 ? "" : "s"}
+                  </button>
+                ) : null;
+              })()}
+            </div>
+            {current.step.bodyPromptContext ? (
+              <p className="faint" style={{ margin: 0, padding: "10px 14px", fontSize: 12, lineHeight: 1.5, fontWeight: 600, borderBottom: "1px solid #eef3f0" }}>{current.step.bodyPromptContext}</p>
+            ) : null}
+            {pageMessages.map(message => (
+              <DraftListRow key={message.id} message={message} selected={selected?.id === message.id} onSelect={setSelectedId} />
+            ))}
+            {stepMessages.length > EMAILS_PER_PAGE && (
+              <div className="tfoot">
+                <span>{(currentPage - 1) * EMAILS_PER_PAGE + 1} to {Math.min(stepMessages.length, currentPage * EMAILS_PER_PAGE)} of {stepMessages.length}</span>
+                <div className="acts">
+                  <button type="button" className="bt bt-g sm" disabled={currentPage <= 1} onClick={() => { setPage(currentPage - 1); setSelectedId(null); }}>Previous</button>
+                  <button type="button" className="bt bt-g sm" disabled={currentPage >= pageCount} onClick={() => { setPage(currentPage + 1); setSelectedId(null); }}>Next</button>
+                </div>
+              </div>
+            )}
+          </div>
+          {selected ? (
+            <DraftDetail
+              key={selected.id}
+              message={selected}
+              displayTimezone={displayTz}
               busy={busy}
               onApprove={approve}
               onSendThin={sendThin}
               onSave={save}
               onRegenerate={regenerate}
             />
-          ))}
+          ) : <div className="empty">Choose an email on the left to read it.</div>}
         </div>
       )}
     </div>

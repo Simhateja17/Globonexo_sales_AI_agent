@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
 import Avatar from "../../../components/ui/Avatar";
 import Typing from "../../../components/ui/Typing";
 import api from "../../../lib/api";
@@ -40,67 +41,39 @@ function apiMessageToMsg(m) {
 
 function ConversationHistory({ conversations, activeId, loading, onSelect, onNew, onArchive }) {
   return (
-    <div className="card" style={{ padding: 14, borderRadius: 14, marginBottom: 18 }}>
-      <div className="row spread" style={{ gap: 8 }}>
-        <div className="row" style={{ gap: 7 }}>
-          <Icon name="chat" size={14} color="var(--g-600)" />
-          <span className="eyebrow" style={{ margin: 0 }}>Chat history</span>
+    <div className="agh">
+      <button type="button" className="bt bt-p" style={{ justifyContent: 'center' }} onClick={onNew} disabled={loading}>
+        <Icon name="plus" size={15} color="#06231a" /> New chat
+      </button>
+      <small className="h">Chat history</small>
+      {loading ? <p className="muted" style={{ fontSize: 12, margin: '4px 8px' }}>Loading conversations…</p> : conversations.length === 0 ? (
+        <p className="muted" style={{ fontSize: 12, margin: '4px 8px' }}>Your conversations will appear here.</p>
+      ) : conversations.slice(0, 20).map(conversation => (
+        <div key={conversation.id} className="row" style={{ gap: 2 }}>
+          <button type="button" className={`it ellip ${conversation.id === activeId ? 'on' : ''}`} style={{ padding: '9px 10px', borderRadius: 10, fontSize: 13, fontWeight: 700, color: conversation.id === activeId ? '#0a5d3f' : '#4b5a52', background: conversation.id === activeId ? '#ecfdf3' : undefined, minWidth: 0, flex: 1 }} onClick={() => onSelect(conversation.id)}>
+            {conversation.title || 'New conversation'}
+          </button>
+          <button type="button" className="ibt" style={{ width: 26, height: 26, border: 0 }} aria-label="Archive conversation" title="Archive conversation" onClick={() => onArchive(conversation.id)} disabled={loading}>
+            <Icon name="close" size={12} />
+          </button>
         </div>
-        <button className="btn btn-ghost btn-sm" style={{ padding: '4px 7px', fontSize: 11 }} onClick={onNew} disabled={loading}>
-          <Icon name="plus" size={13} /> New
-        </button>
-      </div>
-      {loading ? <p className="faint" style={{ fontSize: 11.5, margin: '10px 0 0' }}>Loading conversations…</p> : conversations.length === 0 ? (
-        <p className="faint" style={{ fontSize: 11.5, margin: '10px 0 0' }}>Your conversations will appear here.</p>
-      ) : (
-        <div className="col" style={{ gap: 4, marginTop: 10 }}>
-          {conversations.slice(0, 8).map(conversation => (
-            <div key={conversation.id} className="row" style={{ gap: 5 }}>
-              <button
-                onClick={() => onSelect(conversation.id)}
-                className="row grow"
-                style={{
-                  minWidth: 0, gap: 8, border: 0, borderRadius: 8, padding: '8px 7px', textAlign: 'left', cursor: 'pointer',
-                  background: conversation.id === activeId ? 'var(--g-50)' : 'transparent', color: 'var(--ink)',
-                }}
-              >
-                <Icon name="chat" size={13} color={conversation.id === activeId ? 'var(--g-600)' : 'var(--muted)'} />
-                <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11.5, fontWeight: conversation.id === activeId ? 700 : 500 }}>{conversation.title || 'New conversation'}</span>
-              </button>
-              <button className="btn btn-ghost btn-sm" title="Archive conversation" style={{ padding: '4px 5px', color: 'var(--muted)' }} onClick={() => onArchive(conversation.id)} disabled={loading}>
-                <Icon name="close" size={12} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      ))}
     </div>
   );
 }
 
-const bubbleStyle = (isUser) => ({
-  maxWidth: 480, padding: '12px 16px', fontSize: 14.5, lineHeight: 1.55,
-  borderRadius: 18, fontWeight: isUser ? 600 : 500, whiteSpace: 'pre-line',
-  background: isUser ? 'linear-gradient(180deg,var(--g-400),var(--g-500))' : '#fff',
-  color: isUser ? '#06231a' : 'var(--ink)',
-  border: isUser ? 'none' : '1px solid var(--line)',
-  borderTopRightRadius: isUser ? 4 : 18, borderTopLeftRadius: isUser ? 18 : 4,
-  boxShadow: isUser ? 'var(--sh-green)' : 'var(--sh-xs)',
-});
-
 function AgentAvatar() {
   return (
-    <span style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(140deg,#29d68f,#15c4c0)', display: 'grid', placeItems: 'center', flex: 'none', boxShadow: '0 4px 12px rgba(0,168,106,.22)' }}>
-      <Icon name="spark" size={17} color="#06231a" />
-    </span>
+    <span className="bot-av"><Icon name="spark" size={15} color="#06231a" /></span>
   );
 }
 
 function TextRow({ text, isUser }) {
+  if (isUser) return <div className="me" style={{ whiteSpace: 'pre-line' }}>{text}</div>;
   return (
-    <div className="row" style={{ gap: 9, justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
-      {!isUser && <AgentAvatar />}
-      <div style={bubbleStyle(isUser)}>{text}</div>
+    <div className="bot">
+      <AgentAvatar />
+      <div className="bot-b"><div className="bot-t" style={{ whiteSpace: 'pre-line' }}>{text}</div></div>
     </div>
   );
 }
@@ -673,114 +646,104 @@ export default function AgentPage() {
   const activity = sidebarData?.activity ?? [];
 
   return (
-    <div className="row agent-page" style={{ flex: 1, minHeight: 0, alignItems: 'stretch', overflow: 'hidden' }}>
-      <div className="grow col agent-chat-pane" style={{ minWidth: 0 }}>
-        <div className="row spread agent-chat-head" style={{ padding: '16px 24px 12px', flex: 'none', borderBottom: '1px solid var(--line)' }}>
-          <div className="row" style={{ gap: 12 }}>
-            <span className="agent-avatar-ring" style={{ width: 42, height: 42, borderRadius: 13, background: 'linear-gradient(140deg,#29d68f,#15c4c0)', display: 'grid', placeItems: 'center', flex: 'none' }}>
-              <Icon name="spark" size={22} color="#06231a" />
-            </span>
-            <div className="col">
-              <div className="row" style={{ gap: 8 }}>
-                <span className="display" style={{ fontSize: 18, fontWeight: 600 }}>{name}</span>
-                <span className="chip agent-status-chip"><span className="dot" style={{ animation: 'pulse-dot 1.4s infinite' }} /> Active</span>
-              </div>
-              <span className="faint" style={{ fontSize: 12.5 }}>Your autonomous sales agent</span>
-            </div>
-          </div>
-        </div>
-        <div ref={scrollRef} className="scroll grow agent-chat-scroll" style={{ padding: '16px 24px', minHeight: 0 }}>
-          <div className="col agent-message-list" style={{ gap: 14, maxWidth: 700, margin: '0 auto', paddingBottom: 8 }}>
-            {!initialLoaded ? (
-              <div style={{ padding: 20, textAlign: 'center' }}>
-                <p className="muted">Loading…</p>
-              </div>
-            ) : (
-              msgs.map((m, i) => <Bubble key={m.id ?? i} m={m} onResolved={resolved => setMsgs(current => [...current, resolved])} onPrepare={prepareCampaign} />)
-            )}
-            {typing && (
-              <div className="row" style={{ gap: 9 }}>
-                <AgentAvatar />
-                <div className="card" style={{ padding: '10px 14px', borderTopLeftRadius: 4 }}><Typing /></div>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="agent-composer" style={{ flex: 'none', padding: '10px 24px 18px', borderTop: '1px solid var(--line)', background: '#fff' }}>
-          <div className="row wrap agent-quick-actions" style={{ gap: 7, maxWidth: 700, margin: '0 auto 10px' }}>
-            {QUICK.map(q => (
-              <button key={q} onClick={() => send(q)} className="chip" style={{ cursor: 'pointer', background: '#fff', border: '1px solid var(--line)', color: 'var(--ink-2)', height: 30, fontSize: 12.5 }} disabled={typing}>
-                <Icon name="bolt" size={12} color="var(--g-600)" /> {q}
-              </button>
-            ))}
-          </div>
-          {attachment && (
-            <div className="row" style={{ gap: 7, maxWidth: 700, margin: '0 auto 8px' }}>
-              <span className="chip" style={{ height: 30, fontSize: 12.5, maxWidth: '100%' }}>
-                <Icon name="paperclip" size={12} color="var(--g-600)" />
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachment.name}</span>
-                <button type="button" aria-label="Remove attachment" onClick={() => setAttachment(null)} style={{ border: 0, background: 'transparent', cursor: 'pointer', padding: 0, display: 'grid' }}>
-                  <Icon name="close" size={12} />
-                </button>
-              </span>
-              <span className="faint" style={{ fontSize: 11.5 }}>Say what to do, e.g. "add as leads" or "make a campaign for these".</span>
-            </div>
-          )}
-          <div className="row agent-input-row" style={{ gap: 10, maxWidth: 700, margin: '0 auto' }}>
-            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" hidden onChange={pickFile} />
-            <button type="button" className="btn btn-ghost" title="Attach an Excel or CSV file" aria-label="Attach an Excel or CSV file" style={{ width: 50, height: 50, padding: 0, borderRadius: 14, flex: 'none' }} onClick={() => fileRef.current?.click()} disabled={typing}>
-              <Icon name="paperclip" size={19} />
-            </button>
-            <div className="input-wrap grow">
-              <span className="lead-ico"><Icon name="spark" size={16} /></span>
-              <input className="input has-ico" style={{ height: 50 }} placeholder={attachment ? 'What should I do with this file?' : `Ask ${name} to prospect, draft, or follow up…`} value={input}
-                onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} disabled={typing} />
-            </div>
-            <button className="btn btn-primary agent-send-btn" style={{ width: 50, height: 50, padding: 0, borderRadius: 14, flex: 'none' }} onClick={() => send()} disabled={typing}>
-              <Icon name="send" size={19} color="#06231a" />
-            </button>
-          </div>
+    <main className="gx agent-page">
+      <div className="ph">
+        <div>
+          <h1>AI Agent</h1>
+          <p>Ask {name} to prospect, draft, follow up, or report. Anything that spends credits or sends waits for your OK.</p>
         </div>
       </div>
 
-      <aside data-tour="agent-overview" className="scroll agent-overview-panel" style={{ width: 300, flex: 'none', borderLeft: '1px solid var(--line)', background: '#fff', padding: 18 }}>
+      <div className="card ag">
         <ConversationHistory conversations={conversations} activeId={activeConversationId} loading={historyLoading} onSelect={selectConversation} onNew={createConversation} onArchive={archiveConversation} />
-        <span className="eyebrow">Overview</span>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 12 }}>
-          {[
-            { k: 'Emails sent', v: kpis.emailsSent ?? 0, ico: 'send' },
-            { k: 'Replies', v: kpis.replies ?? 0, ico: 'chat' },
-            { k: 'Meetings', v: kpis.meetings ?? 0, ico: 'calendar' },
-            { k: 'Hot leads', v: kpis.hotLeads ?? 0, ico: 'flame', warn: true },
-          ].map(s => (
-            <div key={s.k} className="card kpi-card-accent" data-tone={s.warn ? 'warn' : undefined} style={{ padding: 14, borderRadius: 14 }}>
-              <span className="kpi-icon-badge" data-tone={s.warn ? 'warn' : undefined}>
-                <Icon name={s.ico} size={15} />
-              </span>
-              <div className="display" style={{ fontSize: 22, marginTop: 8 }}>{s.v}</div>
-              <div className="faint" style={{ fontSize: 11, fontWeight: 700, marginTop: 2 }}>{s.k}</div>
-            </div>
-          ))}
-        </div>
-        <span className="eyebrow" style={{ display: 'block', marginTop: 20 }}>Recent activity</span>
-        <div className="col" style={{ gap: 2, marginTop: 10 }}>
-          {activity.length === 0 ? (
-            <p className="faint" style={{ fontSize: 12.5, padding: '8px 0' }}>No recent activity.</p>
-          ) : (
-            activity.slice(0, 5).map((a, i) => (
-              <div key={i} className="row agent-activity-row" style={{ gap: 10, padding: '9px 6px' }}>
-                <span style={{ width: 30, height: 30, borderRadius: 8, flex: 'none', display: 'grid', placeItems: 'center', background: a.hot ? 'var(--g-50)' : 'var(--bg-2)', color: a.hot ? 'var(--g-600)' : 'var(--muted)' }}>
-                  <Icon name={a.type === 'reply' ? 'chat' : a.type === 'meeting' ? 'calendar' : 'send'} size={15} />
-                </span>
-                <div className="col" style={{ minWidth: 0 }}>
-                  <span style={{ fontWeight: 700, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.text}</span>
-                  <span className="faint" style={{ fontSize: 11.5 }}>{a.timeAgo}</span>
-                </div>
+
+        <div className="agc" style={{ minWidth: 0 }}>
+          <div className="agc-h">
+            <b><Icon name="spark" size={17} /> {name}, your sales agent</b>
+            <span className="pl pl-ok"><u /> Working</span>
+          </div>
+          <div ref={scrollRef} className="agm" style={{ overflowY: 'auto' }}>
+            {!initialLoaded ? (
+              <div className="empty">Loading…</div>
+            ) : (
+              msgs.length === 0 && !typing ? (
+                <EmptyState
+                  icon="spark"
+                  title={`Ask ${name} anything`}
+                  text={'Try "Which leads are hot this week?" or "Draft a follow-up for my latest campaign".'}
+                  actions={[
+                    { label: "Which leads are hot?", onClick: () => send("Which leads are hot this week?") },
+                    { label: "What needs me today?", onClick: () => send("What needs me today?") },
+                  ]}
+                />
+              ) : msgs.map((m, i) => <Bubble key={m.id ?? i} m={m} onResolved={resolved => setMsgs(current => [...current, resolved])} onPrepare={prepareCampaign} />)
+            )}
+            {typing && (
+              <div className="bot">
+                <AgentAvatar />
+                <div className="bot-b"><div className="bot-t"><Typing /></div></div>
               </div>
-            ))
-          )}
+            )}
+          </div>
+          <div className="agi">
+            <div className="chips2">
+              {QUICK.map(q => (
+                <button key={q} type="button" onClick={() => send(q)} disabled={typing}>{q}</button>
+              ))}
+            </div>
+            {attachment && (
+              <div className="row" style={{ gap: 7, marginBottom: 8, flexWrap: 'wrap' }}>
+                <span className="fact" style={{ maxWidth: '100%' }}>
+                  <Icon name="paperclip" size={12} />
+                  <span className="ellip">{attachment.name}</span>
+                  <button type="button" aria-label="Remove attachment" onClick={() => setAttachment(null)} style={{ display: 'grid' }}>
+                    <Icon name="close" size={12} />
+                  </button>
+                </span>
+                <span className="muted" style={{ fontSize: 11.5 }}>Say what to do, e.g. "add as leads" or "make a campaign for these".</span>
+              </div>
+            )}
+            <div className="box">
+              <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" hidden onChange={pickFile} />
+              <button type="button" className="ibt" title="Attach an Excel or CSV file" aria-label="Attach an Excel or CSV file" onClick={() => fileRef.current?.click()} disabled={typing}>
+                <Icon name="paperclip" size={16} />
+              </button>
+              <input
+                style={{ flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', font: 'inherit', fontSize: 13.5, fontWeight: 600, color: '#0a1712' }}
+                aria-label={`Message ${name}`}
+                placeholder={attachment ? 'What should I do with this file?' : `Ask ${name} anything, or attach an Excel or CSV file…`}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && send()}
+                disabled={typing}
+              />
+              <button type="button" className="sendc" aria-label="Send" onClick={() => send()} disabled={typing}>
+                <Icon name="send" size={17} color="#06231a" />
+              </button>
+            </div>
+          </div>
         </div>
-      </aside>
-    </div>
+
+        <aside data-tour="agent-overview" className="agr">
+          <small className="h">Overview</small>
+          <div className="ov">
+            <div><small>Emails sent</small><b>{kpis.emailsSent ?? 0}</b></div>
+            <div><small>Replies</small><b>{kpis.replies ?? 0}</b></div>
+            <div><small>Meetings</small><b>{kpis.meetings ?? 0}</b></div>
+            <div><small>Hot leads</small><b style={{ color: '#c2410c' }}>{kpis.hotLeads ?? 0}</b></div>
+          </div>
+          <small className="h">Recent activity</small>
+          {activity.length === 0 ? (
+            <p className="muted" style={{ fontSize: 12.5, margin: 0 }}>No recent activity.</p>
+          ) : (
+            <div className="tl" style={{ marginTop: 0 }}>
+              {activity.slice(0, 5).map((a, i) => (
+                <div key={i}><i /><b>{a.text}</b><span>{a.timeAgo}</span></div>
+              ))}
+            </div>
+          )}
+        </aside>
+      </div>
+    </main>
   );
 }

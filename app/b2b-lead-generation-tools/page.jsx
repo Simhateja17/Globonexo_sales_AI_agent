@@ -4,6 +4,7 @@ export const metadata = {
     "A practical guide to B2B lead generation tools, the stack most teams end up with, what each layer costs you in time and money, how to run the whole thing as one motion, and the metrics that tell you it is working.",
   alternates: { canonical: "/b2b-lead-generation-tools" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/b2b-lead-generation-tools",
     title: "B2B Lead Generation Tools: A Practical Guide",
     description:

@@ -60,26 +60,35 @@ afterEach(() => {
 });
 
 describe("DraftReview sequence organization", () => {
-  it("groups emails by sequence step and orders the sections by step number", async () => {
+  it("lists the steps in order and shows the first step's emails", async () => {
     mockRequests();
     render(<DraftReview campaignId="campaign-1" displayTimezone="UTC" />);
 
-    const first = await screen.findByText("Step 1 · First touch");
-    const second = screen.getByText("Step 2 · Follow-up");
+    const first = await screen.findByRole("button", { name: "Step 1 · First touch" });
+    const second = screen.getByRole("button", { name: "Step 2" });
 
     expect(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByText("Send immediately · 1 email ready")).toBeTruthy();
-    expect(screen.getByText("Send on Day 3 · 1 email ready")).toBeTruthy();
-    expect(screen.getByText("A quick introduction")).toBeTruthy();
-    expect(screen.getByText("A useful follow-up")).toBeTruthy();
+    // The first step's email is open in the preview as well as in the list.
+    expect(screen.getAllByText("A quick introduction").length).toBeGreaterThan(0);
+    expect(screen.queryByText("A useful follow-up")).toBeNull();
+  });
+
+  it("switches to another step and shows its emails", async () => {
+    mockRequests();
+    render(<DraftReview campaignId="campaign-1" displayTimezone="UTC" />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Step 2" }));
+
+    expect(await screen.findByText("Send on Day 3 · 1 email ready")).toBeTruthy();
+    expect(screen.getAllByText("A useful follow-up").length).toBeGreaterThan(0);
   });
 
   it("approves only the drafts in the selected step", async () => {
     mockRequests();
     render(<DraftReview campaignId="campaign-1" displayTimezone="UTC" />);
 
-    const approveButtons = await screen.findAllByRole("button", { name: "Approve 1 draft" });
-    fireEvent.click(approveButtons[0]);
+    fireEvent.click(await screen.findByRole("button", { name: "Approve 1 draft" }));
 
     await waitFor(() => {
       expect(apiMock.post).toHaveBeenCalledWith(

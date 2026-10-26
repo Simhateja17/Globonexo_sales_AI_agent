@@ -2,6 +2,9 @@
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
+import InboxHealthNote from "../../../components/ui/InboxHealthNote";
+import { useRouter } from "next/navigation";
 import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import Spinner from "../../../components/ui/Spinner";
@@ -19,6 +22,27 @@ const STATUS_LABELS = {
   failed: "Failed",
   bounced: "Bounced",
 };
+
+const LEAD_STAGE_LABELS = {
+  new: "New",
+  queued: "Queued",
+  contacted: "Contacted",
+  engaged: "Engaged",
+  meeting_booked: "Meeting set",
+  not_interested: "Not interested",
+  unsubscribed: "Unsubscribed",
+};
+
+// The small pill under each thread says what the person has to do, or how the
+// conversation ended, rather than only whether it is a reply or a send.
+function threadPill(item) {
+  const stage = item.leadStatus || item.stage || item.leadStage;
+  if (stage === "meeting_booked") return { label: "Meeting set", cls: "pl-dark" };
+  if (stage === "not_interested" || stage === "unsubscribed") return { label: LEAD_STAGE_LABELS[stage], cls: "pl-mute" };
+  if (item.kind === "reply" && item.aiDraftStatus === "pending") return { label: "Draft ready", cls: "pl-ok" };
+  if (item.kind === "reply") return { label: "Replied", cls: "pl-info" };
+  return { label: "Sent", cls: "pl-mute" };
+}
 
 const EMAIL_FILTERS = [
   { id: "all", label: "All" },
@@ -67,22 +91,21 @@ function buildFallbackDraft(detail, thread, displayName) {
   return `Hi ${firstName},\n\nThanks for taking a look. Based on what ${company} is working on, GNX sales can help keep outreach and follow-up moving without adding more manual work for your team.\n\nWould it be useful if I shared a short walkthrough and a few example workflows for your pipeline?`;
 }
 
-function MessageBubble({ side, label, meta, children }) {
+function MessageBubble({ side, label, meta, avatar, children }) {
   const isOutbound = side === "outbound";
   return (
-    <div className={`email-chat-message ${isOutbound ? "is-outbound" : "is-inbound"}`}>
-      <div className="email-chat-meta">
-        <span>{label}</span>
+    <div className={`msg ${isOutbound ? "" : "msg-in"}`}>
+      <div className="msg-h">
+        {isOutbound ? <span className="pl pl-mute">{label}</span> : <>{avatar}<b>{label}</b></>}
         {meta ? <span>{meta}</span> : null}
       </div>
-      <div className="email-chat-bubble">
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
 
 export default function InboxPage() {
+  const router = useRouter();
   const composerRef = useRef(null);
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -98,6 +121,8 @@ export default function InboxPage() {
   const [sentMessages, setSentMessages] = useState({});
   const [activeFilter, setActiveFilter] = useState("all");
   const [senderFilter, setSenderFilter] = useState("");
+  // Phones show the thread list or one open thread, never both.
+  const [mobileView, setMobileView] = useState("list");
   const showSkeleton = useFirstLoad(loading);
 
   // Grow the reply box with what is typed (or drafted), up to the CSS
@@ -145,6 +170,10 @@ export default function InboxPage() {
       .then(res => {
         setDetail({ ...res.data, kind: res.data?.kind || "reply" });
         setDraftBody(res.data?.ai_draft_reply || "");
+        // A reply arrives with the agent's draft already written, so open it in
+        // the box ready to approve instead of an empty field.
+        const hasDraft = res.data?.kind !== "sent" && res.data?.ai_draft_reply;
+        if (hasDraft) setComposerBody(res.data.ai_draft_reply);
       })
       .catch(() => {
         const selectedThread = threads.find(item => item.id === selectedId);
@@ -213,6 +242,34 @@ export default function InboxPage() {
     }
   };
 
+  // There is no server call for turning a reply draft down, so Reject clears the
+  // draft from the box and leaves the thread alone. Nothing is sent.
+  const rejectDraft = () => {
+    setComposerBody("");
+    setDraftBody("");
+    setSuccess("Draft discarded. Nothing was sent.");
+  };
+
+  const regenerateDraft = async () => {
+    if (!selectedId || drafting) return;
+    setDrafting(true);
+    setError("");
+    setSuccess("");
+    try {
+      const { data } = await api.post(`/emails/${selectedId}/regenerate`);
+      const body = cleanText(data?.ai_draft_reply || "", { max: 8000, multiline: true });
+      if (body) {
+        setDraftBody(body);
+        setComposerBody(body);
+        setDetail(current => current ? { ...current, ...data } : current);
+      }
+    } catch {
+      setError("Draft could not be generated. Check AI configuration and backend logs.");
+    } finally {
+      setDrafting(false);
+    }
+  };
+
   const fillComposerWithDraft = async () => {
     if (!selectedId || drafting) return;
     setDrafting(true);
@@ -259,6 +316,23 @@ export default function InboxPage() {
   const draftStatus = detail?.ai_draft_status || thread?.aiDraftStatus || "pending";
   const hasReply = detail?.kind === "reply";
   const canReply = Boolean(thread);
+  // Every reply gets the agent's draft card, as in the design. Its label says
+  // where the draft stands: waiting, already handled, or not written yet.
+  const isReplyCard = hasReply;
+  const draftIsWaiting = isReplyCard && draftStatus === "pending" && Boolean(composerBody.trim());
+  const draftNote = !isReplyCard ? ""
+    : draftIsWaiting ? "Waiting for your OK"
+    : draftStatus === "approved" || draftStatus === "sent" || draftStatus === "sent_email" ? "Already approved"
+    : draftStatus === "rejected" ? "Rejected"
+    : composerBody.trim() ? "Ready when you are" : "No draft yet";
+  const leadStatusKey = lead.status || thread?.leadStatus || thread?.stage || "";
+  const stageLabel = LEAD_STAGE_LABELS[leadStatusKey] || (hasReply ? "Replied" : "Awaiting reply");
+  const leadProfileId = lead.id || detail?.lead_id || thread?.leadId || "";
+  const stepNumber = thread?.stepNumber || originalMessage.step_number;
+  const timeline = [
+    hasReply && detail?.received_at ? { title: stepNumber ? `Replied to step ${stepNumber}` : "Replied", text: formatDateTime(detail.received_at) } : null,
+    originalMessage.sent_at || originalMessage.created_at ? { title: stepNumber ? `Step ${stepNumber} sent` : "Email sent", text: formatDateTime(originalMessage.sent_at || originalMessage.created_at) } : null,
+  ].filter(Boolean);
   const manualMessages = selectedId ? sentMessages[selectedId] || [] : [];
   const filteredThreads = filterThreads(threads, activeFilter).filter(item => !senderFilter || item.connectedAccountId === senderFilter);
   const filterCounts = {
@@ -276,134 +350,120 @@ export default function InboxPage() {
     }
   };
 
+  const inboxes = [...new Map(threads.filter(item => item.connectedAccountId).map(item => [item.connectedAccountId, item.inboxAddress])).entries()];
+
   return (
-    <div className="email-inbox-shell">
-      <aside data-tour="inbox-threads" className="email-list-panel">
-        <select className="input" aria-label="Filter by inbox" value={senderFilter} onChange={event => setSenderFilter(event.target.value)}>
-          <option value="">All inboxes</option>
-          {[...new Map(threads.filter(item => item.connectedAccountId).map(item => [item.connectedAccountId, item.inboxAddress])).entries()].map(([id, address]) => <option key={id} value={id}>{address || "Inbox"}</option>)}
-        </select>
-        <div className="email-list-head">
-          <div className="row spread" style={{ gap: 12 }}>
-            <div>
-              <h1 className="display">Emails</h1>
-              <p>{threads.length} lead conversations</p>
-            </div>
-            <span className="email-count-chip">{threads.length}</span>
-          </div>
-          <div className="input-wrap email-list-search">
-            <span className="lead-ico"><Icon name="search" size={15} /></span>
-            <input className="input has-ico" placeholder="Search emails..." readOnly />
-          </div>
-          <div className="email-filter-tabs" aria-label="Email filters">
-            {EMAIL_FILTERS.map(filter => (
-              <button
-                key={filter.id}
-                type="button"
-                className={activeFilter === filter.id ? "is-active" : ""}
-                onClick={() => changeFilter(filter.id)}
-              >
-                {filter.label}
-                <span>{filterCounts[filter.id]}</span>
-              </button>
-            ))}
-          </div>
+    <main className="gx">
+      <div className="ph">
+        <div>
+          <h1>Inbox</h1>
+          <p>Replies from every campaign mailbox, with a Nexo draft ready on each.</p>
         </div>
+        <div className="acts">
+          <select className="sel-box" style={{ background: "#fff" }} aria-label="Filter by inbox" value={senderFilter} onChange={event => setSenderFilter(event.target.value)}>
+            <option value="">All inboxes ({inboxes.length})</option>
+            {inboxes.map(([id, address]) => <option key={id} value={id}>{address || "Inbox"}</option>)}
+          </select>
+        </div>
+      </div>
 
-        <div className="scroll email-thread-scroll">
-          {filteredThreads.length > 0 ? (
-            filteredThreads.map(item => (
-              <button
-                key={item.id}
-                type="button"
-                className={`email-thread-item ${selectedId === item.id ? "is-active" : ""}`}
-                onClick={() => setSelectedId(item.id)}
-              >
-                <Avatar name={item.name} src={item.photoUrl || undefined} size={42} />
-                <div className="email-thread-copy">
-                  <div className="row spread" style={{ gap: 8 }}>
-                    <strong className="ellip">{item.name}</strong>
-                    <span>{item.time}</span>
+      <InboxHealthNote />
+
+      <div className="card ib" data-view={mobileView}>
+        <aside data-tour="inbox-threads" className="il">
+          <div className="il-h">
+            <div className="seg" style={{ display: "flex" }} role="tablist" aria-label="Email filters">
+              {EMAIL_FILTERS.map(filter => (
+                <button
+                  key={filter.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeFilter === filter.id}
+                  className={activeFilter === filter.id ? "on" : ""}
+                  onClick={() => changeFilter(filter.id)}
+                >
+                  {filter.label}{filterCounts[filter.id] ? <em>{filterCounts[filter.id]}</em> : null}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ overflowY: "auto", flex: 1 }}>
+            {filteredThreads.length > 0 ? (
+              filteredThreads.map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`th ${selectedId === item.id ? "on" : ""}`}
+                  onClick={() => { setSelectedId(item.id); setMobileView("thread"); }}
+                >
+                  <Avatar name={item.name} src={item.photoUrl || undefined} size={36} />
+                  <div className="th-m">
+                    <div className="th-top">
+                      <b className="ellip">{item.kind === "reply" && item.aiDraftStatus === "pending" ? <i /> : null}{item.name}</b>
+                      <small>{item.time}</small>
+                    </div>
+                    <span className="th-s">{item.subject}</span>
+                    <span className="th-p">{item.preview}</span>
+                    <div style={{ marginTop: 7 }}>
+                      {(() => { const pill = threadPill(item); return <span className={`pl ${pill.cls}`}>{pill.label}</span>; })()}
+                    </div>
                   </div>
-                  <p className="ellip">{item.company || item.email || "Lead"}</p>
-                  <div className="email-thread-subject ellip">{item.subject}</div>
-                  {item.inboxAddress && <div className="faint">{item.inboxAddress}</div>}
-                  <div className="email-thread-preview ellip">{item.preview}</div>
-                </div>
-                <div className="email-thread-footer">
-                  <span className={`email-thread-status ${item.kind === "reply" ? "has-reply" : ""}`}>
-                    {item.kind === "reply" ? "Reply" : "Sent"}
-                  </span>
-                </div>
-              </button>
-            ))
-          ) : (
-            <div className="email-empty-list">
-              <Icon name="mail" size={34} color="var(--faint)" />
-              <strong>No {activeFilter === "all" ? "emails" : activeFilter} yet</strong>
-              <span>Try another category or send a mock message in the open conversation.</span>
-            </div>
-          )}
-        </div>
-      </aside>
+                </button>
+              ))
+            ) : (
+              threads.length === 0 ? (
+                <EmptyState
+                  compact
+                  icon="inbox"
+                  title="You are all caught up"
+                  text="When a lead replies, your agent drafts an answer and it shows up here for your OK."
+                  actions={[{ label: "View campaigns", onClick: () => router.push("/campaigns") }]}
+                />
+              ) : (
+                <EmptyState compact icon="search" title={`No ${activeFilter} yet`} text="Try another filter." actions={[{ label: "Show all", onClick: () => changeFilter("all") }]} />
+              )
+            )}
+          </div>
+        </aside>
 
-      <section className="email-chat-panel">
-        <header className="email-chat-head">
+        <section className="cv">
           {thread ? (
-            <>
-              <div className="row" style={{ gap: 12, minWidth: 0 }}>
-                <Avatar name={displayName} src={lead.photo_url || thread?.photoUrl || undefined} size={42} />
-                <div className="col" style={{ minWidth: 0 }}>
-                  <strong className="ellip">{displayName}</strong>
-                  <span className="ellip">{lead.email || thread.email || thread.company || "Lead email"}</span>
-                </div>
+            <div className="cv-h">
+              <button type="button" className="ibt cv-back" aria-label="Back to inbox" onClick={() => setMobileView("list")}><Icon name="arrowLeft" size={15} /></button>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <b className="ellip" style={{ display: "block" }}>{originalMessage.subject || thread.subject || displayName}</b>
+                <small className="ellip">{[thread.campaignName, thread.stepNumber ? `step ${thread.stepNumber}` : null, thread.inboxAddress ? `via ${thread.inboxAddress}` : (thread.campaignName ? null : thread.company)].filter(Boolean).join(" · ") || lead.email || thread.email}</small>
               </div>
-              <span className="chip">{STATUS_LABELS[draftStatus] || draftStatus}</span>
-            </>
-          ) : (
-            <>
-              <div className="row" style={{ gap: 12 }}>
-                <span className="email-chat-icon"><Icon name="mail" size={20} /></span>
-                <div>
-                  <strong>Emails</strong>
-                  <span>No conversation selected</span>
-                </div>
-              </div>
-            </>
-          )}
-        </header>
+              <span className="pl pl-mute">{STATUS_LABELS[draftStatus] || draftStatus}</span>
+            </div>
+          ) : null}
 
-        <div className="scroll email-chat-scroll">
-          {error ? <div className="notice-warn">{error}</div> : null}
+          {error ? <div className="note">{error}</div> : null}
           {success ? <div className="notice-good">{success}</div> : null}
 
           {!thread ? (
-            <div className="email-empty-chat">
-              <Icon name="mail" size={44} color="var(--faint)" />
-              <strong>Select an email</strong>
-              <span>Choose a lead on the left to open the email conversation.</span>
-            </div>
+            <div className="empty">Choose a lead on the left to open the email conversation.</div>
           ) : detailLoading ? (
-            <div className="card" style={{ padding: 18, maxWidth: 720, display: "grid", placeItems: "center", minHeight: 120 }}>
-              <Spinner size={20} />
-            </div>
+            <div className="empty"><Spinner size={20} /></div>
           ) : (
-            <div className="email-chat-stack">
-              <div className="email-chat-date">{formatDateTime(originalMessage.sent_at) || thread.time}</div>
-
-              <MessageBubble side="outbound" label="You sent" meta={formatDateTime(originalMessage.sent_at || originalMessage.created_at)}>
-                <h2>{originalMessage.subject || thread.subject}</h2>
+            <>
+              <MessageBubble side="outbound" label="You sent" meta={formatDateTime(originalMessage.sent_at || originalMessage.created_at) || thread.time}>
                 <p>{formatBody(originalMessage.body || thread.preview || lead.email)}</p>
               </MessageBubble>
 
               {hasReply ? (
-                <MessageBubble side="inbound" label={`${displayName} replied`} meta={formatDateTime(detail.received_at)}>
+                <MessageBubble
+                  side="inbound"
+                  label={displayName}
+                  avatar={<Avatar name={displayName} src={lead.photo_url || thread?.photoUrl || undefined} size={26} />}
+                  meta={[lead.email || thread.email, formatDateTime(detail.received_at)].filter(Boolean).join(" · ")}
+                >
                   <p>{formatBody(detail.body || thread.preview)}</p>
                 </MessageBubble>
               ) : (
-                <div className="email-waiting-card">
-                  <Icon name="clock" size={16} />
-                  <span>Waiting for this lead to reply.</span>
+                <div className="msg-h" style={{ color: "#69786f", fontWeight: 700 }}>
+                  <Icon name="clock" size={15} /> Waiting for this lead to reply.
                 </div>
               )}
 
@@ -412,50 +472,104 @@ export default function InboxPage() {
                   <p>{formatBody(message.body)}</p>
                 </MessageBubble>
               ))}
-            </div>
+            </>
           )}
-        </div>
 
-        {thread && canReply ? (
-          <div className="email-composer-wrap">
-            <div className="email-nexo-row">
-              <button
-                type="button"
-                className="email-nexo-draft-btn"
-                disabled={detailLoading || drafting || !selectedId}
-                onClick={fillComposerWithDraft}
-              >
-                <Icon name="spark" size={15} />
-                {drafting ? "Drafting..." : "Ask GNX sales to draft"}
-              </button>
-            </div>
-
-            <form className="email-message-composer" onSubmit={sendManualMessage}>
-              <button type="button" className="email-composer-icon-btn" aria-label="Add attachment">
-                <Icon name="plus" size={22} />
-              </button>
-              <div className="email-composer-input">
-                <textarea
-                  ref={composerRef}
-                  value={composerBody}
-                  onChange={event => setComposerBody(event.target.value)}
-                  onKeyDown={event => {
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      sendManualMessage(event);
-                    }
-                  }}
-                  rows={1}
-                  placeholder={`Message ${displayName}`}
-                />
+          {thread && canReply ? (
+            <form className="dft" onSubmit={sendManualMessage}>
+              <div className="dft-h">
+                <Icon name="spark" size={15} /> {isReplyCard ? "Nexo's draft reply" : "Your reply"}
+                <span>{isReplyCard ? draftNote : composerBody.trim() ? "Ready when you are" : "Write it, or ask for a draft"}</span>
               </div>
-              <button type="submit" className="email-composer-send" disabled={!composerBody.trim() || sending} aria-label="Send message">
-                <Icon name="send" size={18} color="#06231a" />
-              </button>
+              <textarea
+                ref={composerRef}
+                className="dft-in"
+                value={composerBody}
+                onChange={event => setComposerBody(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    sendManualMessage(event);
+                  }
+                }}
+                rows={4}
+                aria-label={`Message ${displayName}`}
+                placeholder={`Message ${displayName}`}
+              />
+              <div className="dft-f">
+                <div className="x">
+                  <button type="button" className="ibt" title="Attachments are not supported yet" aria-label="Attach a file" disabled>
+                    <Icon name="paperclip" size={14} />
+                  </button>
+                  {hasReply ? (
+                    <button type="button" className="ibt" title="Write a new draft" aria-label="Write a new draft" disabled={detailLoading || drafting || !selectedId} onClick={regenerateDraft}>
+                      <Icon name="refresh" size={14} />
+                    </button>
+                  ) : null}
+                </div>
+                {isReplyCard ? (
+                  <>
+                    <button type="button" className="bt bt-g sm" disabled={sending || !composerBody.trim()} onClick={rejectDraft}>Reject</button>
+                    <button type="button" className="bt bt-g sm" disabled={sending} onClick={() => composerRef.current?.focus()}>
+                      <Icon name="edit" size={14} /> Edit
+                    </button>
+                  </>
+                ) : null}
+                {!composerBody.trim() ? (
+                  <button type="button" className="bt bt-g sm" disabled={detailLoading || drafting || !selectedId} onClick={fillComposerWithDraft}>
+                    <Icon name="spark" size={14} /> {drafting ? "Drafting..." : "Draft with AI"}
+                  </button>
+                ) : null}
+                <button type="submit" className="bt bt-p sm" disabled={!composerBody.trim() || sending}>
+                  <Icon name="send" size={14} color="#06231a" /> {sending ? "Sending..." : isReplyCard ? "Approve and send" : "Send"}
+                </button>
+              </div>
             </form>
-          </div>
-        ) : null}
-      </section>
-    </div>
+          ) : null}
+        </section>
+
+        <aside className="ctx" style={{ borderLeft: "1px solid #eef3f0" }}>
+          {thread ? (
+            <>
+              <div className="ctx-id">
+                <Avatar name={displayName} src={lead.photo_url || thread?.photoUrl || undefined} size={56} />
+                <b>{displayName}</b>
+                <small>{[lead.title, lead.company || thread.company].filter(Boolean).join(" · ") || "Lead"}</small>
+                <div className="pv-tags" style={{ justifyContent: "center" }}>
+                  <span className={`pl ${hasReply ? "pl-ok" : "pl-mute"}`}>{stageLabel}</span>
+                  {lead.score != null ? <span className="pl pl-dark">Score {lead.score}</span> : null}
+                </div>
+              </div>
+              {lead.status || thread.leadStatus ? (
+                <div className="ctx-sec">
+                  <small className="h">Stage</small>
+                  <div className="sel-box" aria-label="Lead stage"><span>{stageLabel}</span></div>
+                </div>
+              ) : null}
+              <div className="ctx-sec">
+                <small className="h">Contact</small>
+                <div className="kv"><span>Email</span><b className="ellip">{lead.email || thread.email || "Unknown"}</b></div>
+                {lead.phone ? <div className="kv"><span>Phone</span><b>{lead.phone}</b></div> : null}
+                {lead.location ? <div className="kv"><span>Location</span><b>{lead.location}</b></div> : null}
+                {thread.inboxAddress ? <div className="kv"><span>Inbox</span><b className="ellip">{thread.inboxAddress}</b></div> : null}
+              </div>
+              {timeline.length > 0 ? (
+                <div className="ctx-sec">
+                  <small className="h">Sequence</small>
+                  <div className="tl">
+                    {timeline.map(entry => (
+                      <div key={entry.title}><i /><b>{entry.title}</b><span>{entry.text}</span></div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {leadProfileId ? (
+                <button type="button" className="bt bt-g" style={{ justifyContent: "center" }} onClick={() => router.push(`/prospects/${leadProfileId}`)}>Open lead profile</button>
+              ) : null}
+            </>
+          ) : null}
+        </aside>
+      </div>
+    </main>
   );
 }

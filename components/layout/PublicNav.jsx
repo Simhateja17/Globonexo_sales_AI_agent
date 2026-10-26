@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from "../../hooks/useAuth";
 import Logo from "../ui/Logo";
 import Icon from "../ui/Icon";
+import { DEMO_URL } from "../../lib/site";
 
 // variant: "light" (default, white pages) or "dark" (homepage hero over Aurora background)
 // scrollTo: pass on the homepage so the logo scrolls to top instead of navigating
@@ -46,8 +47,9 @@ export default function PublicNav({ variant = "light", scrollTo }) {
         ) : (
           <>
             <Link className="public-link" href="/login">Sign in</Link>
+            <a className="site-nav-demo" href={DEMO_URL} target="_blank" rel="noopener noreferrer">Book a demo</a>
             <Link className="btn btn-primary btn-sm" href="/signup">
-              Choose a plan <Icon name="arrow" size={16} color="#06231a" />
+              Start free <Icon name="arrow" size={16} color="#06231a" />
             </Link>
           </>
         )}
@@ -79,7 +81,8 @@ export default function PublicNav({ variant = "light", scrollTo }) {
             ) : (
               <>
                 <Link className="btn btn-ghost btn-lg" href="/login" onClick={() => setMobileOpen(false)}>Sign in</Link>
-                <Link className="btn btn-primary btn-lg" href="/signup" onClick={() => setMobileOpen(false)}>Choose a plan</Link>
+                <a className="btn btn-ghost btn-lg" href={DEMO_URL} target="_blank" rel="noopener noreferrer" onClick={() => setMobileOpen(false)}>Book a demo</a>
+                <Link className="btn btn-primary btn-lg" href="/signup" onClick={() => setMobileOpen(false)}>Start free</Link>
               </>
             )}
           </div>

@@ -14,7 +14,7 @@ export default function GuideLayout({
   secondaryCta = { href: "/platform", label: "See the platform" },
   cta = {
     heading: "Put an AI sales agent on it.",
-    body: "Choose a plan, connect your inbox, and launch your first campaign in five minutes.",
+    body: "Start free, connect your inbox, and launch your first campaign in five minutes.",
   },
   breadcrumb,
   children,
@@ -29,7 +29,7 @@ export default function GuideLayout({
           <p>{intro}</p>
           <div className="content-hero-actions">
             <Link className="btn btn-primary btn-lg" href="/signup">
-              Choose a plan <Icon name="arrow" size={18} color="#06231a" />
+              Start free <Icon name="arrow" size={18} color="#06231a" />
             </Link>
             <Link className="landing-outline-btn" href={secondaryCta.href}>{secondaryCta.label}</Link>
           </div>
@@ -46,7 +46,7 @@ export default function GuideLayout({
           </div>
           <div className="content-cta-actions">
             <Link className="btn btn-primary btn-lg" href="/signup">
-              Choose a plan <Icon name="arrow" size={16} color="#06231a" />
+              Start free <Icon name="arrow" size={16} color="#06231a" />
             </Link>
             <Link className="landing-outline-btn" href="/pricing">View pricing</Link>
           </div>

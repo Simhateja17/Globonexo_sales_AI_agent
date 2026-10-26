@@ -4,6 +4,7 @@ export const metadata = {
     "B2B lead generation run by an AI SDR tool: sourcing, qualification, email sequences, and voice calls. See how it fits an individual seller, an agency running outbound for clients, or a startup building outbound in-house.",
   alternates: { canonical: "/solutions" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/solutions",
     title: "B2B Lead Generation with an AI SDR Tool",
     description:
@@ -24,7 +25,7 @@ const faqs = [
   },
   {
     q: "Do higher plans unlock better features?",
-    a: "Almost none. Every paid plan has AI email sequences, lead enrichment, AI voice calling and reply drafting. Higher plans add volume, seats, inboxes and numbers. The one feature held back is the inbound AI receptionist, which comes with Agency and Startup.",
+    a: "Almost none. Every plan has AI email sequences, lead enrichment, AI voice calling and reply drafting. Higher plans add volume, seats, inboxes and numbers. The one feature held back is the inbound AI receptionist, which comes with Agency and Startup.",
   },
   {
     q: "What is an AI SDR, and does it replace a person?",
@@ -36,7 +37,7 @@ const faqs = [
   },
   {
     q: "Is there a free plan?",
-    a: "Yes. Sign up with a work email and get one email campaign, about 200 AI-written emails a month and 30 sends a day from your own inbox. No card needed. Lead enrichment and AI calling come with paid plans.",
+    a: "Yes. The Free plan runs 1 email campaign from your own company inbox, up to 30 emails a day and about 200 AI-written emails a month, on your own leads (CSV or paste, up to 500). Lead enrichment and AI calling are on paid plans. No card needed. Sign up with a work email; each company gets one Free workspace.",
   },
 ];
 
@@ -435,7 +436,7 @@ export default function SolutionsPage() {
         <div style={{ maxWidth: "680px" }}>
           <div className="gd-eyebrow">Same agent, every plan</div>
           <h2 className="gd-h2">The full loop, whoever you are.</h2>
-          <p className="gd-lead">Every paid plan runs all eight steps. Only the volume changes.</p>
+          <p className="gd-lead">Every plan runs all eight steps. Only the volume changes.</p>
         </div>
         <svg
           className="gd-loop-svg"
@@ -955,7 +956,7 @@ export default function SolutionsPage() {
           <h2 className="gd-h2" style={{ margin: "0" }}>
             See it run on your pipeline.
           </h2>
-          <p className="gd-lead">Choose a plan, connect your inbox, and launch your first campaign.</p>
+          <p className="gd-lead">Start free, connect your inbox, and launch your first campaign.</p>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
           <Link
@@ -974,7 +975,7 @@ export default function SolutionsPage() {
               boxShadow: "var(--sh-green)",
             }}
           >
-            Choose a plan
+            Start free
           </Link>
           <Link
             href="/contact"

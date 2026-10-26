@@ -2,7 +2,7 @@ export const metadata = {
   title: { absolute: "Refund policy for GNX Sales" },
   description: "How GNX Sales billing and cancelling work: payments are final, your plan runs to the end of the paid period, and billing mistakes are corrected.",
   alternates: { canonical: "/refund" },
-  openGraph: { url: "/refund" },
+  openGraph: { url: "/refund", images: ["/og-image.png"] },
 };
 
 import Link from "next/link";

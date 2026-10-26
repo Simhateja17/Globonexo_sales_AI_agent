@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SenderPicker from "@/components/campaigns/SenderPicker";
 import { useRouter } from "next/navigation";
+import { isFreePlan, upgradePlan, useOrg } from "../../../../lib/free-plan";
+import StateNote from "../../../../components/ui/StateNote";
 import api from "../../../../lib/api";
 import Icon from "../../../../components/ui/Icon";
 import Avatar from "../../../../components/ui/Avatar";
@@ -186,6 +188,17 @@ function Field({ label, children, hint, ...rest }) {
 
 export default function NewCampaignPage() {
   const router = useRouter();
+  const freePlan = isFreePlan(useOrg());
+  const [runningCampaign, setRunningCampaign] = useState(null);
+
+  // Free runs one campaign at a time, so a second one is held until the
+  // first is paused or finished.
+  useEffect(() => {
+    if (!freePlan) return;
+    api.get("/campaigns")
+      .then(({ data }) => setRunningCampaign((data?.items ?? []).find(item => item.status === "active" || item.status === "draft") ?? null))
+      .catch(() => {});
+  }, [freePlan]);
   const setupRef = useRef(null);
   const controlsRef = useRef(null);
   const voicePermissionRef = useRef(null);
@@ -598,80 +611,56 @@ export default function NewCampaignPage() {
   };
 
   return (
-    <form className="col campaign-new-form" onSubmit={submit} style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-      <div className="row spread campaign-new-topbar" style={{ padding: "16px 24px", borderBottom: "1px solid var(--line)", flex: "none", background: "#fff", gap: 16 }}>
-        <div className="row" style={{ gap: 12, minWidth: 0 }}>
-          <button type="button" className="btn btn-ghost btn-sm" style={{ width: 40, padding: 0 }} onClick={() => router.push("/campaigns")} aria-label="Back to campaigns">
-            <Icon name="arrowLeft" size={17} />
+    <form className="gx campaign-new-form" onSubmit={submit}>
+      <div className="ph">
+        <div className="cdh">
+          <button type="button" className="back" onClick={() => router.push("/campaigns")} aria-label="Back to campaigns">
+            <Icon name="arrowLeft" size={16} />
           </button>
           <div>
-            <h1 className="display" style={{ fontSize: 22 }}>New campaign</h1>
-            <p className="muted" style={{ fontSize: 13, marginTop: 2 }}>Set the campaign shell before adding leads and sequence steps.</p>
+            <h1>New campaign</h1>
+            <div className="cdh-meta">Nothing sends until you prepare and launch it.</div>
           </div>
         </div>
-        <div className="row" style={{ gap: 10 }}>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => { clearDraftStorage(); router.push("/campaigns"); }}>Cancel</button>
-          <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
+        <div className="acts">
+          <button type="button" className="bt bt-g" onClick={() => { clearDraftStorage(); router.push("/campaigns"); }}>Cancel</button>
+          <button type="submit" className="bt bt-p" disabled={saving || Boolean(freePlan && runningCampaign)}>
             <Icon name="check" size={15} color="#06231a" /> {saving ? "Creating..." : "Create draft"}
           </button>
         </div>
       </div>
 
-      {error && (
-        <div style={{ padding: "12px 24px", background: "#fff7ed", borderBottom: "1px solid #fed7aa", color: "#9a3412", fontSize: 13, fontWeight: 700 }}>
-          {error}
-        </div>
-      )}
-      {validationErrors.length > 0 && (
-        <div style={{ padding: "12px 24px", background: "#fff7ed", borderBottom: "1px solid #fed7aa", color: "#9a3412", fontSize: 13, fontWeight: 700 }}>
-          {validationErrors[0]}
-        </div>
-      )}
+      {error && <div className="note">{error}</div>}
+      {freePlan && runningCampaign ? (
+        <StateNote
+          tone="warn"
+          title="Free runs one campaign at a time"
+          text={`"${runningCampaign.name}" is ${runningCampaign.status === "active" ? "running" : "in draft"}. Pause or finish it to start this one, or upgrade to run up to ${upgradePlan().emailCampaigns} at once.`}
+          secondary={{ label: `Open ${runningCampaign.name}`, onClick: () => router.push(`/campaigns/${runningCampaign.id}`) }}
+          action={{ label: "Upgrade", onClick: () => router.push("/billing") }}
+        />
+      ) : null}
+      {validationErrors.length > 0 && <div className="note">{validationErrors[0]}</div>}
 
-      <div className="scroll grow campaign-new-scroll" style={{ minHeight: 0, padding: 24, scrollBehavior: "smooth" }}>
-        <div
-          className="row spread"
-          style={{
-            gap: 12,
-            marginBottom: 14,
-            padding: "10px 12px",
-            border: "1px solid var(--line)",
-            borderRadius: 8,
-            background: "#fff",
-            boxShadow: "var(--sh-xs)",
-            flexWrap: "wrap",
-          }}
-        >
-          <span className="faint" style={{ fontSize: 12.5, fontWeight: 800 }}>Jump to section</span>
-          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+        <div className="nc campaign-new-layout">
+          <nav className="card jn" aria-label="Jump to section" style={{ position: "sticky", top: 0 }}>
             {[
-              ["Setup", setupRef],
-              ["Controls", controlsRef],
-              ["Email sequence", emailSequenceRef, true],
-              ["Assign leads", assignLeadsRef],
-            ].map(([label, ref, forceEmail]) => (
-              <button
-                key={label}
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => scrollToSection(ref, { forceEmail })}
-                style={{ height: 32, padding: "0 12px", fontSize: 12.5, background: label === "Email sequence" ? "var(--g-50)" : "#fff" }}
-              >
-                {label}
+              ["Setup", setupRef, false, form.name.trim().length >= 3],
+              ["Controls", controlsRef, false, false],
+              ...(emailEnabled ? [["Email sequence", emailSequenceRef, true, false]] : []),
+              ["Assign leads", assignLeadsRef, false, false],
+            ].map(([label, ref, forceEmail, done], index) => (
+              <button key={label} type="button" className={done ? "done" : ""} onClick={() => scrollToSection(ref, { forceEmail })}>
+                <i>{done ? <Icon name="check" size={12} color="#fff" stroke={3} /> : index + 1}</i> {label}
               </button>
             ))}
-          </div>
-        </div>
-        <div className="campaign-new-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.25fr) 340px", gap: 18, alignItems: "start" }}>
-          <div className="col" style={{ gap: 14 }}>
-            <section ref={setupRef} className="card" style={{ padding: 18, borderRadius: 8, scrollMarginTop: 16 }}>
-              <div className="row campaign-new-section-head" style={{ gap: 10, marginBottom: 18 }}>
-                <span style={{ width: 34, height: 34, borderRadius: 10, background: "var(--g-50)", display: "grid", placeItems: "center", color: "var(--g-700)" }}>
-                  <Icon name="send" size={18} />
-                </span>
+          </nav>
+          <div className="card" style={{ overflow: "hidden" }}>
+            <section ref={setupRef} className="sec" style={{ scrollMarginTop: 16 }}>
+              <div className="sec-h">
                 <div>
-                  <h2 style={{ fontSize: 15, fontWeight: 800 }}>Campaign setup</h2>
-                  <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>These fields define what gets created in the campaign table.</p>
+                  <b>Campaign setup</b>
+                  <small>These fields define what gets created in the campaign table.</small>
                 </div>
               </div>
 
@@ -760,14 +749,11 @@ export default function NewCampaignPage() {
               </div>
             </section>
 
-            <section ref={controlsRef} className="card" style={{ padding: 18, borderRadius: 8, scrollMarginTop: 16 }}>
-              <div className="row campaign-new-section-head" style={{ gap: 10, marginBottom: 18 }}>
-                <span style={{ width: 34, height: 34, borderRadius: 10, background: "var(--bg-2)", display: "grid", placeItems: "center", color: "var(--ink-2)" }}>
-                  <Icon name="sliders" size={18} />
-                </span>
+            <section ref={controlsRef} className="sec" style={{ scrollMarginTop: 16 }}>
+              <div className="sec-h">
                 <div>
-                  <h2 style={{ fontSize: 15, fontWeight: 800 }}>Controls</h2>
-                  <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Caps and timing protect deliverability and calling cadence.</p>
+                  <b>Controls</b>
+                  <small>Caps and timing protect deliverability and calling cadence.</small>
                 </div>
               </div>
 
@@ -917,23 +903,20 @@ export default function NewCampaignPage() {
             </section>
 
             {emailEnabled && (
-              <section ref={emailSequenceRef} data-tour="campaign-sequence" className="card campaign-new-email-section" style={{ padding: 18, borderRadius: 8, scrollMarginTop: 16 }}>
-                <div className="row campaign-new-section-head" style={{ gap: 10, marginBottom: 18 }}>
-                  <span style={{ width: 34, height: 34, borderRadius: 10, background: "var(--g-50)", display: "grid", placeItems: "center", color: "var(--g-700)" }}>
-                    <Icon name="mail" size={18} />
-                  </span>
+              <section ref={emailSequenceRef} data-tour="campaign-sequence" className="sec campaign-new-email-section" style={{ scrollMarginTop: 16 }}>
+                <div className="sec-h">
                   <div>
-                    <h2 style={{ fontSize: 15, fontWeight: 800 }}>Email sequence</h2>
-                    <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>Choose timing only. AI writes unique copy for every lead from their research and actual conversation history.</p>
+                    <b>Email sequence</b>
+                  <small>Choose timing only. AI writes unique copy for every lead from their research and actual conversation history.</small>
                   </div>
-                  <span className="chip" style={{ marginLeft: "auto", fontSize: 12, flex: "none" }}>
+                  <span className="pl pl-mute" style={{ flex: "none" }}>
                     {steps.length} step{steps.length === 1 ? "" : "s"}
                   </span>
                 </div>
 
                 <div className="col" style={{ gap: 16 }}>
                   {steps.map((step, index) => (
-                    <div key={step.uid} className="campaign-new-step-card" style={{ padding: 16, borderRadius: 8, background: "var(--bg)", border: "1px solid var(--line)" }}>
+                    <div key={step.uid} className="campaign-new-step-card stp" style={{ padding: 14 }}>
                       <div className="row spread campaign-new-step-head" style={{ marginBottom: 12, gap: 12, flexWrap: "wrap" }}>
                         <div className="row" style={{ gap: 8 }}>
                           <span style={{ width: 26, height: 26, borderRadius: 8, background: "var(--g-100)", display: "grid", placeItems: "center", fontSize: 12, fontWeight: 800, color: "var(--g-700)", flex: "none" }}>
@@ -996,15 +979,12 @@ export default function NewCampaignPage() {
               </section>
             )}
 
-            <section ref={assignLeadsRef} className="card campaign-new-assign-section" style={{ padding: 18, borderRadius: 8, scrollMarginTop: 16 }}>
-              <div className="row spread campaign-new-assign-head" style={{ marginBottom: 14 }}>
+            <section ref={assignLeadsRef} className="sec campaign-new-assign-section" style={{ scrollMarginTop: 16 }}>
+              <div className="sec-h campaign-new-assign-head" style={{ flexWrap: "wrap" }}>
                 <div className="row" style={{ gap: 10 }}>
-                  <span style={{ width: 34, height: 34, borderRadius: 10, background: "var(--bg-2)", display: "grid", placeItems: "center", color: "var(--ink-2)" }}>
-                    <Icon name="users" size={18} />
-                  </span>
                   <div>
-                    <h2 style={{ fontSize: 15, fontWeight: 800 }}>Assign leads</h2>
-                    <p className="faint" style={{ fontSize: 12.5, marginTop: 2 }}>{leadSource === "automatic" ? "Define the audience and let GNX find qualified leads." : "Add a lead manually or select existing leads."}</p>
+                    <b>Assign leads</b>
+                  <small>{leadSource === "automatic" ? "Define the audience and let GNX find qualified leads." : "Add a lead manually or select existing leads."}</small>
                   </div>
                 </div>
                 <div className="row" style={{ gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -1188,45 +1168,32 @@ export default function NewCampaignPage() {
             </section>
           </div>
 
-          <aside className="card campaign-new-summary" style={{ padding: 18, borderRadius: 8, position: "sticky", top: 0 }}>
-            <div className="row" style={{ gap: 10 }}>
-              <span style={{ width: 38, height: 38, borderRadius: 12, background: "var(--g-50)", border: "1px solid var(--g-100)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--g-700)", gap: 2, flex: "none" }}>
-                {emailEnabled && <Icon name="mail" size={19} />}
-                {voiceEnabled && <Icon name="phone" size={19} />}
-              </span>
-              <div className="col" style={{ minWidth: 0 }}>
-                <span style={{ fontWeight: 800, fontSize: 14 }} className="ellip">{form.name || "Untitled campaign"}</span>
-                <span className="faint" style={{ fontSize: 12.5 }}>
-                  {form.channel === "voice" ? "Voice campaign" : "Email campaign"} draft
-                </span>
-              </div>
+          <aside className="card sumc campaign-new-summary" style={{ position: "sticky", top: 0 }}>
+            <b className="ellip">{form.name || "Untitled campaign"}</b>
+            <span className="muted" style={{ fontSize: 12.5, fontWeight: 700 }}>{form.channel === "voice" ? "Voice campaign" : "Email campaign"} draft</span>
+            <div style={{ marginTop: 10 }}>
+              {[
+                ["Channel", form.channel === "voice" ? "Voice" : "Email"],
+                ["Max leads", form.maxLeads],
+                ...(emailEnabled ? [["Daily cap", form.dailySendCap]] : []),
+                ["Weekly lead target", form.weeklyQualifiedLeadTarget],
+                ["Preparation days", WEEKDAYS.filter(day => form.leadPreparationWeekdays.includes(day.value)).map(day => day.label).join(", ") || "None"],
+                ...(voiceEnabled ? [["Call cadence", `${form.callCadencePerHour}/hr`]] : []),
+                ["Business hours", `${form.businessHoursStart} - ${form.businessHoursEnd}`],
+                ["Timezone", form.timezone],
+                ...(emailEnabled ? [["Sequence", `${steps.length} step${steps.length === 1 ? "" : "s"}`]] : []),
+                ["Leads selected", selectedLeadIds.size],
+              ].map(([label, value]) => (
+                <div key={label} className="kv"><span>{label}</span><b>{value}</b></div>
+              ))}
             </div>
 
-            <hr className="divider" style={{ margin: "16px 0" }} />
-
-            {[
-              ["Max leads", form.maxLeads],
-              ...(emailEnabled ? [["Daily cap", form.dailySendCap]] : []),
-              ["Weekly lead target", form.weeklyQualifiedLeadTarget],
-              ["Preparation days", WEEKDAYS.filter(day => form.leadPreparationWeekdays.includes(day.value)).map(day => day.label).join(", ") || "None"],
-              ...(voiceEnabled ? [["Call cadence", `${form.callCadencePerHour}/hr`]] : []),
-              ["Business hours", `${form.businessHoursStart} - ${form.businessHoursEnd}`],
-              ["Timezone", form.timezone],
-              ...(emailEnabled ? [["Sequence steps", `${steps.length} timed touch${steps.length === 1 ? "" : "es"}`]] : []),
-              ["Leads selected", selectedLeadIds.size],
-            ].map(([label, value]) => (
-              <div key={label} className="row spread campaign-new-summary-row" style={{ gap: 14, padding: "9px 0", borderBottom: "1px solid var(--line-2)" }}>
-                <span className="faint" style={{ fontSize: 12.5, fontWeight: 800 }}>{label}</span>
-                <span style={{ fontSize: 13, fontWeight: 800, textAlign: "right" }}>{value}</span>
-              </div>
-            ))}
-
-            <div style={{ marginTop: 16, padding: 12, borderRadius: 8, background: setupReady ? "var(--g-50)" : "#fff7ed", border: `1px solid ${setupReady ? "var(--g-100)" : "#fed7aa"}` }}>
+            <div className={setupReady ? "est" : "fa"} style={setupReady ? undefined : { background: "#fff4ec", borderColor: "#fed7aa", color: "#9a3412" }}>
               <div className="row" style={{ gap: 7, fontWeight: 800, fontSize: 13 }}>
-                <Icon name={setupReady ? "checkCircle" : "alertCircle"} size={15} color={setupReady ? "var(--g-600)" : "#c2410c"} />
+                <Icon name={setupReady ? "checkCircle" : "alertCircle"} size={15} color={setupReady ? "#6fe7b0" : "#c2410c"} />
                 {setupReady ? "Ready to create draft" : "Setup incomplete"}
               </div>
-              <p style={{ marginTop: 6, fontSize: 12.5, lineHeight: 1.5, color: setupReady ? "var(--muted)" : "#9a3412" }}>
+              <p style={{ margin: "6px 0 0", fontSize: 12.5, lineHeight: 1.5 }}>
                 {setupReady
                   ? "Launch is available from the campaign list after the shell is created."
                   : form.name.trim().length < 3
@@ -1243,9 +1210,12 @@ export default function NewCampaignPage() {
                 </div>
               ) : null}
             </div>
+            <div className="acts">
+              <button type="button" className="bt bt-g" onClick={() => { clearDraftStorage(); router.push("/campaigns"); }}>Cancel</button>
+              <button type="submit" className="bt bt-p" disabled={saving || Boolean(freePlan && runningCampaign)}>{saving ? "Creating..." : "Create draft"}</button>
+            </div>
           </aside>
         </div>
-      </div>
     </form>
   );
 }

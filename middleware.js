@@ -25,6 +25,7 @@ const PUBLIC_PATHS = [
   '/blog',
   '/callback',
   '/invite',
+  '/demo-booked',
 ];
 
 const SESSION_COOKIE_NAMES = [

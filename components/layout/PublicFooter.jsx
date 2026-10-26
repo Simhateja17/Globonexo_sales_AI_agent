@@ -61,7 +61,7 @@ export default function PublicFooter() {
       <div className="public-footer-grid">
         <div className="public-footer-brand">
           <Logo size={30} />
-          <p>AI sales agents that find buyers, start conversations, and book meetings.</p>
+          <p>The AI sales agent that finds buyers, emails and calls them, and books the meeting.</p>
         </div>
         {groups.map((group) => (
           <div key={group.title} className="public-footer-col">
@@ -74,7 +74,7 @@ export default function PublicFooter() {
       </div>
       {/* Legal name shown in the footer. Keep in sync with legalName in SiteSchema.jsx. */}
       <div className="public-footer-base">
-        <span>© 2026 Globonexo India Private Limited</span>
+        <span>© 2026 Globonexo India Private Limited · CIN U62013DC2026PTC469655 · Made in India</span>
         <a href="mailto:support@gnxsales.com">support@gnxsales.com</a>
       </div>
     </footer>

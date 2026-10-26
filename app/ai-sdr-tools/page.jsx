@@ -4,6 +4,7 @@ export const metadata = {
     "A buyer's guide to AI SDR tools, the categories on the market, what each one actually automates, the questions to ask before you buy, and how to tell a real AI SDR from a sequencer with an AI label.",
   alternates: { canonical: "/ai-sdr-tools" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/ai-sdr-tools",
     title: "AI SDR Tools: Buyer's Guide and Comparison",
     description:

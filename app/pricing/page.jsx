@@ -1,13 +1,14 @@
 export const metadata = {
   title: "AI Sales Agent Pricing: Plans, Credits, and Limits",
   description:
-    "AI SDR pricing without the usual add-ons. Every GNX Sales plan includes email sequences, lead enrichment, and AI voice calling from one credit pool. Compare plans and monthly costs.",
+    "Start free with one email campaign from your own inbox, no card needed. Paid GNX Sales plans add lead enrichment and AI voice calling from one credit pool. Compare plans and monthly costs.",
   alternates: { canonical: "/pricing" },
   openGraph: {
+    images: ["/og-image.png"],
     url: "/pricing",
     title: "AI Sales Agent Pricing: Plans, Credits, and Limits",
     description:
-      "Every paid plan includes email, enrichment, and AI voice calling on one credit pool. A Free plan covers AI email campaigns. Credits set the ceiling, not the feature list.",
+      "Start free, no card needed. Paid plans include email, enrichment, and AI voice calling on one credit pool.",
   },
 };
 
@@ -16,7 +17,7 @@ import PricingView from "../../components/marketing/PricingView";
 const faqs = [
   {
     q: "Is there a free plan?",
-    a: "Yes. Sign up with a work email and get one email campaign, about 200 AI-written emails a month and 30 sends a day from your own inbox. No card needed. Lead enrichment and AI calling come with paid plans.",
+    a: "Yes. The Free plan runs 1 email campaign from your own company inbox, up to 30 emails a day and about 200 AI-written emails a month, on your own leads (CSV or paste, up to 500). Lead enrichment and AI calling are on paid plans. No card needed. Sign up with a work email; each company gets one Free workspace.",
   },
   {
     q: "Is AI calling priced separately?",

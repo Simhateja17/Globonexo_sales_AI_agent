@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import Icon from "../ui/Icon";
 import Spinner from "../ui/Spinner";
 import api from "../../lib/api";
-import { TOUR_STEPS } from "../../lib/tour-steps";
+import { tourStepsFor } from "../../lib/tour-steps";
+import { isFreePlan } from "../../lib/free-plan";
+import { useAuth } from "../../hooks/useAuth";
 import {
   advance,
   computePopoverPosition,
@@ -37,6 +39,32 @@ function isEditingTarget(target) {
   return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
 }
 
+// Turns bare URLs with a path in a step's text into links that open in a new tab.
+const LINK_RE = /((?:[a-z0-9-]+\.)+(?:com|org|net|io)\/[\w\-./]*[\w\-])/gi;
+function linkify(text) {
+  return String(text).split(LINK_RE).map((part, i) => (
+    i % 2 === 1
+      ? <a key={i} href={`https://${part.replace(/[.,]+$/, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--g-700)', fontWeight: 800, textDecoration: 'underline' }}>{part}</a>
+      : part
+  ));
+}
+
+// The highlight for a tall target (a long section or an open modal) can run up
+// under the sticky app header. Keep its top edge, glow included, below the header.
+const SPOTLIGHT_RING = 10;
+function spotlightBox(rect) {
+  const header = document.querySelector(".app-shell-header");
+  const safeTop = header ? header.getBoundingClientRect().bottom + SPOTLIGHT_RING : SPOTLIGHT_RING;
+  const top = Math.max(rect.top - SPOTLIGHT_PADDING, safeTop);
+  const bottom = Math.min(rect.bottom + SPOTLIGHT_PADDING, window.innerHeight - SPOTLIGHT_RING);
+  return {
+    top,
+    left: rect.left - SPOTLIGHT_PADDING,
+    width: rect.width + SPOTLIGHT_PADDING * 2,
+    height: Math.max(bottom - top, 0),
+  };
+}
+
 export default function TourOverlay() {
   const { tourOpen, tourIndex, goToTourStep, finishTour, steps: setupSteps, skipStep, refresh } = useSetup();
   const router = useRouter();
@@ -49,6 +77,8 @@ export default function TourOverlay() {
   const [onboardingCampaignId, setOnboardingCampaignId] = useState(null);
   const popoverRef = useRef(null);
 
+  const { organization } = useAuth();
+  const TOUR_STEPS = useMemo(() => tourStepsFor(isFreePlan(organization)), [organization]);
   const step = stepAt(TOUR_STEPS, tourIndex);
   const needsNav = Boolean(step?.target?.startsWith('[data-tour="nav-'));
   const effectiveRoute = resolveStepRoute(step, { onboardingCampaignId });
@@ -197,6 +227,29 @@ export default function TourOverlay() {
     return () => window.clearInterval(timer);
   }, [tourOpen, step, unlocked, refresh]);
 
+  // A step marked autoAdvance moves on by itself once the customer finishes the
+  // action, but only if it was still locked when they arrived, so revisiting an
+  // already-completed step doesn't skip past it.
+  const wasLockedAt = useRef(null);
+  useEffect(() => {
+    if (!tourOpen || !step?.requiresStepId) {
+      wasLockedAt.current = null;
+      return undefined;
+    }
+    if (!unlocked) {
+      wasLockedAt.current = tourIndex;
+      return undefined;
+    }
+    if (!step.autoAdvance || wasLockedAt.current !== tourIndex) return undefined;
+    const timer = window.setTimeout(() => {
+      wasLockedAt.current = null;
+      const intent = advance(tourIndex, TOUR_STEPS);
+      if (intent.action === "finish") finishTour("completed");
+      else goToTourStep(intent.index);
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, [tourOpen, step, tourIndex, unlocked, finishTour, goToTourStep]);
+
   // Forgetting this campaign id across tour sessions means a later step
   // re-resolves it fresh rather than trusting a possibly stale value.
   useEffect(() => {
@@ -232,16 +285,7 @@ export default function TourOverlay() {
       <div className={`tour-scrim ${rect ? "" : "is-dimmed"}`} onClick={handleSkip} aria-hidden="true" />
 
       {rect ? (
-        <div
-          className="tour-spotlight"
-          aria-hidden="true"
-          style={{
-            top: rect.top - SPOTLIGHT_PADDING,
-            left: rect.left - SPOTLIGHT_PADDING,
-            width: rect.width + SPOTLIGHT_PADDING * 2,
-            height: rect.height + SPOTLIGHT_PADDING * 2,
-          }}
-        />
+        <div className="tour-spotlight" aria-hidden="true" style={spotlightBox(rect)} />
       ) : null}
 
       <div
@@ -260,11 +304,21 @@ export default function TourOverlay() {
         {navigating && !onStepRoute ? (
           <p className="tour-navigating">Opening {effectiveRoute}…</p>
         ) : null}
-        <p className="tour-body">{step.body}</p>
+        <p className="tour-body">{linkify(step.body)}</p>
         {step.footnote ? <p className="tour-footnote">{step.footnote}</p> : null}
+        {step.action && !unlocked ? (
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            style={{ alignSelf: "flex-start", marginTop: 4 }}
+            onClick={() => window.dispatchEvent(new CustomEvent(step.action.event))}
+          >
+            {step.action.label}
+          </button>
+        ) : null}
         {step.requiresStepId && !unlocked ? (
           <p className="tour-locked">
-            <Icon name="clock" size={13} /> Waiting for this to be done. I'll unlock automatically.
+            <Icon name="clock" size={13} /> {step.lockedHint || "Next unlocks once you finish this step on the page. It updates by itself, so there's nothing else to click."}
           </p>
         ) : null}
 

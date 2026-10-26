@@ -2,7 +2,7 @@ export const metadata = {
   title: { absolute: "GNX Sales frequently asked questions" },
   description: "Answers to common questions about GNX sales pricing, subscriptions, AI replies, deliverability, integrations, and data handling.",
   alternates: { canonical: "/faq" },
-  openGraph: { url: "/faq" },
+  openGraph: { url: "/faq", images: ["/og-image.png"] },
 };
 
 import Link from "next/link";
@@ -46,7 +46,7 @@ const groups = [
     items: [
       {
         q: "Does it really make phone calls?",
-        a: "Yes. Every paid plan includes AI voice campaigns. The agent calls your leads, has a real conversation, handles common objections and books a meeting when the prospect is ready. It can also answer inbound calls.",
+        a: "Yes. Every plan includes AI voice campaigns. The agent calls your leads, has a real conversation, handles common objections and books a meeting when the prospect is ready. It can also answer inbound calls.",
       },
       {
         q: "Does the caller say it is an AI?",
@@ -137,7 +137,7 @@ const groups = [
     items: [
       {
         q: "What do the plans cost?",
-        a: "Individual is $59 a month, Agency $179 and Startup $479. Paying yearly brings them to $49, $149 and $399 a month. Every paid plan includes AI email sequences, lead enrichment and AI voice calling. There is also a Free plan for AI email campaigns.",
+        a: "Individual is $59 a month, Agency $179 and Startup $479. Paying yearly brings them to $49, $149 and $399 a month. Every plan includes AI email sequences, lead enrichment and AI voice calling.",
       },
       {
         q: "What is the difference between plans?",
@@ -145,7 +145,7 @@ const groups = [
       },
       {
         q: "Is there a free plan?",
-        a: "Yes. Sign up with a work email and get one email campaign, about 200 AI-written emails a month and 30 sends a day from your own inbox. No card needed. Lead enrichment and AI calling come with paid plans.",
+        a: "Yes. The Free plan runs 1 email campaign from your own company inbox, up to 30 emails a day and about 200 AI-written emails a month, on your own leads (CSV or paste, up to 500). Lead enrichment and AI calling are on paid plans. No card needed. Sign up with a work email; each company gets one Free workspace.",
       },
       {
         q: "What are credits?",

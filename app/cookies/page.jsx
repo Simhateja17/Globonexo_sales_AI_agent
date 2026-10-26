@@ -2,7 +2,7 @@ export const metadata = {
   title: { absolute: "Cookie policy for GNX Sales" },
   description: "Learn how GNX Sales uses essential, preference, analytics, and third-party cookies to operate and improve the service.",
   alternates: { canonical: "/cookies" },
-  openGraph: { url: "/cookies" },
+  openGraph: { url: "/cookies", images: ["/og-image.png"] },
 };
 
 import Link from "next/link";

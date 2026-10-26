@@ -41,7 +41,7 @@ export default function GuideArticleLayout({
             <p>{intro}</p>
             <div className="gd-hero-actions">
               <Link className="btn btn-primary btn-lg" href="/signup">
-                Choose a plan <Icon name="arrow" size={18} color="#06231a" />
+                Start free <Icon name="arrow" size={18} color="#06231a" />
               </Link>
               <Link className="gd-ghost-btn" href={secondaryCta.href}>{secondaryCta.label}</Link>
             </div>
@@ -81,7 +81,7 @@ export default function GuideArticleLayout({
             <p>{cta.body}</p>
           </div>
           <div className="gd-cta-actions">
-            <Link className="btn btn-primary btn-lg" href="/signup">Choose a plan</Link>
+            <Link className="btn btn-primary btn-lg" href="/signup">Start free</Link>
             <Link className="gd-cta-ghost" href="/contact">Book a demo</Link>
           </div>
         </div>

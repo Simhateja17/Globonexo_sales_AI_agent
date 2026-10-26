@@ -36,9 +36,13 @@ export function AuthProvider({ children }) {
     return res.data;
   };
 
+  // Resolves to { freePlan, workspace }. freePlan is the backend's Free plan
+  // eligibility for this email: 'eligible', 'personal_email', 'domain_taken'
+  // or 'paused'. workspace names the company's existing workspace when
+  // freePlan is 'domain_taken'.
   const startSignup = async (payload) => {
     const res = await api.post('/auth/signup/start', payload);
-    return res.data;
+    return { freePlan: res.data?.freePlan, workspace: res.data?.workspace ?? null };
   };
 
   const verifySignup = async (email, otp) => {

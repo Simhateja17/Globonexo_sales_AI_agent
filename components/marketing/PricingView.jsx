@@ -7,7 +7,7 @@ import PublicFooter from "../layout/PublicFooter";
 import FaqSection from "./FaqSection";
 import { BreadcrumbSchema } from "./SiteSchema";
 import { PLAN_CONFIG } from "../../lib/plans";
-import FreePlanStrip from "./FreePlanStrip";
+import { FREE_PLAN } from "../../lib/free-plan";
 
 const TOG_ON = { background: "#fff", color: "#06231a", boxShadow: "0 6px 18px rgba(0,0,0,.18)" };
 const TOG_OFF = { background: "transparent", color: "rgba(255,255,255,.78)" };
@@ -140,9 +140,9 @@ export default function PricingView({ faqs }) {
               letterSpacing: "-.05em",
             }}
           >
-            One price.
+            Start free.
             <br />
-            <span style={{ color: "#6fe7b0" }}>The whole sales loop.</span>
+            <span style={{ color: "#6fe7b0" }}>Upgrade when it works.</span>
           </h1>
           <p
             style={{
@@ -153,8 +153,8 @@ export default function PricingView({ faqs }) {
               lineHeight: "1.7",
             }}
           >
-            Email, lead enrichment and AI calling in every paid plan, from one credit pool. Or start on Free with AI email. No per-channel fees, no setup
-            fee. Your plan only sets the volume.
+            Run your first email campaign free from your own inbox, no card needed. Paid plans add lead enrichment, AI
+            calling and more volume from one credit pool. No setup fee.
           </p>
           <div
             style={{
@@ -197,8 +197,55 @@ export default function PricingView({ faqs }) {
           scrollMarginTop: "24px",
         }}
       >
-        <FreePlanStrip />
-        <div className="gd-g3">
+        <div className="gd-g3 gd-plans">
+          <article className="gd-plan">
+            <h3>Free</h3>
+            <p className="gd-ds">For trying GNX on your own leads.</p>
+            <div className="gd-pr">
+              <b>$0</b>
+              <span>/month</span>
+            </div>
+            <div className="gd-bl">No card needed</div>
+            <Link className="gd-cta gd-s" href="/signup">
+              Start free
+            </Link>
+            <div className="gd-big">
+              <div>
+                <b>{(FREE_PLAN.dailyEmailCap * 30).toLocaleString()}</b>
+                <span>emails a month, up to</span>
+              </div>
+              <div>
+                <b>None</b>
+                <span>AI calls</span>
+              </div>
+            </div>
+            <ul className="gd-lim">
+              <li>
+                AI-written emails<b>~{FREE_PLAN.monthlyAiEmails} a month</b>
+              </li>
+              <li>
+                Email campaigns at once<b>{FREE_PLAN.emailCampaigns}</b>
+              </li>
+              <li className="gd-off">
+                Voice campaigns at once<b>None</b>
+              </li>
+              <li>
+                Seats<b>Shared</b>
+              </li>
+              <li>
+                Sending inboxes<b>1, your own</b>
+              </li>
+              <li className="gd-off">
+                Phone numbers<b>None</b>
+              </li>
+              <li>
+                Lead enrichment<b>Your own CSV</b>
+              </li>
+              <li className="gd-off">
+                Inbound AI receptionist<b>No</b>
+              </li>
+            </ul>
+          </article>
           <article className="gd-plan">
             <h3>Individual</h3>
             <p className="gd-ds">For one person running outbound alone.</p>
@@ -239,6 +286,9 @@ export default function PricingView({ faqs }) {
               </li>
               <li>
                 Phone numbers<b>1</b>
+              </li>
+              <li>
+                Lead enrichment<b>Included</b>
               </li>
               <li className="gd-off">
                 Inbound AI receptionist<b>Not included</b>
@@ -288,6 +338,9 @@ export default function PricingView({ faqs }) {
                 Phone numbers<b>3</b>
               </li>
               <li>
+                Lead enrichment<b>Included</b>
+              </li>
+              <li>
                 Inbound AI receptionist<b>Included</b>
               </li>
             </ul>
@@ -334,13 +387,16 @@ export default function PricingView({ faqs }) {
                 Phone numbers<b>10</b>
               </li>
               <li>
+                Lead enrichment<b>Included</b>
+              </li>
+              <li>
                 Inbound AI receptionist<b>Included</b>
               </li>
             </ul>
           </article>
         </div>
         <div className="gd-inc">
-          <div className="gd-inc-h">In every plan, at every price</div>
+          <div className="gd-inc-h">In every paid plan</div>
           <div className="gd-inc-g">
             <span>
               <svg
@@ -439,19 +495,20 @@ export default function PricingView({ faqs }) {
               Calendar, Inbox and Pipeline
             </span>
           </div>
+          <p className="gd-inc-n">Free includes AI email sequences, replies you approve, unsubscribe handling, Inbox and Pipeline.</p>
         </div>
         <div className="gd-trust">
           <div>
+            <b>Free to start</b>
+            <span>No card. Sign up with a work email, one Free workspace per company.</span>
+          </div>
+          <div>
             <b>Month to month</b>
-            <span>No annual lock-in. Cancel from Billing any time.</span>
+            <span>No annual lock-in on paid plans. Cancel from Billing any time.</span>
           </div>
           <div>
-            <b>No setup fee</b>
-            <span>No onboarding fee, no per-seat or per-channel charges.</span>
-          </div>
-          <div>
-            <b>Verified emails only</b>
-            <span>By default the agent emails only addresses verified as real, to protect your domain.</span>
+            <b>Every address checked</b>
+            <span>Paid plans email only verified addresses. Free checks format and domain.</span>
           </div>
           <div>
             <b>You approve first</b>
@@ -521,11 +578,11 @@ export default function PricingView({ faqs }) {
           <div className="gd-alt-r gd-us">
             <div>
               <b>GNX Sales</b>
-              <span>Individual, Agency or Startup</span>
+              <span>Free, Individual, Agency or Startup</span>
             </div>
-            <div className="gd-c">$59 to $479</div>
-            <div>Month to month</div>
-            <div>Yes, outbound in every plan</div>
+            <div className="gd-c">$0, then $59 to $479</div>
+            <div>Free, then month to month</div>
+            <div>Yes, in every paid plan</div>
           </div>
           <div className="gd-alt-r">
             <div>
@@ -693,6 +750,9 @@ export default function PricingView({ faqs }) {
                   Plan
                 </th>
                 <th scope="col">
+                  Free<span>$0</span>
+                </th>
+                <th scope="col">
                   Individual<span>{p1} a month</span>
                 </th>
                 <th scope="col" style={{ background: "#ecfdf3" }}>
@@ -705,76 +765,87 @@ export default function PricingView({ faqs }) {
             </thead>
             <tbody>
               <tr className="gd-grp">
-                <td colSpan="4">Volume</td>
+                <td colSpan="5">Volume</td>
               </tr>
               <tr>
                 <th scope="row">Monthly credits</th>
+                <td>~{FREE_PLAN.monthlyAiEmails} AI emails</td>
                 <td>2,645</td>
                 <td className="gd-ft">5,370</td>
                 <td>14,370</td>
               </tr>
               <tr>
                 <th scope="row">Emails a day</th>
+                <td>{FREE_PLAN.dailyEmailCap}</td>
                 <td>100</td>
                 <td className="gd-ft">200</td>
                 <td>500</td>
               </tr>
               <tr>
                 <th scope="row">Email campaigns at once</th>
+                <td>{FREE_PLAN.emailCampaigns}</td>
                 <td>3</td>
                 <td className="gd-ft">10</td>
                 <td>25</td>
               </tr>
               <tr>
                 <th scope="row">Voice campaigns at once</th>
+                <td style={{ color: "var(--muted)", fontWeight: "700" }}>None</td>
                 <td>1</td>
                 <td className="gd-ft">4</td>
                 <td>10</td>
               </tr>
               <tr>
                 <th scope="row">Qualified leads per campaign</th>
+                <td>Your CSV, up to {FREE_PLAN.maxLeads} leads</td>
                 <td>Up to 25 a week</td>
                 <td className="gd-ft">Up to 25 a week</td>
                 <td>Up to 25 a week</td>
               </tr>
               <tr className="gd-grp">
-                <td colSpan="4">Team and setup</td>
+                <td colSpan="5">Team and setup</td>
               </tr>
               <tr>
                 <th scope="row">Seats</th>
+                <td>Shared by your company</td>
                 <td>1</td>
                 <td className="gd-ft">5</td>
                 <td>15</td>
               </tr>
               <tr>
                 <th scope="row">Sending inboxes</th>
+                <td>1, your own</td>
                 <td>1</td>
                 <td className="gd-ft">10</td>
                 <td>30</td>
               </tr>
               <tr>
                 <th scope="row">Phone numbers</th>
+                <td style={{ color: "var(--muted)", fontWeight: "700" }}>None</td>
                 <td>1</td>
                 <td className="gd-ft">3</td>
                 <td>10</td>
               </tr>
               <tr className="gd-grp">
-                <td colSpan="4">Included in every plan</td>
+                <td colSpan="5">Features</td>
               </tr>
               <tr>
                 <th scope="row">Lead database search and CSV import</th>
+                <td style={{ color: "var(--muted)", fontWeight: "700" }}>CSV and paste only</td>
                 <td>Yes</td>
                 <td className="gd-ft">Yes</td>
                 <td>Yes</td>
               </tr>
               <tr>
                 <th scope="row">AI email sequences and reply drafts</th>
+                <td>Yes, lighter AI model</td>
                 <td>Yes</td>
                 <td className="gd-ft">Yes</td>
                 <td>Yes</td>
               </tr>
               <tr>
                 <th scope="row">Outbound AI calling with 10 test calls</th>
+                <td style={{ color: "var(--muted)", fontWeight: "700" }}>No</td>
                 <td>Yes</td>
                 <td className="gd-ft">Yes</td>
                 <td>Yes</td>
@@ -782,11 +853,13 @@ export default function PricingView({ faqs }) {
               <tr>
                 <th scope="row">Autopilot per campaign</th>
                 <td>Yes</td>
+                <td>Yes</td>
                 <td className="gd-ft">Yes</td>
                 <td>Yes</td>
               </tr>
               <tr>
                 <th scope="row">Calendar, Inbox, Pipeline, Analytics</th>
+                <td>Yes</td>
                 <td>Yes</td>
                 <td className="gd-ft">Yes</td>
                 <td>Yes</td>
@@ -794,20 +867,37 @@ export default function PricingView({ faqs }) {
               <tr>
                 <th scope="row">AI Agent chat</th>
                 <td>Yes</td>
+                <td>Yes</td>
                 <td className="gd-ft">Yes</td>
                 <td>Yes</td>
               </tr>
               <tr>
                 <th scope="row">Email support, reply in 1 business day</th>
                 <td>Yes</td>
+                <td>Yes</td>
                 <td className="gd-ft">Yes</td>
                 <td>Yes</td>
               </tr>
               <tr className="gd-grp">
-                <td colSpan="4">Plan specific</td>
+                <td colSpan="5">Plan specific</td>
+              </tr>
+              <tr>
+                <th scope="row">Lead enrichment</th>
+                <td style={{ color: "var(--muted)", fontWeight: "700" }}>No</td>
+                <td>Yes</td>
+                <td className="gd-ft">Yes</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <th scope="row">Email checking</th>
+                <td>Format and domain</td>
+                <td>Verified</td>
+                <td className="gd-ft">Verified</td>
+                <td>Verified</td>
               </tr>
               <tr>
                 <th scope="row">Inbound AI receptionist</th>
+                <td style={{ color: "var(--muted)", fontWeight: "700" }}>No</td>
                 <td style={{ color: "var(--muted)", fontWeight: "700" }}>No</td>
                 <td className="gd-ft">Yes</td>
                 <td>Yes</td>
@@ -948,7 +1038,7 @@ export default function PricingView({ faqs }) {
               boxShadow: "var(--sh-green)",
             }}
           >
-            Choose a plan
+            Start free
           </a>
           <Link
             href="/contact"

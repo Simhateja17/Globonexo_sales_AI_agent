@@ -1,26 +1,27 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useConfirm } from "../../../../components/ui/ConfirmDialog";
 import Link from 'next/link';
 import { api } from '../../../../lib/api';
 import Icon from '../../../../components/ui/Icon';
 import RouteSkeleton from '../../../../components/ui/RouteSkeleton';
 import { canSee } from '../../../../lib/access';
+import Avatar from '../../../../components/ui/Avatar';
 
 function nameOf(person) { return [person.first_name, person.last_name].filter(Boolean).join(' ') || person.email; }
 function roleLabel(role) { return role === 'admin' ? 'Admin' : role === 'owner' ? 'Owner' : 'Member'; }
-function Badge({ children, kind }) {
-  const style = kind === 'owner'
-    ? { background: 'var(--g-50)', color: 'var(--g-700)', borderColor: 'var(--g-100)' }
-    : kind === 'admin'
-      ? { background: '#eff6ff', color: '#1d4ed8', borderColor: '#bfdbfe' }
-      : kind === 'plan_suspended'
-        ? { background: '#fff7ed', color: '#b45309', borderColor: '#fed7aa' }
-        : { background: 'var(--bg-2)', color: 'var(--muted)', borderColor: 'var(--line)' };
-  return <span style={{ display: 'inline-flex', border: '1px solid', borderRadius: 999, padding: '4px 8px', fontSize: 11.5, fontWeight: 800, ...style }}>{children}</span>;
+function RolePill({ role }) {
+  const cls = role === 'owner' ? 'pl-dark' : role === 'admin' ? 'pl-info' : 'pl-mute';
+  return <span className={`pl ${cls}`}>{roleLabel(role)}</span>;
+}
+
+function auditLabel(event) {
+  return event.event_type.replaceAll('_', ' ').replace(/^./, c => c.toUpperCase());
 }
 
 export default function TeamPage() {
+  const confirm = useConfirm();
   const [team, setTeam] = useState(null);
   const [audit, setAudit] = useState([]);
   const [email, setEmail] = useState('');
@@ -37,6 +38,7 @@ export default function TeamPage() {
 
   const members = team?.members ?? [];
   const invitations = team?.invitations ?? [];
+  const joinRequests = team?.joinRequests ?? [];
   const viewerRole = team?.viewer?.role;
   const canManage = canSee(viewerRole, 'team.invite') && team?.viewer?.membership_status === 'active';
   const canManageRoles = canSee(viewerRole, 'team.changeRole');
@@ -64,14 +66,14 @@ export default function TeamPage() {
     catch (err) {
       const impacted = err.response?.data?.details?.impactedUsers;
       if (err.response?.status !== 409 || !Array.isArray(impacted)) { setError(err.response?.data?.error || 'Role change failed.'); return; }
-      confirmed = window.confirm(`This may suspend ${impacted.map(item => item.email).join(', ')} because the plan is full. Continue?`);
+      confirmed = await confirm({ title: 'Change this role?', body: `The plan is full, so this may suspend ${impacted.map(item => item.email).join(', ')}.`, keeps: 'Their history and assigned work.', confirmLabel: 'Change role' });
       if (!confirmed) return;
     }
     await run(() => api.patch(`/team/members/${member.id}/role`, { role, confirmImpact: confirmed }), 'Role updated.');
   };
   const remove = async member => {
     const replacement = activeMembers.find(candidate => candidate.id !== member.id);
-    if (!window.confirm(`Remove ${nameOf(member)}${replacement ? ` and reassign their work to ${nameOf(replacement)}` : ''}?`)) return;
+    if (!(await confirm({ title: `Remove ${nameOf(member)}?`, body: 'They lose access to this workspace straight away.', keeps: replacement ? `Their campaigns and leads, reassigned to ${nameOf(replacement)}.` : 'Their campaigns and leads.', confirmLabel: 'Remove teammate', danger: true }))) return;
     await run(() => api.delete(`/team/members/${member.id}`, { data: { replacementUserId: replacement?.id } }), 'Teammate removed.');
   };
   const loadAudit = async () => {
@@ -81,37 +83,168 @@ export default function TeamPage() {
   const startTransfer = async () => {
     if (!transferTargetId) return;
     const target = activeAdmins.find(member => member.id === transferTargetId);
-    if (!target || !window.confirm(`Transfer ownership to ${nameOf(target)}? You will become an Admin after they accept.`)) return;
+    if (!target || !(await confirm({ title: `Transfer ownership to ${nameOf(target)}?`, body: 'You become an Admin once they accept. Only the Owner manages billing.', confirmLabel: 'Request transfer' }))) return;
     await run(() => api.post('/team/ownership-transfer', { targetUserId: transferTargetId }), 'Ownership transfer request sent.');
     setTransferTargetId('');
   };
   const acceptTransfer = async () => {
-    if (!incomingTransfer || !window.confirm('Accept ownership of this workspace? The current Owner will become an Admin.')) return;
+    if (!incomingTransfer || !(await confirm({ title: 'Accept ownership of this workspace?', body: 'You take over billing and the plan. The current Owner becomes an Admin.', confirmLabel: 'Accept ownership' }))) return;
     await run(() => api.post(`/team/ownership-transfer/${incomingTransfer.id}/accept`), 'You are now the Owner.');
   };
   const cancelTransfer = async () => {
-    if (!pendingTransfer || !window.confirm('Cancel this ownership transfer?')) return;
+    if (!pendingTransfer || !(await confirm({ title: 'Cancel this ownership transfer?', body: 'The request is withdrawn and you stay the Owner.', confirmLabel: 'Cancel transfer' }))) return;
     await run(() => api.delete(`/team/ownership-transfer/${pendingTransfer.id}`), 'Ownership transfer cancelled.');
   };
 
+  const pendingInvitations = invitations.filter(inv => inv.status === 'pending');
+  const approveJoin = request => run(() => api.post(`/team/join-requests/${request.id}/approve`), `Invitation sent to ${request.email}.`);
+  const declineJoin = async request => {
+    if (!(await confirm({ title: `Decline ${nameOf(request)}?`, body: 'They are not told, and they can ask again later.', confirmLabel: 'Decline request' }))) return;
+    await run(() => api.post(`/team/join-requests/${request.id}/decline`), 'Request declined.');
+  };
+
   return (
-    <div className="scroll grow app-page" style={{ minHeight: 0 }}>
-      <div style={{ padding: '34px 40px 48px', maxWidth: 1120, width: '100%', margin: '0 auto' }}>
-        <div className="row spread" style={{ gap: 18, alignItems: 'flex-start', marginBottom: 24 }}><div><h1 className="display" style={{ fontSize: 28, marginBottom: 8 }}>Your team</h1><p className="muted" style={{ fontSize: 14, lineHeight: 1.5 }}>Invite teammates into the same workspace and keep campaign responsibility clear.</p></div>{canSee(viewerRole, 'page.settings') && <Link className="btn btn-ghost btn-sm" href="/settings">Back to settings</Link>}</div>
-        {error && <div role="alert" className="card" style={{ padding: 13, marginBottom: 16, color: '#b42318', background: '#fff5f4', borderColor: '#fecaca' }}>{error}</div>}
-        {notice && <div role="status" className="card" style={{ padding: 13, marginBottom: 16, color: 'var(--g-700)', background: 'var(--g-50)', borderColor: 'var(--g-100)' }}>{notice}</div>}
-        <div className="settings-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 20, alignItems: 'start' }}>
-          <div className="col" style={{ gap: 18 }}>
-            <section className="card" style={{ padding: 22, borderRadius: 8 }}>
-              <div className="row spread" style={{ gap: 12, marginBottom: 16 }}><div><h2 style={{ fontSize: 16, fontWeight: 800 }}>Members</h2><p className="faint" style={{ fontSize: 12.5, marginTop: 3 }}>Admins and Members share the workspace, with assignments controlling edit access.</p></div><span style={{ fontSize: 12.5, fontWeight: 800, color: team?.seats?.available ? 'var(--g-700)' : 'var(--muted)' }}>{team?.seats?.active ?? 0} / {team?.seats?.limit ?? 0} seats</span></div>
-              <div className="col" style={{ gap: 9 }}>{members.map(member => <div key={member.id} className="row spread" style={{ gap: 14, padding: '13px 0', borderTop: '1px solid var(--line)', alignItems: 'center' }}><div className="row" style={{ gap: 11, minWidth: 0 }}><div style={{ width: 34, height: 34, borderRadius: 11, display: 'grid', placeItems: 'center', background: member.membership_status === 'active' ? 'var(--g-50)' : '#fff7ed', color: member.membership_status === 'active' ? 'var(--g-700)' : '#b45309', fontWeight: 900 }}>{(member.first_name || member.email || '?').slice(0, 1).toUpperCase()}</div><div className="col" style={{ gap: 4, minWidth: 0 }}><span style={{ fontWeight: 800, fontSize: 13.5 }} className="ellip">{nameOf(member)}</span><span style={{ color: 'var(--muted)', fontSize: 12.5 }} className="ellip">{member.email}</span></div></div><div className="row" style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}><Badge kind={member.role}>{roleLabel(member.role)}</Badge><Badge kind={member.membership_status}>{member.membership_status === 'plan_suspended' ? 'No active seat' : 'Active'}</Badge>{canManageRoles && member.role !== 'owner' && member.membership_status !== 'removed' && <label className="row" style={{ gap: 5, fontSize: 11.5, color: 'var(--muted)', fontWeight: 800 }}>Priority<input aria-label={`Access priority for ${member.email}`} className="input" type="number" min="1" max="100000" defaultValue={member.access_priority ?? ''} style={{ width: 72, height: 30, padding: '0 7px' }} disabled={busy} onBlur={event => { const priority = Number(event.target.value); if (Number.isInteger(priority) && priority > 0 && priority !== member.access_priority) run(() => api.patch(`/team/members/${member.id}/priority`, { priority }), 'Access priority updated.'); }} /></label>}{canManage && member.role !== 'owner' && member.membership_status !== 'removed' && member.id !== team?.viewer?.id && <div className="row" style={{ gap: 6 }}>{canManageRoles && member.role === 'member' && <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => changeRole(member, 'admin')}>Make Admin</button>}{canManageRoles && member.role === 'admin' && <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => changeRole(member, 'member')}>Make Member</button>}<button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => remove(member)}><Icon name="close" size={14} /> Remove</button></div>}</div></div>)}{members.length === 0 && <p className="muted">No members found.</p>}</div>
-            </section>
-            {canManage && <section className="card" style={{ padding: 22, borderRadius: 8 }}><div className="row" style={{ gap: 10, marginBottom: 16 }}><span style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--g-50)', display: 'grid', placeItems: 'center', color: 'var(--g-700)' }}><Icon name="mail" size={17} /></span><div><h2 style={{ fontSize: 16, fontWeight: 800 }}>Pending invitations</h2><p className="faint" style={{ fontSize: 12.5, marginTop: 3 }}>Each active invitation reserves a seat for seven days.</p></div></div><div className="col" style={{ gap: 8 }}>{invitations.filter(inv => inv.status === 'pending').map(inv => <div key={inv.id} className="row spread" style={{ gap: 12, borderTop: '1px solid var(--line)', padding: '12px 0' }}><div className="col" style={{ gap: 3 }}><span style={{ fontWeight: 800, fontSize: 13 }}>{inv.email}</span><span className="faint" style={{ fontSize: 12 }}>Expires {new Date(inv.expires_at).toLocaleDateString()}</span></div><div className="row" style={{ gap: 6 }}><button type="button" className="btn btn-ghost btn-sm" disabled={busy || !canManage} onClick={() => run(() => api.post(`/team/invitations/${inv.id}/resend`), 'Invitation resent.')}>Resend</button><button type="button" className="btn btn-ghost btn-sm" disabled={busy || !canManage} onClick={() => run(() => api.delete(`/team/invitations/${inv.id}`), 'Invitation revoked.')}>Revoke</button></div></div>)}{invitations.filter(inv => inv.status === 'pending').length === 0 && <p className="muted">No pending invitations.</p>}</div></section>}
-            {canSeeActivity && <section className="card" style={{ padding: 22, borderRadius: 8 }}><button type="button" className="row spread" style={{ width: '100%', textAlign: 'left' }} onClick={loadAudit}><span style={{ fontSize: 16, fontWeight: 800 }}>Team activity</span><span style={{ fontSize: 12, color: 'var(--muted)' }}>{auditOpen ? 'Hide' : 'Show'}</span></button>{auditOpen && <div className="col" style={{ gap: 8, marginTop: 16 }}>{audit.length === 0 ? <p className="muted">No team activity recorded yet.</p> : audit.map(event => <div key={event.id} style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}><strong style={{ fontSize: 12.5 }}>{event.event_type.replaceAll('_', ' ')}</strong><span className="faint" style={{ display: 'block', fontSize: 12, marginTop: 3 }}>{new Date(event.created_at).toLocaleString()}</span></div>)}</div>}</section>}
-          </div>
-          <aside className="col" style={{ gap: 18 }}>{canManage && <section className="card" style={{ padding: 22, borderRadius: 8, background: 'var(--g-50)', borderColor: 'var(--g-100)' }}><h2 style={{ fontSize: 16, fontWeight: 800 }}>Invite a Member</h2><p className="muted" style={{ fontSize: 12.5, lineHeight: 1.55, margin: '8px 0 16px' }}>They will verify this email, create their own account, and join the existing workspace.</p><form onSubmit={invite} className="col" style={{ gap: 10 }}><input className="input" type="email" required placeholder="teammate@company.com" value={email} onChange={event => setEmail(event.target.value)} disabled={busy} /><button type="submit" className="btn btn-primary" disabled={busy || !team?.seats?.available}>{busy ? 'Working...' : team?.seats?.available ? 'Send invitation' : 'No seats available'}</button></form></section>}{(canOwnTransfer || incomingTransfer) && <section className="card" style={{ padding: 22, borderRadius: 8 }}><h2 style={{ fontSize: 15, fontWeight: 800 }}>Ownership</h2>{canOwnTransfer && <>{pendingTransfer ? <div className="col" style={{ gap: 9, marginTop: 12 }}><p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>Waiting for {nameOf(members.find(member => member.id === pendingTransfer.target_user_id) || { email: 'the selected Admin' })} to accept. Expires {new Date(pendingTransfer.expires_at).toLocaleDateString()}.</p><button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={cancelTransfer}>Cancel transfer</button></div> : <div className="col" style={{ gap: 10, marginTop: 12 }}><p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>Transfer the single Owner role to an active Admin. You will become an Admin after acceptance.</p><select className="input" value={transferTargetId} onChange={event => setTransferTargetId(event.target.value)} disabled={busy || activeAdmins.length === 0}><option value="">Select an Admin</option>{activeAdmins.map(member => <option key={member.id} value={member.id}>{nameOf(member)}</option>)}</select><button type="button" className="btn btn-ghost btn-sm" disabled={busy || !transferTargetId} onClick={startTransfer}>Request transfer</button>{activeAdmins.length === 0 && <span className="faint" style={{ fontSize: 12 }}>Promote a Member to Admin first.</span>}</div>}</>}{incomingTransfer && viewerRole === 'admin' && <div className="col" style={{ gap: 10, marginTop: 12 }}><p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>The current Owner nominated you. This request expires {new Date(incomingTransfer.expires_at).toLocaleDateString()}.</p><button type="button" className="btn btn-primary btn-sm" disabled={busy} onClick={acceptTransfer}>Accept ownership</button></div>}</section>}<section className="card" style={{ padding: 22, borderRadius: 8 }}><h2 style={{ fontSize: 15, fontWeight: 800 }}>Seat access</h2><div className="col" style={{ gap: 8, marginTop: 13, fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5 }}><span>Owner always has access.</span><span>Admins receive seats before Members.</span><span>Owner-controlled priority resolves ties.</span><span>Suspended teammates keep their history but cannot access workspace data.</span></div></section></aside>
+    <main className="gx">
+      <div className="ph">
+        <div>
+          <h1>Team</h1>
+          <p>Invite teammates into the same workspace. Assignments decide who can edit each campaign.</p>
+        </div>
+        <div className="acts">
+          <span className={`pl ${team?.seats?.available ? 'pl-ok' : 'pl-warn'}`}>{team?.seats?.active ?? 0} of {team?.seats?.limit ?? 0} seats used</span>
+          {canSee(viewerRole, 'page.settings') && <Link className="bt bt-g" href="/settings">Back to settings</Link>}
         </div>
       </div>
-    </div>
+      {error && <div role="alert" className="note">{error}</div>}
+      {notice && <div role="status" className="gnote ok">{notice}</div>}
+
+      <div className="two">
+        <div className="scol">
+          <section className="card" style={{ overflow: 'hidden' }}>
+            <div className="card-h"><div><b>Your team</b><small>Admins and Members share the workspace.</small></div></div>
+            {members.map(member => (
+              <div key={member.id} className="srow" style={{ flexWrap: 'wrap' }}>
+                <Avatar name={nameOf(member)} size={36} />
+                <div><b className="ellip">{nameOf(member)}</b><small className="ellip">{member.email}</small></div>
+                <span className="mc"><RolePill role={member.role} /></span>
+                <span className="mc"><span className={`pl ${member.membership_status === 'active' ? 'pl-ok' : 'pl-warn'}`}><u />{member.membership_status === 'plan_suspended' ? 'No active seat' : 'Active'}</span></span>
+                {member.role === 'owner' ? <span className="mc muted" style={{ fontSize: 12, fontWeight: 700 }}>Always has access</span> : null}
+                {canManageRoles && member.role !== 'owner' && member.membership_status !== 'removed' && (
+                  <label className="mc muted" style={{ gap: 6, fontSize: 12, fontWeight: 700 }}>
+                    Priority
+                    <input aria-label={`Access priority for ${member.email}`} className="input" type="number" min="1" max="100000" defaultValue={member.access_priority ?? ''} style={{ width: 64, height: 30, padding: '0 7px' }} disabled={busy} onBlur={event => { const priority = Number(event.target.value); if (Number.isInteger(priority) && priority > 0 && priority !== member.access_priority) run(() => api.patch(`/team/members/${member.id}/priority`, { priority }), 'Access priority updated.'); }} />
+                  </label>
+                )}
+                {canManage && member.role !== 'owner' && member.membership_status !== 'removed' && member.id !== team?.viewer?.id && (
+                  <span className="mc" style={{ gap: 6 }}>
+                    {canManageRoles && member.role === 'member' && <button type="button" className="bt bt-g sm" disabled={busy} onClick={() => changeRole(member, 'admin')}>Make Admin</button>}
+                    {canManageRoles && member.role === 'admin' && <button type="button" className="bt bt-g sm" disabled={busy} onClick={() => changeRole(member, 'member')}>Make Member</button>}
+                    <button type="button" className="bt bt-g sm" disabled={busy} onClick={() => remove(member)}><Icon name="close" size={13} /> Remove</button>
+                  </span>
+                )}
+              </div>
+            ))}
+            {members.length === 0 && <div className="empty">No members found.</div>}
+          </section>
+
+          {canManage && joinRequests.length > 0 && (
+            <section className="card" style={{ overflow: 'hidden' }}>
+              <div className="card-h"><div><b>Asking to join</b><small>People from your company. Letting someone in sends them an invitation.</small></div></div>
+              {joinRequests.map(request => (
+                <div key={request.id} className="srow" style={{ flexWrap: 'wrap' }}>
+                  <Avatar name={nameOf(request)} size={36} />
+                  <div><b className="ellip">{nameOf(request)}</b><small className="ellip">{request.email} · asked {new Date(request.created_at).toLocaleDateString()}</small></div>
+                  <span className="mc" style={{ gap: 6 }}>
+                    <button type="button" className="bt bt-p sm" disabled={busy} onClick={() => approveJoin(request)}>Let them in</button>
+                    <button type="button" className="bt bt-g sm" disabled={busy} onClick={() => declineJoin(request)}>Decline</button>
+                  </span>
+                </div>
+              ))}
+            </section>
+          )}
+
+          {canManage && (
+            <section className="card" style={{ overflow: 'hidden' }}>
+              <div className="card-h"><div><b>Pending invitations</b><small>Each active invitation holds a seat for 7 days.</small></div></div>
+              {pendingInvitations.map(inv => (
+                <div key={inv.id} className="srow">
+                  <span className="si"><Icon name="mail" size={17} /></span>
+                  <div><b className="ellip">{inv.email}</b><small>Expires {new Date(inv.expires_at).toLocaleDateString()}</small></div>
+                  <span className="mc" style={{ gap: 6 }}>
+                    <button type="button" className="bt bt-g sm" disabled={busy} onClick={() => run(() => api.post(`/team/invitations/${inv.id}/resend`), 'Invitation resent.')}>Resend</button>
+                    <button type="button" className="bt bt-g sm" disabled={busy} onClick={() => run(() => api.delete(`/team/invitations/${inv.id}`), 'Invitation revoked.')}>Revoke</button>
+                  </span>
+                </div>
+              ))}
+              {pendingInvitations.length === 0 && <div className="empty">No pending invitations.</div>}
+            </section>
+          )}
+
+          {canSeeActivity && (
+            <section className="card" style={{ overflow: 'hidden' }}>
+              <div className="card-h">
+                <div><b>Team activity</b><small>Invitations, role changes and joins.</small></div>
+                <button type="button" className="lnk" onClick={loadAudit}>{auditOpen ? 'Hide' : 'Show'}</button>
+              </div>
+              {auditOpen && (audit.length === 0 ? <div className="empty">No team activity recorded yet.</div> : audit.map(event => (
+                <div key={event.id} className="srow">
+                  <span className="si"><Icon name="users" size={16} /></span>
+                  <div><b>{auditLabel(event)}</b><small>{new Date(event.created_at).toLocaleString()}</small></div>
+                </div>
+              )))}
+            </section>
+          )}
+        </div>
+
+        <aside className="scol">
+          {canManage && (
+            <section className="card pad">
+              <h3 className="h3">Invite a Member</h3>
+              <p className="sub">They verify this email, create their own account and join your workspace.</p>
+              <form onSubmit={invite} className="col" style={{ gap: 10, marginTop: 14 }}>
+                <input className="input" type="email" required aria-label="Teammate email" placeholder="teammate@company.com" value={email} onChange={event => setEmail(event.target.value)} disabled={busy} />
+                <button type="submit" className="bt bt-p" style={{ justifyContent: 'center' }} disabled={busy || !team?.seats?.available}>{busy ? 'Working...' : team?.seats?.available ? 'Send invitation' : 'No seats available'}</button>
+              </form>
+            </section>
+          )}
+          {(canOwnTransfer || incomingTransfer) && (
+            <section className="card pad">
+              <h3 className="h3">Ownership</h3>
+              {canOwnTransfer && (pendingTransfer ? (
+                <div className="col" style={{ gap: 10, marginTop: 6 }}>
+                  <p className="sub">Waiting for {nameOf(members.find(member => member.id === pendingTransfer.target_user_id) || { email: 'the selected Admin' })} to accept. Expires {new Date(pendingTransfer.expires_at).toLocaleDateString()}.</p>
+                  <button type="button" className="bt bt-g sm" disabled={busy} onClick={cancelTransfer}>Cancel transfer</button>
+                </div>
+              ) : (
+                <div className="col" style={{ gap: 10, marginTop: 6 }}>
+                  <p className="sub">Hand the Owner role to an active Admin. You become an Admin once they accept.</p>
+                  <select className="sel-box" aria-label="New owner" value={transferTargetId} onChange={event => setTransferTargetId(event.target.value)} disabled={busy || activeAdmins.length === 0}>
+                    <option value="">Select an Admin</option>
+                    {activeAdmins.map(member => <option key={member.id} value={member.id}>{nameOf(member)}</option>)}
+                  </select>
+                  <button type="button" className="bt bt-g sm" style={{ alignSelf: 'flex-start' }} disabled={busy || !transferTargetId} onClick={startTransfer}>Request transfer</button>
+                  {activeAdmins.length === 0 && <span className="muted" style={{ fontSize: 12 }}>Promote a Member to Admin first.</span>}
+                </div>
+              ))}
+              {incomingTransfer && viewerRole === 'admin' && (
+                <div className="col" style={{ gap: 10, marginTop: 6 }}>
+                  <p className="sub">The current Owner nominated you. This request expires {new Date(incomingTransfer.expires_at).toLocaleDateString()}.</p>
+                  <button type="button" className="bt bt-p sm" disabled={busy} onClick={acceptTransfer}>Accept ownership</button>
+                </div>
+              )}
+            </section>
+          )}
+          <section className="card pad">
+            <h3 className="h3">Seat access</h3>
+            <div className="tl" style={{ marginTop: 12 }}>
+              <div><i /><span style={{ marginTop: 0 }}>The Owner always has a seat.</span></div>
+              <div><i /><span style={{ marginTop: 0 }}>Admins get seats before Members.</span></div>
+              <div><i /><span style={{ marginTop: 0 }}>Your priority numbers settle ties.</span></div>
+              <div><i /><span style={{ marginTop: 0 }}>Anyone without a seat keeps their history but cannot open workspace data.</span></div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
   );
 }

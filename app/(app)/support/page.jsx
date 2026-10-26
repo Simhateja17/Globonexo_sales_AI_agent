@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Icon from "../../../components/ui/Icon";
+import EmptyState from "../../../components/ui/EmptyState";
 import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import Spinner from "../../../components/ui/Spinner";
@@ -11,10 +12,17 @@ import { getSupabaseBrowserClient } from "../../../lib/supabase-browser";
 import { cleanText } from "../../../lib/validation";
 
 const STATUS_STYLES = {
-  open: { label: "Open", bg: "var(--g-50)", color: "var(--g-700)" },
-  resolved: { label: "Resolved", bg: "#eef2ff", color: "#4338ca" },
-  closed: { label: "Closed", bg: "var(--bg-2)", color: "var(--muted)" },
+  open: { label: "Open", cls: "pl-warn" },
+  resolved: { label: "Resolved", cls: "pl-ok" },
+  closed: { label: "Closed", cls: "pl-mute" },
 };
+
+const QUICK_ANSWERS = [
+  "Connect a Google or Microsoft inbox",
+  "Why a lead was dropped before credits",
+  "How autopilot works per campaign",
+  "Buy, replace or release a number",
+];
 
 function formatTime(value) {
   if (!value) return "";
@@ -24,34 +32,18 @@ function formatTime(value) {
 
 function TicketBadge({ status }) {
   const style = STATUS_STYLES[status] || STATUS_STYLES.open;
-  return <span className="badge" style={{ background: style.bg, color: style.color, border: "1px solid var(--line)" }}>{style.label}</span>;
-}
-
-function TicketButton({ ticket, selected, onClick }) {
-  return (
-    <button type="button" className={`support-ticket-button ${selected ? "is-active" : ""}`} onClick={onClick}>
-      <div className="row spread" style={{ gap: 10 }}>
-        <strong className="ellip">{ticket.subject}</strong>
-        <TicketBadge status={ticket.status} />
-      </div>
-      <p className="muted ellip">{ticket.lastMessage?.body || "No messages yet"}</p>
-      <span className="faint">{formatTime(ticket.updatedAt)}</span>
-    </button>
-  );
+  return <span className={`pl ${style.cls}`}>{style.label}</span>;
 }
 
 function MessageBubble({ message }) {
   const admin = message.senderType === "admin";
+  const name = admin ? message.sender?.name || "GNX Support" : "You";
   return (
-    <div className={`support-message ${admin ? "is-admin" : "is-user"}`}>
-      <div className="row" style={{ gap: 8, justifyContent: admin ? "flex-start" : "flex-end" }}>
-        {admin ? <Avatar name={message.sender?.name || "Support"} size={26} /> : null}
-        <div>
-          <div className="support-bubble">
-            {message.body}
-          </div>
-          <span className="faint support-time">{admin ? "Support" : "You"} · {formatTime(message.createdAt)}</span>
-        </div>
+    <div className={`smsg ${admin ? "" : "mine"}`}>
+      <Avatar name={admin ? name : "You"} size={32} />
+      <div>
+        <div className="mh"><b>{admin ? `${name} · GNX Support` : name}</b><small>{formatTime(message.createdAt)}</small></div>
+        <p style={{ whiteSpace: "pre-line" }}>{message.body}</p>
       </div>
     </div>
   );
@@ -75,6 +67,7 @@ export default function SupportPage() {
   const [replyBody, setReplyBody] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [composing, setComposing] = useState(false);
   const showSkeleton = useFirstLoad(loading);
 
   const openTickets = useMemo(() => tickets.filter(ticket => ticket.status === "open").length, [tickets]);
@@ -175,6 +168,7 @@ export default function SupportPage() {
       setSubject("");
       setNewBody("");
       setNotice("Support ticket created.");
+      setComposing(false);
       await loadTickets();
       setSelectedId(data.id);
     } catch (err) {
@@ -217,102 +211,124 @@ export default function SupportPage() {
 
   if (showSkeleton) return <RouteSkeleton />;
 
+  const showForm = composing || tickets.length === 0;
+
   return (
-    <div className="support-layout">
-      <aside className="support-sidebar">
-        <div className="support-sidebar-head">
-          <div>
-            <h1 className="display" style={{ fontSize: 22 }}>Support</h1>
-            <p className="muted" style={{ fontSize: 13, marginTop: 3 }}>{openTickets} open tickets</p>
+    <main className="gx">
+      <div className="ph">
+        <div>
+          <h1>Support</h1>
+          <p>Real people reply within 1 business day, usually much sooner. {openTickets} open ticket{openTickets === 1 ? "" : "s"}.</p>
+        </div>
+        <div className="acts">
+          <button type="button" className="bt bt-p" onClick={() => { setComposing(true); setError(""); setNotice(""); }}>
+            <Icon name="plus" size={15} color="#06231a" /> New ticket
+          </button>
+        </div>
+      </div>
+
+      {(error || notice) ? <div className={error ? "note" : "gnote ok"}>{error || notice}</div> : null}
+
+      <div className="two" style={{ gridTemplateColumns: "360px minmax(0,1fr)" }}>
+        <div className="scol">
+          <div className="card" style={{ overflow: "hidden" }}>
+            <div className="card-h"><div><b>Your tickets</b><small>{tickets.length} ticket{tickets.length === 1 ? "" : "s"}</small></div></div>
+            {tickets.length === 0 ? (
+              <EmptyState
+                compact
+                icon="chat"
+                title="No tickets yet"
+                text="Ask us anything. Real people reply within 1 business day."
+                actions={[{ label: "New ticket", icon: "plus", primary: true, onClick: () => setComposing(true) }]}
+              />
+            ) : tickets.map(ticket => (
+              <button key={ticket.id} type="button" className={`tk ${!showForm && ticket.id === selectedId ? "on" : ""}`} onClick={() => { setSelectedId(ticket.id); setComposing(false); }}>
+                <div><b className="ellip">{ticket.subject}</b><TicketBadge status={ticket.status} /></div>
+                <small className="ellip">{(STATUS_STYLES[ticket.status] || STATUS_STYLES.open).label} · updated {formatTime(ticket.updatedAt)}</small>
+              </button>
+            ))}
           </div>
-          <span className="metric-icon"><Icon name="chat" size={16} /></span>
+          <div className="card pad">
+            <h3 className="h3">Quick answers</h3>
+            <p className="sub">Most questions are answered in the Help Center.</p>
+            <div style={{ marginTop: 8 }}>
+              {QUICK_ANSWERS.map(item => (
+                <a key={item} className="lk" href={`/help?q=${encodeURIComponent(item)}`}>
+                  <i><Icon name="book" size={13} /></i><span>{item}</span><Icon name="arrow" size={14} />
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <form className="support-new-ticket" onSubmit={createTicket}>
-          <label className="field">
-            <span>Subject</span>
-            <input className="input" value={subject} onChange={event => setSubject(event.target.value)} placeholder="What do you need help with?" />
-          </label>
-          <label className="field">
-            <span>Message</span>
-            <textarea className="support-textarea" value={newBody} onChange={event => setNewBody(event.target.value)} placeholder="Share details, links, screenshots, or errors." />
-          </label>
-          <button className="btn btn-primary btn-sm btn-block" type="submit" disabled={creating || !subject.trim() || !newBody.trim()}>
-            <Icon name="plus" size={14} color="#06231a" /> {creating ? "Creating..." : "Create ticket"}
-          </button>
-        </form>
+        {showForm ? (
+          <form className="card" onSubmit={createTicket}>
+            <div className="card-h"><div><b>New ticket</b><small>Tell us what is happening. Links and error messages help.</small></div></div>
+            <div className="pad col" style={{ gap: 14 }}>
+              <label className="fld">
+                <span>Subject</span>
+                <input className="input" value={subject} onChange={event => setSubject(event.target.value)} placeholder="What do you need help with?" />
+              </label>
+              <label className="fld">
+                <span>Message</span>
+                <textarea className="input" style={{ height: "auto", minHeight: 140, paddingTop: 12, resize: "vertical" }} value={newBody} onChange={event => setNewBody(event.target.value)} placeholder="Share details, links, screenshots, or errors." />
+              </label>
+              <div className="acts">
+                {tickets.length > 0 ? <button type="button" className="bt bt-g" onClick={() => setComposing(false)}>Cancel</button> : null}
+                <button className="bt bt-p" type="submit" disabled={creating || !subject.trim() || !newBody.trim()}>
+                  <Icon name="send" size={14} color="#06231a" /> {creating ? "Creating..." : "Create ticket"}
+                </button>
+              </div>
+            </div>
+          </form>
+        ) : (
+          <div className="card" style={{ overflow: "hidden" }}>
+            <div className="card-h">
+              {detail ? (
+                <>
+                  <div style={{ minWidth: 0 }}><b className="ellip" style={{ display: "block" }}>{detail.subject}</b><small>Opened {formatTime(detail.createdAt)}</small></div>
+                  <div className="acts">
+                    <TicketBadge status={detail.status} />
+                    {detail.status === "open" ? (
+                      <button className="bt bt-g sm" type="button" onClick={() => updateStatus("resolved")}><Icon name="check" size={13} /> Resolve</button>
+                    ) : (
+                      <button className="bt bt-g sm" type="button" onClick={() => updateStatus("open")}>Reopen</button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div><b>Select a ticket</b><small>Support replies appear here in real time.</small></div>
+              )}
+            </div>
 
-        <div className="support-ticket-list">
-          {tickets.length === 0 ? (
-            <div className="soft-empty">No tickets yet.</div>
-          ) : tickets.map(ticket => (
-            <TicketButton key={ticket.id} ticket={ticket} selected={ticket.id === selectedId} onClick={() => setSelectedId(ticket.id)} />
-          ))}
-        </div>
-      </aside>
+            {detailLoading ? (
+              <div className="empty"><Spinner size={20} /></div>
+            ) : !detail ? (
+              <div className="empty">Select a ticket from the list.</div>
+            ) : detail.messages?.length === 0 ? (
+              <div className="empty">No messages yet. Send the first message to start the thread.</div>
+            ) : detail.messages.map(message => <MessageBubble key={message.id} message={message} />)}
 
-      <main className="support-chat-panel">
-        <div className="support-chat-head">
-          {detail ? (
-            <>
-              <div className="row" style={{ gap: 12, minWidth: 0 }}>
-                <span className="metric-icon"><Icon name="inbox" size={16} /></span>
-                <div className="col" style={{ minWidth: 0 }}>
-                  <strong className="ellip">{detail.subject}</strong>
-                  <span className="faint">Created {formatTime(detail.createdAt)}</span>
+            {detail ? (
+              <form className="compose" onSubmit={sendReply}>
+                <textarea
+                  aria-label="Reply"
+                  value={replyBody}
+                  onChange={event => setReplyBody(event.target.value)}
+                  placeholder={detail.status === "closed" ? "Closed tickets cannot receive replies." : "Write a reply…"}
+                  disabled={detail.status === "closed" || sending}
+                />
+                <div>
+                  <span className="muted" style={{ fontSize: 12, fontWeight: 600 }}>Replies appear here as soon as they are sent.</span>
+                  <button className="bt bt-p sm" type="submit" disabled={detail.status === "closed" || sending || !replyBody.trim()}>
+                    <Icon name="send" size={13} color="#06231a" /> {sending ? "Sending..." : "Send"}
+                  </button>
                 </div>
-              </div>
-              <div className="row" style={{ gap: 8 }}>
-                <TicketBadge status={detail.status} />
-                {detail.status === "open" ? (
-                  <button className="btn btn-ghost btn-sm" type="button" onClick={() => updateStatus("resolved")}>Resolve</button>
-                ) : (
-                  <button className="btn btn-ghost btn-sm" type="button" onClick={() => updateStatus("open")}>Reopen</button>
-                )}
-              </div>
-            </>
-          ) : (
-            <div>
-              <strong>Select or create a ticket</strong>
-              <p className="faint" style={{ fontSize: 13, marginTop: 4 }}>Support replies will appear here in realtime.</p>
-            </div>
-          )}
-        </div>
-
-        {(error || notice) ? <div className={error ? "notice-warn" : "notice-good"}>{error || notice}</div> : null}
-
-        <div className="support-message-list">
-          {detailLoading ? (
-            <div style={{ display: "grid", placeItems: "center", padding: "40px 0" }}>
-              <Spinner size={20} />
-            </div>
-          ) : !detail ? (
-            <div className="empty-state">
-              <Icon name="chat" size={42} color="var(--faint)" />
-              <p className="muted">No ticket selected</p>
-              <span className="faint">Create a ticket or select one from the list.</span>
-            </div>
-          ) : detail.messages?.length === 0 ? (
-            <div className="empty-state">
-              <Icon name="chat" size={42} color="var(--faint)" />
-              <p className="muted">No messages yet</p>
-              <span className="faint">Send the first message to start the thread.</span>
-            </div>
-          ) : detail.messages.map(message => <MessageBubble key={message.id} message={message} />)}
-        </div>
-
-        <form className="support-composer" onSubmit={sendReply}>
-          <textarea
-            value={replyBody}
-            onChange={event => setReplyBody(event.target.value)}
-            placeholder={detail?.status === "closed" ? "Closed tickets cannot receive replies." : "Write a reply..."}
-            disabled={!detail || detail.status === "closed" || sending}
-          />
-          <button className="btn btn-primary btn-sm" type="submit" disabled={!detail || detail.status === "closed" || sending || !replyBody.trim()}>
-            <Icon name="send" size={14} color="#06231a" /> {sending ? "Sending..." : "Send"}
-          </button>
-        </form>
-      </main>
-    </div>
+              </form>
+            ) : null}
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
