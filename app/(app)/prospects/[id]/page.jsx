@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import api from "../../../../lib/api";
 import Icon from "../../../../components/ui/Icon";
 import Avatar from "../../../../components/ui/Avatar";
@@ -10,6 +10,8 @@ import Spinner from "../../../../components/ui/Spinner";
 import RouteSkeleton from "../../../../components/ui/RouteSkeleton";
 import { leadPhoto } from "../../../../lib/lead-photo";
 import { isValidEmail } from "../../../../lib/validation";
+import { campaignSendsEmail, outreachSummary, sendButtonState, useLeadOutreach } from "../../../../lib/lead-outreach";
+import SendEmailDialog from "../../../../components/leads/SendEmailDialog";
 import {
   SOURCE_LABELS,
   STAGE_LABELS,
@@ -77,7 +79,6 @@ function buildTimeline(messages, calls) {
 
 export default function LeadProfilePage() {
   const { id } = useParams();
-  const router = useRouter();
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState([]);
@@ -89,6 +90,8 @@ export default function LeadProfilePage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [assignCampaignId, setAssignCampaignId] = useState("");
+  const [sendOpen, setSendOpen] = useState(false);
+  const { outreach, reload: reloadOutreach } = useLeadOutreach(id);
 
   const loadLead = useCallback(async () => {
     const { data } = await api.get("/leads", { params: { perPage: 500 } });
@@ -131,6 +134,8 @@ export default function LeadProfilePage() {
     try {
       await action();
       await loadLead();
+      // Adding to a campaign starts writing the first email; show that.
+      reloadOutreach({ quiet: true });
       setNotice(success);
     } catch (err) {
       setError(err?.response?.data?.error || "That action could not be completed.");
@@ -155,9 +160,9 @@ export default function LeadProfilePage() {
   const safeEmail = isValidEmail(lead.email) ? lead.email : "";
   const safeLinkedIn = safeExternalUrl(lead.linkedinUrl);
   const geo = [lead.city, lead.state, lead.country].filter(Boolean).join(", ") || lead.location || "";
-  const campaign = campaigns.find(item => item.id === lead.campaignId);
-  const canSendNow = Boolean(safeEmail) && Boolean(lead.campaignId) && status !== "contacted" && !STOPPED_STATUSES.has(status);
-  const hasPendingDraft = messages.some(message => message.status === "draft");
+  const campaign = lead.campaign ?? campaigns.find(item => item.id === lead.campaignId);
+  const sendButton = sendButtonState(outreach, { hasEmail: Boolean(safeEmail), stopped: STOPPED_STATUSES.has(status) });
+  const next = outreach ? outreachSummary(outreach) : null;
   const employment = Array.isArray(lead.employmentHistory) ? lead.employmentHistory : [];
   const facts = [
     lead.headline ? { label: lead.headline, source: "Profile headline" } : null,
@@ -179,20 +184,27 @@ export default function LeadProfilePage() {
           <button type="button" className="bt bt-g" disabled={busy === "enrich"} onClick={() => run("enrich", () => api.post("/leads/apollo-enrich", { leadId: lead.id }), "Lead details refreshed.")}>
             {busy === "enrich" ? <Spinner size={13} /> : <Icon name="refresh" size={14} />} {lead.email ? "Refresh details" : "Reveal email"}
           </button>
-          {hasPendingDraft ? (
-            <button type="button" className="bt bt-p" onClick={() => router.push(`/campaigns/${lead.campaignId}`)}>
-              <Icon name="check" size={14} color="#06231a" /> Review draft
-            </button>
-          ) : (
-            <button type="button" className="bt bt-p" disabled={!canSendNow || busy === "send"} onClick={() => run("send", () => api.post(`/leads/${lead.id}/send-now`), "Email sent to this lead.")}>
-              <Icon name="send" size={14} color="#06231a" /> {busy === "send" ? "Sending..." : "Send now"}
-            </button>
-          )}
+          <button type="button" className="bt bt-p" disabled={sendButton.disabled || !outreach} title={sendButton.title} onClick={() => { setError(""); setNotice(""); setSendOpen(true); }}>
+            {sendButton.busy ? <Spinner size={13} /> : <Icon name={sendButton.label === "Write email" ? "edit" : "send"} size={14} color="#06231a" />} {sendButton.label}
+          </button>
         </div>
       </div>
 
       {error ? <div className="note">{error}</div> : null}
       {notice ? <div className="gnote ok">{notice}</div> : null}
+      {next && campaignSendsEmail(outreach?.campaign) ? (
+        <div className={`gnote ${next.tone || ""}`} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {next.busy ? <Spinner size={13} /> : null}<b>{next.title}</b><span>{next.detail}</span>
+        </div>
+      ) : null}
+
+      {sendOpen ? (
+        <SendEmailDialog
+          lead={lead}
+          onClose={() => { setSendOpen(false); reloadOutreach({ quiet: true }); }}
+          onSent={async () => { setNotice("Email sent to this lead."); await loadLead(); }}
+        />
+      ) : null}
 
       <div className="lp">
         <div className="scol">
