@@ -17,6 +17,7 @@ import {
 } from "../../../../lib/apollo-targeting";
 import { normalizeSavedCampaignForm } from "../../../../lib/campaign-draft";
 import { findPlan } from "../../../../lib/plans";
+import { campaignDefaultsFromConfig } from "../../../../lib/onboarding-flow";
 
 const DEFAULT_FORM = {
   name: "",
@@ -209,6 +210,10 @@ export default function NewCampaignPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [draftRestored, setDraftRestored] = useState(false);
+  // Saved onboarding answers. New campaigns start from them: campaign notes
+  // for the channel, call settings for voice, the email follow-up schedule.
+  const [onboardingConfig, setOnboardingConfig] = useState(null);
+  const autoNotes = useRef("");
   const [validationErrors, setValidationErrors] = useState([]);
   const [dailyEmailCap, setDailyEmailCap] = useState(100);
   const [planId, setPlanId] = useState("starter");
@@ -258,6 +263,7 @@ export default function NewCampaignPage() {
     api.get("/onboarding")
       .then(({ data }) => {
         if (!data) return;
+        setOnboardingConfig(data);
         const defaults = audienceDefaultsFromOnboarding(data);
         setAutomaticAudience(current => ({
           ...current,
@@ -300,6 +306,17 @@ export default function NewCampaignPage() {
     if (!restoredFromDraft) {
       api.get("/onboarding")
         .then(({ data }) => {
+          // Voice-only workspaces start a new campaign as a voice campaign.
+          if (data?.onboarding_preferences?.channels === "voice") {
+            setForm(current => ({ ...current, channel: "voice" }));
+          }
+          const { stepDelays } = campaignDefaultsFromConfig(data, "email");
+          if (stepDelays) {
+            // The follow-up schedule chosen during onboarding (or in Settings),
+            // including how many emails it has.
+            setSteps(stepDelays.slice(0, MAX_STEPS).map(makeStep));
+            return;
+          }
           const delays = parseCadenceDelays(data?.follow_up_cadence);
           if (delays) {
             // The onboarding cadence describes 3 steps; keep whatever delay a
@@ -314,6 +331,28 @@ export default function NewCampaignPage() {
 
     setDraftRestored(true);
   }, []);
+
+  // Fill the campaign notes and call settings from the saved answers for the
+  // chosen channel. Anything the user already changed is left alone: notes
+  // are only replaced while they are empty or still the last auto-filled
+  // text, and call settings only while they hold the page defaults.
+  useEffect(() => {
+    if (!draftRestored || !onboardingConfig) return;
+    const defaults = campaignDefaultsFromConfig(onboardingConfig, form.channel);
+    setForm(current => {
+      const next = { ...current };
+      const notes = current.promptNotes.trim();
+      if (!notes || notes === autoNotes.current.trim()) next.promptNotes = defaults.promptNotes;
+      if (usesVoice(current.channel)) {
+        if (defaults.callCadencePerHour && Number(current.callCadencePerHour) === DEFAULT_FORM.callCadencePerHour) next.callCadencePerHour = defaults.callCadencePerHour;
+        if (defaults.maxCallAttempts && Number(current.maxCallAttempts) === DEFAULT_FORM.maxCallAttempts) next.maxCallAttempts = defaults.maxCallAttempts;
+        if (defaults.allowedWeekdays && current.allowedWeekdays.join() === DEFAULT_FORM.allowedWeekdays.join()) next.allowedWeekdays = defaults.allowedWeekdays;
+        if (defaults.simulationEnabled !== null && current.simulationEnabled === DEFAULT_FORM.simulationEnabled) next.simulationEnabled = defaults.simulationEnabled;
+      }
+      return next;
+    });
+    autoNotes.current = defaults.promptNotes;
+  }, [draftRestored, onboardingConfig, form.channel]);
 
   useEffect(() => {
     if (!draftRestored) return;
