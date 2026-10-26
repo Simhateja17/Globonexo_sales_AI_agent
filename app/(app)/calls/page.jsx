@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import api from "../../../lib/api";
 import Icon from "../../../components/ui/Icon";
+import SelectMenu from "../../../components/ui/SelectMenu";
 import EmptyState from "../../../components/ui/EmptyState";
 import { useRouter } from "next/navigation";
 import Spinner from "../../../components/ui/Spinner";
@@ -469,10 +470,16 @@ export default function CallsPage() {
           <p>Every inbound and outbound call, with outcome, summary and transcript.</p>
         </div>
         <div className="acts">
-          <select className="sel-box" style={{ background: "#fff" }} aria-label="Filter by phone number" value={numberFilter} onChange={event => setNumberFilter(event.target.value)}>
-            <option value="">All phone numbers{numbers.length ? ` (${numbers.length})` : ""}</option>
-            {numbers.map(number => <option key={number.id} value={number.id}>{number.phone_number || number.label || "Pending number"}</option>)}
-          </select>
+          <SelectMenu
+            icon="phone"
+            ariaLabel="Filter by phone number"
+            value={numberFilter}
+            onChange={setNumberFilter}
+            options={[
+              { value: "", label: `All phone numbers${numbers.length ? ` (${numbers.length})` : ""}` },
+              ...numbers.map(number => ({ value: number.id, label: number.phone_number || number.label || "Pending number" })),
+            ]}
+          />
           <button type="button" className="bt bt-g" onClick={load} disabled={loading}>
             <Icon name="refresh" size={14} /> {loading ? "Refreshing…" : "Refresh"}
           </button>
