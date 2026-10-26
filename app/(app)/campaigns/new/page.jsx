@@ -17,6 +17,7 @@ import {
 } from "../../../../lib/apollo-targeting";
 import { normalizeSavedCampaignForm } from "../../../../lib/campaign-draft";
 import { findPlan } from "../../../../lib/plans";
+import { listMissingFields, missingEmailWriterFields } from "../../../../lib/lead-email-state";
 import { campaignDefaultsFromConfig } from "../../../../lib/onboarding-flow";
 
 const DEFAULT_FORM = {
@@ -232,6 +233,7 @@ export default function NewCampaignPage() {
   const [automaticAudience, setAutomaticAudience] = useState(DEFAULT_AUTOMATIC_AUDIENCE);
   const [showAutomaticMoreFilters, setShowAutomaticMoreFilters] = useState(false);
   const emailEnabled = usesEmail(form.channel);
+  const selectedMissingDetails = useMemo(() => allLeads.filter(lead => selectedLeadIds.has(lead.id) && missingEmailWriterFields(lead).length > 0).length, [allLeads, selectedLeadIds]);
   const voiceEnabled = usesVoice(form.channel);
   const setupReady = form.name.trim().length >= 3 && (!voiceEnabled || form.voicePermissionConfirmed);
   const setVoicePermission = useCallback(confirmed => {
@@ -450,8 +452,13 @@ export default function NewCampaignPage() {
       return;
     }
 
-    if (form.channel === "email" && !email) {
-      setManualLeadError("Email campaigns need an email address for manual leads.");
+    // The first email is written from the lead's name, job title and company
+    // as soon as the campaign has it. Ask now, not after the draft fails.
+    const missingForEmail = usesEmail(form.channel)
+      ? missingEmailWriterFields({ firstName, lastName, title: manualLead.title, company, email })
+      : [];
+    if (missingForEmail.length > 0) {
+      setManualLeadError(`Add their ${listMissingFields(missingForEmail)}. The email is written from them.`);
       return;
     }
 
@@ -1051,6 +1058,11 @@ export default function NewCampaignPage() {
                     })}
                   </div>
                   {leadSource === "existing" ? <span className="chip" style={{ fontSize: 12 }}>{selectedLeadIds.size} selected</span> : null}
+                  {leadSource === "existing" && emailEnabled && selectedMissingDetails > 0 ? (
+                    <span className="chip" style={{ fontSize: 12, color: "#b54708" }} title="Their email can't be written until you add a job title and company on the lead">
+                      {selectedMissingDetails} without a job title or company
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
@@ -1131,19 +1143,19 @@ export default function NewCampaignPage() {
                     </span>
                     <div>
                       <strong style={{ fontSize: 13.5 }}>Add manually</strong>
-                      <p className="faint" style={{ fontSize: 12, marginTop: 1 }}>Saved to leads and selected for this draft.</p>
+                      <p className="faint" style={{ fontSize: 12, marginTop: 1 }}>{emailEnabled ? "Name, email, company and title are needed to write their email." : "Saved to leads and selected for this draft."}</p>
                     </div>
                   </div>
                   {manualLeadError ? <span style={{ color: "#9a3412", fontSize: 12.5, fontWeight: 800 }}>{manualLeadError}</span> : null}
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 10 }}>
-                  <input className="input" placeholder="First name" value={manualLead.firstName} onChange={e => setManualLeadField("firstName", e.target.value)} maxLength={120} style={{ height: 40 }} />
+                  <input className="input" placeholder={emailEnabled ? "First name *" : "First name"} value={manualLead.firstName} onChange={e => setManualLeadField("firstName", e.target.value)} maxLength={120} style={{ height: 40 }} />
                   <input className="input" placeholder="Last name" value={manualLead.lastName} onChange={e => setManualLeadField("lastName", e.target.value)} maxLength={120} style={{ height: 40 }} />
-                  <input className="input" placeholder={form.channel === "voice" ? "Email (optional)" : "Email"} value={manualLead.email} onChange={e => setManualLeadField("email", e.target.value)} maxLength={240} style={{ height: 40 }} />
+                  <input className="input" placeholder={form.channel === "voice" ? "Email (optional)" : "Email *"} value={manualLead.email} onChange={e => setManualLeadField("email", e.target.value)} maxLength={240} style={{ height: 40 }} />
                   <input className="input" placeholder={emailEnabled ? "Phone (optional)" : "Phone"} value={manualLead.phone} onChange={e => setManualLeadField("phone", e.target.value)} maxLength={80} style={{ height: 40 }} />
-                  <input className="input" placeholder="Company" value={manualLead.company} onChange={e => setManualLeadField("company", e.target.value)} maxLength={160} style={{ height: 40 }} />
-                  <input className="input" placeholder="Title" value={manualLead.title} onChange={e => setManualLeadField("title", e.target.value)} maxLength={160} style={{ height: 40 }} />
+                  <input className="input" placeholder={emailEnabled ? "Company *" : "Company"} value={manualLead.company} onChange={e => setManualLeadField("company", e.target.value)} maxLength={160} style={{ height: 40 }} />
+                  <input className="input" placeholder={emailEnabled ? "Job title *" : "Title"} value={manualLead.title} onChange={e => setManualLeadField("title", e.target.value)} maxLength={160} style={{ height: 40 }} />
                   <input className="input" placeholder="Location (optional)" value={manualLead.location} onChange={e => setManualLeadField("location", e.target.value)} maxLength={160} style={{ height: 40 }} />
                   <input className="input" placeholder="LinkedIn URL (optional)" value={manualLead.linkedinUrl} onChange={e => setManualLeadField("linkedinUrl", e.target.value)} maxLength={500} style={{ height: 40 }} />
                 </div>

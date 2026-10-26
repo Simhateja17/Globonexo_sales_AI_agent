@@ -509,13 +509,25 @@ export default function CampaignDetailPage() {
   // The tab lives in the URL so a reload and a shared link both land on the
   // section the customer was reading.
   const requestedTab = searchParams.get("tab");
-  const selectTab = useCallback(tab => {
+  const sectionsRef = useRef(null);
+  const [revealTab, setRevealTab] = useState(false);
+  // `reveal` is for buttons far above the tabs (the header's Settings): the
+  // tab opens below the preparation panel, so without scrolling to it the
+  // click looked like it did nothing.
+  const selectTab = useCallback((tab, { reveal = false } = {}) => {
     const params = new URLSearchParams(searchParams.toString());
     if (tab !== "emails") params.set("tab", tab);
     else params.delete("tab");
     const query = params.toString();
     router.push(query ? `/campaigns/${id}?${query}` : `/campaigns/${id}`, { scroll: false });
+    if (reveal) setRevealTab(true);
   }, [id, router, searchParams]);
+
+  useEffect(() => {
+    if (!revealTab) return;
+    sectionsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setRevealTab(false);
+  }, [revealTab, requestedTab]);
 
   const detailLead = detailLeadId ? leads.find(lead => lead.id === detailLeadId) || null : null;
   const sendLead = sendLeadId ? leads.find(lead => lead.id === sendLeadId) || null : null;
@@ -625,7 +637,7 @@ export default function CampaignDetailPage() {
         <div className="acts">
           {!canOperate && <span className="muted" style={{ fontSize: 12, fontWeight: 800 }}>View only</span>}
           {canOperate && (
-            <button className="bt bt-g" type="button" onClick={() => selectTab("settings")}><Icon name="cog" size={15} /> Settings</button>
+            <button className="bt bt-g" type="button" onClick={() => selectTab("settings", { reveal: true })}><Icon name="cog" size={15} /> Settings</button>
           )}
           {canOperate && (campaign.status === "draft" || campaign.status === "paused") && (
             <button className="bt bt-p" type="button" data-tour="campaign-launch" onClick={handleLaunch} disabled={launching || launchGate.blocked} title={launchGate.blocked ? launchGate.message : undefined}>
@@ -651,9 +663,9 @@ export default function CampaignDetailPage() {
           action={lifecycle.fix
             ? { label: "Fix connection", onClick: () => router.push(lifecycle.fix) }
             : lifecycle.key === "audience_exhausted" || lifecycle.key === "credit_limit"
-              ? { label: "Edit settings", onClick: () => selectTab("settings") }
+              ? { label: "Edit settings", onClick: () => selectTab("settings", { reveal: true }) }
               : (lifecycle.key === "ready" || lifecycle.key === "ready_partly") && emailEnabled
-                ? { label: "Review emails", onClick: () => selectTab("emails") }
+                ? { label: "Review emails", onClick: () => selectTab("emails", { reveal: true }) }
                 : null}
         />
       ) : null}
@@ -692,6 +704,7 @@ export default function CampaignDetailPage() {
             ))}
           </div>
 
+          <div ref={sectionsRef} style={{ scrollMarginTop: 96 }} aria-hidden="true" />
           {!(emailEnabled && activeTab === "emails" && canOperate) ? <div>{campaignTabs}</div> : null}
 
           {activeTab === "settings" && (
