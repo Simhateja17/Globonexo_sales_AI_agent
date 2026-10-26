@@ -326,14 +326,6 @@ function CallDetailPanel({ call, onClose, onRetry, retrying }) {
         )}
       </div>
 
-      {!inbound && call.transcript_with_tool_calls?.length > 0 && (
-        <div className="cd-sec">
-          <details>
-            <summary style={{ cursor: "pointer", color: "#69786f", fontSize: 12, fontWeight: 700 }}>Show tool activity ({call.transcript_with_tool_calls.length} events)</summary>
-            <pre style={{ fontSize: 11, lineHeight: 1.45, whiteSpace: "pre-wrap", color: "#69786f", marginTop: 8 }}>{JSON.stringify(call.transcript_with_tool_calls, null, 2)}</pre>
-          </details>
-        </div>
-      )}
     </aside>
   );
 }
