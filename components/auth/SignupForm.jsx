@@ -8,6 +8,14 @@ import { Field } from '../ui/Input';
 import { hasWorkspaceAccess } from '../../lib/billingAccess';
 import { cleanText, isValidEmail } from '../../lib/validation';
 
+// What the account will start on, as reported by /auth/signup/start.
+const FREE_PLAN_NOTES = {
+  eligible: 'Your account starts on the Free plan. No card needed.',
+  personal_email: 'The Free plan needs a work email. With this email you will choose a paid plan after signing up.',
+  domain_taken: 'Your company already has a Free account. Ask its owner to invite you, or choose a paid plan after signing up.',
+  paused: 'Free signups are full right now. We added you to the waitlist and will email you when a spot opens. You can still choose a paid plan after signing up.',
+};
+
 export function SignupForm() {
   const router = useRouter();
   const { startSignup, verifySignup } = useAuth();
@@ -17,6 +25,7 @@ export function SignupForm() {
   const [step, setStep] = useState('details');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [freePlan, setFreePlan] = useState(null);
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
@@ -44,7 +53,8 @@ export function SignupForm() {
     setForm(payload);
     setSubmitting(true);
     try {
-      await startSignup(payload);
+      const data = await startSignup(payload);
+      setFreePlan(data?.freePlan ?? null);
       setStep('otp');
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong. Please try again.');
@@ -91,6 +101,11 @@ export function SignupForm() {
         <p className="muted" style={{ marginTop: 8, fontSize: 15 }}>
           We sent a 6-digit code to <b style={{ color: 'var(--ink)' }}>{form.email}</b>.
         </p>
+        {FREE_PLAN_NOTES[freePlan] && (
+          <p style={{ marginTop: 14, fontSize: 13.5, lineHeight: 1.5, padding: '10px 12px', borderRadius: 10, background: 'var(--g-50, #eefaf4)', color: 'var(--ink)' }}>
+            {FREE_PLAN_NOTES[freePlan]}
+          </p>
+        )}
         <form onSubmit={handleOtpSubmit}>
           <div style={{ marginTop: 24 }}>
             <Field

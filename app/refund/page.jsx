@@ -67,7 +67,7 @@ export default function RefundPage() {
         <article className="privacy-article">
           <LegalSection id="cancel" n="01" title="How billing and cancelling work">
             <ul className="privacy-list">
-              <li>There is no free trial. Plans are paid in advance, monthly or yearly, in US dollars through Razorpay.</li>
+              <li>Paid plans are paid in advance, monthly or yearly, in US dollars through Razorpay. The Free plan has no charges, so there is nothing to refund on it.</li>
               <li>Your plan renews automatically at the end of each period until you cancel.</li>
               <li>Cancel anytime from <strong>Billing</strong> in the app. Cancelling stops the next renewal.</li>
               <li>Your plan keeps working until the end of the period you already paid for. Cancelling does not end it early.</li>

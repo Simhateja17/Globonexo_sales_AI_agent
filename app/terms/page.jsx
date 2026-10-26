@@ -47,7 +47,7 @@ const toc = [
 ];
 
 const billing = [
-  ["Paying", "Plans are billed in advance, monthly or yearly, in US dollars through Razorpay. There is no free trial."],
+  ["Paying", "Paid plans are billed in advance, monthly or yearly, in US dollars through Razorpay. The Free plan costs nothing, has the limits shown on the pricing page, and may be changed, paused or closed after long inactivity (paused after 60 days and deleted after 12 months without a sign-in, with email warnings first)."],
   ["Renewal", "Your plan renews automatically at the end of each period until you cancel. We email a reminder before each yearly renewal."],
   ["Credits", "Credits pay for AI writing, lead enrichment and voice calls. One credit equals one US cent of what that work costs us at our providers. Your plan's credits refill at the start of each billing period. Unused credits do not carry over and are not refunded."],
   ["Running out", "When credits run out, new AI, enrichment and call work pauses. Work already in progress can finish."],

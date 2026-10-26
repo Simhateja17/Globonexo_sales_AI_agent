@@ -25,7 +25,7 @@ export default function AuthCallbackPage() {
       .then((res) => {
         localStorage.setItem('returning_user', '1');
         const status = res.data.organization?.subscription_status;
-        router.replace(['active', 'past_due'].includes(status) ? '/dashboard' : '/subscribe');
+        router.replace(['active', 'past_due', 'free'].includes(status) ? '/dashboard' : '/subscribe');
       })
       .catch(() => router.replace('/login?error=oauth_failed'));
   }, [router]);

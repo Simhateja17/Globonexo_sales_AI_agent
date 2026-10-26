@@ -24,7 +24,7 @@ const faqs = [
   },
   {
     q: "Do higher plans unlock better features?",
-    a: "Almost none. Every plan has AI email sequences, lead enrichment, AI voice calling and reply drafting. Higher plans add volume, seats, inboxes and numbers. The one feature held back is the inbound AI receptionist, which comes with Agency and Startup.",
+    a: "Almost none. Every paid plan has AI email sequences, lead enrichment, AI voice calling and reply drafting. Higher plans add volume, seats, inboxes and numbers. The one feature held back is the inbound AI receptionist, which comes with Agency and Startup.",
   },
   {
     q: "What is an AI SDR, and does it replace a person?",
@@ -35,8 +35,8 @@ const faqs = [
     a: "It can show you which segments respond, quickly and cheaply. It cannot create demand. Poor product-market fit was a factor in 43% of recent venture-backed shutdowns CB Insights studied, and faster outreach to the wrong market only fails faster.",
   },
   {
-    q: "Is there a free trial?",
-    a: "No. Every account starts on a paid monthly or yearly plan. Book a demo if you want to watch the agent find, email and call a lead before you pay.",
+    q: "Is there a free plan?",
+    a: "Yes. Sign up with a work email and get one email campaign, about 200 AI-written emails a month and 30 sends a day from your own inbox. No card needed. Lead enrichment and AI calling come with paid plans.",
   },
 ];
 
@@ -435,7 +435,7 @@ export default function SolutionsPage() {
         <div style={{ maxWidth: "680px" }}>
           <div className="gd-eyebrow">Same agent, every plan</div>
           <h2 className="gd-h2">The full loop, whoever you are.</h2>
-          <p className="gd-lead">Every plan runs all eight steps. Only the volume changes.</p>
+          <p className="gd-lead">Every paid plan runs all eight steps. Only the volume changes.</p>
         </div>
         <svg
           className="gd-loop-svg"

@@ -13,6 +13,7 @@ import adminApi from "../lib/admin-api";
 import { useAdminAuth } from "../providers/AdminAuthProvider";
 import { cleanText } from "../../lib/validation";
 import AiTestingPanel from "./AiTestingPanel";
+import FreePlanPanel from "./FreePlanPanel";
 
 const SUPPORT_STATUSES = new Set(["open", "resolved", "closed"]);
 const PLAN_OPTIONS = [
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { id: "campaigns", label: "Campaigns", ico: "send" },
   { id: "apollo", label: "Lead database usage", ico: "chart" },
   { id: "costs", label: "Cost & margin", ico: "trend" },
+  { id: "free", label: "Free plan", ico: "users" },
   { id: "agent", label: "Agent performance", ico: "spark" },
   { id: "ai", label: "AI testing", ico: "phone" },
   { id: "support", label: "Support", ico: "chat" },
@@ -853,6 +855,8 @@ function AdminDashboard() {
             </div>
           </div>
         </div>
+      ) : tab === "free" ? (
+        <FreePlanPanel askReason={askReason} setError={setError} setNotice={setNotice} />
       ) : tab === "ai" ? (
         <AiTestingPanel organizations={organizations} setError={setError} setNotice={setNotice} onOverridesChanged={load} />
       ) : tab === "agent" ? (

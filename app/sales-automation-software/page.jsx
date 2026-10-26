@@ -209,7 +209,7 @@ export default function SalesAutomationSoftwarePage() {
               >
                 <path d="M5 12l5 5 9-10"></path>
               </svg>
-              Email and AI calling in every plan
+              Email and AI calling in every paid plan
             </span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
               <svg
@@ -665,7 +665,7 @@ export default function SalesAutomationSoftwarePage() {
           }}
         >
           <div style={{ maxWidth: "640px" }}>
-            <div className="gd-eyebrow">Every plan</div>
+            <div className="gd-eyebrow">Every paid plan</div>
             <h2 className="gd-h2">The full loop, from the first plan up.</h2>
             <p className="gd-lead">
               Plans differ mainly by volume. The one feature held back is the inbound AI receptionist, which comes with

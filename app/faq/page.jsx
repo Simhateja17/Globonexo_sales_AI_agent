@@ -46,7 +46,7 @@ const groups = [
     items: [
       {
         q: "Does it really make phone calls?",
-        a: "Yes. Every plan includes AI voice campaigns. The agent calls your leads, has a real conversation, handles common objections and books a meeting when the prospect is ready. It can also answer inbound calls.",
+        a: "Yes. Every paid plan includes AI voice campaigns. The agent calls your leads, has a real conversation, handles common objections and books a meeting when the prospect is ready. It can also answer inbound calls.",
       },
       {
         q: "Does the caller say it is an AI?",
@@ -137,15 +137,15 @@ const groups = [
     items: [
       {
         q: "What do the plans cost?",
-        a: "Individual is $59 a month, Agency $179 and Startup $479. Paying yearly brings them to $49, $149 and $399 a month. Every plan includes AI email sequences, lead enrichment and AI voice calling.",
+        a: "Individual is $59 a month, Agency $179 and Startup $479. Paying yearly brings them to $49, $149 and $399 a month. Every paid plan includes AI email sequences, lead enrichment and AI voice calling. There is also a Free plan for AI email campaigns.",
       },
       {
         q: "What is the difference between plans?",
         a: "Individual: 2,645 credits a month, 3 email and 1 voice campaign, 1 user, 1 mailbox, 1 phone number. Agency: 5,370 credits, 10 email and 4 voice campaigns, 5 users, 10 mailboxes, 3 phone numbers. Startup: 14,370 credits, 25 email and 10 voice campaigns, 15 users, 30 mailboxes, 10 phone numbers.",
       },
       {
-        q: "Is there a free trial?",
-        a: "No. Every account starts on a paid monthly or yearly plan. Book a demo first if you want to see the agent work before paying.",
+        q: "Is there a free plan?",
+        a: "Yes. Sign up with a work email and get one email campaign, about 200 AI-written emails a month and 30 sends a day from your own inbox. No card needed. Lead enrichment and AI calling come with paid plans.",
       },
       {
         q: "What are credits?",

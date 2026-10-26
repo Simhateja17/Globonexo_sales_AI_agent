@@ -6,6 +6,7 @@ import Icon from "../ui/Icon";
 import Avatar from "../ui/Avatar";
 import api from "../../lib/api";
 import { hasWorkspaceAccess } from "../../lib/billingAccess";
+import UpgradePrompt from "../billing/UpgradePrompt";
 import { canSee, pageKeyForPath, RoleContext } from "../../lib/access";
 
 const NAV_GROUPS = [
@@ -250,6 +251,7 @@ export default function AppShell({ children }) {
 
   return (
     <RoleContext.Provider value={role}>
+    <UpgradePrompt />
     <div className="screen app-shell-screen" style={{ background: 'var(--bg)' }}>
       <aside className="app-shell-sidebar" style={{ background: '#fff', borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', padding: '18px 14px' }}>
         <div className="app-shell-brand" style={{ padding: '4px 6px 16px' }}><Logo size={28} /></div>

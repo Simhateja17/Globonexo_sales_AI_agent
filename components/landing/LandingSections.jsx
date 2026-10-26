@@ -4,6 +4,7 @@ import Icon from "../ui/Icon";
 import FaqSection from "../marketing/FaqSection";
 import { LoopAnimator, QualifyCards, ReadyCard, VoiceStage } from "./LandingInteractive";
 import { MOST_POPULAR_PLAN_ID, PLAN_CONFIG } from "../../lib/plans";
+import FreePlanStrip from "../marketing/FreePlanStrip";
 
 const CALENDLY_URL = "https://calendly.com/gnxsales-support/30min";
 
@@ -22,7 +23,7 @@ const faqs = [
   },
   {
     q: "Am I locked into a contract?",
-    a: "No. Plans run month to month, or yearly at a lower price. There is no setup fee and upgrades are prorated. There is no free trial, so book a 30-minute demo if you want to see it on your own market first.",
+    a: "No. Plans run month to month, or yearly at a lower price. There is no setup fee and upgrades are prorated. You can also start on the Free plan with a work email, no card needed.",
   },
   {
     q: "Will it hurt my email deliverability?",
@@ -1182,13 +1183,14 @@ export default function LandingSections({ user, loading }) {
         <div style={{ maxWidth: "1160px", margin: "0 auto", padding: "96px 24px" }}>
           <div style={{ maxWidth: "760px", textAlign: "center", margin: "0 auto" }}>
             <div className="gd-eyebrow">Pricing</div>
-            <h2 className="gd-h2">Three plans. Calling in every one.</h2>
+            <h2 className="gd-h2">Start free. Add calling when you are ready.</h2>
             <p className="gd-lead">
               Pay month to month or save about 17% yearly. Credits cover emails, contact reveals and call minutes, at
               cost.
             </p>
           </div>
-          <div className="gd-g3" style={{ marginTop: "40px", alignItems: "stretch" }}>
+          <FreePlanStrip style={{ marginTop: "40px" }} />
+          <div className="gd-g3" style={{ alignItems: "stretch" }}>
             {PLAN_CONFIG.map((plan) => {
               const featured = plan.id === MOST_POPULAR_PLAN_ID;
               return (

@@ -7,7 +7,7 @@ export const metadata = {
     url: "/pricing",
     title: "AI Sales Agent Pricing: Plans, Credits, and Limits",
     description:
-      "Every plan includes email, enrichment, and AI voice calling on one credit pool. Credits set the ceiling, not the feature list.",
+      "Every paid plan includes email, enrichment, and AI voice calling on one credit pool. A Free plan covers AI email campaigns. Credits set the ceiling, not the feature list.",
   },
 };
 
@@ -15,12 +15,12 @@ import PricingView from "../../components/marketing/PricingView";
 
 const faqs = [
   {
-    q: "Is there a free trial?",
-    a: "No. Every account starts on a paid monthly or yearly plan. Book a demo if you want to watch the agent find, email and call a lead before you pay.",
+    q: "Is there a free plan?",
+    a: "Yes. Sign up with a work email and get one email campaign, about 200 AI-written emails a month and 30 sends a day from your own inbox. No card needed. Lead enrichment and AI calling come with paid plans.",
   },
   {
     q: "Is AI calling priced separately?",
-    a: "No. Outbound calling is in every plan and draws from the same credits as email and enrichment, and your plan's phone numbers are included. Extra numbers beyond your plan cost 200 credits each every 30 days. The plan decides how many voice campaigns run at once.",
+    a: "No. Outbound calling is in every paid plan and draws from the same credits as email and enrichment, and your plan's phone numbers are included. Extra numbers beyond your plan cost 200 credits each every 30 days. The plan decides how many voice campaigns run at once.",
   },
   {
     q: "What happens when I run out of credits?",

@@ -238,7 +238,7 @@ export const helpGroups = [
   {
     "id": "voice",
     "title": "AI voice calls",
-    "blurb": "Every plan includes calling. Every call opens by saying it is an AI.",
+    "blurb": "Every paid plan includes calling. Every call opens by saying it is an AI.",
     "summary": "Voice agent, phone number, voice campaigns, Call History and inbound.",
     "guides": [
       {

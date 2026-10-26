@@ -7,6 +7,7 @@ import PublicFooter from "../layout/PublicFooter";
 import FaqSection from "./FaqSection";
 import { BreadcrumbSchema } from "./SiteSchema";
 import { PLAN_CONFIG } from "../../lib/plans";
+import FreePlanStrip from "./FreePlanStrip";
 
 const TOG_ON = { background: "#fff", color: "#06231a", boxShadow: "0 6px 18px rgba(0,0,0,.18)" };
 const TOG_OFF = { background: "transparent", color: "rgba(255,255,255,.78)" };
@@ -152,7 +153,7 @@ export default function PricingView({ faqs }) {
               lineHeight: "1.7",
             }}
           >
-            Email, lead enrichment and AI calling in every plan, from one credit pool. No per-channel fees, no setup
+            Email, lead enrichment and AI calling in every paid plan, from one credit pool. Or start on Free with AI email. No per-channel fees, no setup
             fee. Your plan only sets the volume.
           </p>
           <div
@@ -196,6 +197,7 @@ export default function PricingView({ faqs }) {
           scrollMarginTop: "24px",
         }}
       >
+        <FreePlanStrip />
         <div className="gd-g3">
           <article className="gd-plan">
             <h3>Individual</h3>

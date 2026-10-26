@@ -795,7 +795,7 @@ export default function VoicePage() {
               <span style={{ color: "#6fe7b0" }}>You take the meetings.</span>
             </h2>
             <p style={{ margin: "16px 0 0", color: "rgba(255,255,255,.74)", fontSize: "16.5px", lineHeight: "1.7" }}>
-              Outbound AI calling is included in every plan, from $59 a month.
+              Outbound AI calling is included in every paid plan, from $59 a month.
             </p>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>

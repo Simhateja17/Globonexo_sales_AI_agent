@@ -37,7 +37,8 @@ export function AuthProvider({ children }) {
   };
 
   const startSignup = async (payload) => {
-    await api.post('/auth/signup/start', payload);
+    const res = await api.post('/auth/signup/start', payload);
+    return res.data;
   };
 
   const verifySignup = async (email, otp) => {

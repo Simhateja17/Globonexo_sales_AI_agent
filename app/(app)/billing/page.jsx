@@ -12,7 +12,7 @@ import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import useBillingCheckout from "../../../hooks/useBillingCheckout";
 import api from "../../../lib/api";
 import { useCanSee } from "../../../lib/access";
-import { ACCESS_STATUSES as ACTIVE_STATUSES, MOST_POPULAR_PLAN_ID, PLAN_CONFIG } from "../../../lib/plans";
+import { ACCESS_STATUSES as ACTIVE_STATUSES, FREE_PLAN, MOST_POPULAR_PLAN_ID, PLAN_CONFIG } from "../../../lib/plans";
 
 function formatDate(iso) {
   if (!iso) return 'Not available';
@@ -64,10 +64,14 @@ export default function BillingPage() {
   const status = usage?.subscriptionStatus ?? 'payment_required';
   const subscription = usage?.subscription;
   const hasEntitlement = ACTIVE_STATUSES.has(status);
+  const isFree = status === 'free';
+  // Free has workspace access but no Razorpay subscription, so plan choices
+  // go through checkout exactly like a first purchase.
+  const hasPaidPlan = hasEntitlement && !isFree;
   const roleSeesPlanControls = useCanSee('billing.planControls');
   const canManageBilling = roleSeesPlanControls && usage?.canManageBilling !== false;
   const currentPlanId = usage?.plan ?? 'starter';
-  const currentPlanConfig = PLAN_CONFIG.find((p) => p.id === currentPlanId) ?? PLAN_CONFIG[0];
+  const currentPlanConfig = isFree ? FREE_PLAN : PLAN_CONFIG.find((p) => p.id === currentPlanId) ?? PLAN_CONFIG[0];
   const currentPlanRank = PLAN_CONFIG.findIndex((p) => p.id === currentPlanId);
   const currentPeriodActive = Boolean(subscription?.currentPeriodEnd && new Date(subscription.currentPeriodEnd).getTime() > Date.now());
   const currentPlanPrice = subscription?.billingPeriod === 'annual' ? currentPlanConfig.annualMonthly : currentPlanConfig.monthly;
@@ -79,11 +83,12 @@ export default function BillingPage() {
   useEffect(() => {
     if (!loading && !initializedView.current) {
       initializedView.current = true;
-      if (!hasEntitlement && canManageBilling) setActiveView('explore');
+      if ((!hasEntitlement || searchParams.get('upgrade') === '1') && canManageBilling) setActiveView('explore');
     }
-  }, [loading, hasEntitlement, canManageBilling]);
+  }, [loading, hasEntitlement, canManageBilling, searchParams]);
   const statusLabel = useMemo(() => ({
     active: 'Active',
+    free: 'Free plan',
     past_due: 'Payment retry in progress',
     restricted: 'Restricted',
     payment_required: 'Billing required',
@@ -155,14 +160,14 @@ export default function BillingPage() {
   };
 
   const handlePlanAction = (planId) => {
-    const samePlan = hasEntitlement && planId === currentPlanId && selectedBillingPeriod === subscription?.billingPeriod;
+    const samePlan = hasPaidPlan && planId === currentPlanId && selectedBillingPeriod === subscription?.billingPeriod;
     if (samePlan) return;
-    const isDowngrade = hasEntitlement && PLAN_CONFIG.findIndex((plan) => plan.id === planId) < currentPlanRank;
+    const isDowngrade = hasPaidPlan && PLAN_CONFIG.findIndex((plan) => plan.id === planId) < currentPlanRank;
     if (isDowngrade && currentPeriodActive) {
       showToast(`Downgrades are available after ${formatDate(subscription.currentPeriodEnd)}.`);
       return;
     }
-    if (hasEntitlement && subscription?.providerStatus !== 'halted') {
+    if (hasPaidPlan && subscription?.providerStatus !== 'halted') {
       handlePlanChange(planId);
     } else {
       handleCheckout(planId);
@@ -266,6 +271,12 @@ export default function BillingPage() {
           <div className="muted" style={{ fontSize: 13.5, lineHeight: 1.5, marginTop: 5 }}>Select a monthly or annual plan below. Razorpay will securely connect your payment method, and successful verification will take you through onboarding.</div>
         </div>
       )}
+      {isFree && (
+        <div className="card" role="status" style={{ padding: 17, marginBottom: 20, background: 'var(--g-50)', border: '1px solid var(--g-100)' }}>
+          <div style={{ fontWeight: 800, fontSize: 14 }}>You&apos;re on the Free plan.</div>
+          <div className="muted" style={{ fontSize: 13.5, lineHeight: 1.5, marginTop: 5 }}>Upgrade for more campaigns, higher daily sending, lead enrichment and AI calling.</div>
+        </div>
+      )}
       {status === 'past_due' && (
         <div className="card" role="alert" style={{ padding: 17, marginBottom: 20, background: '#fff8e6', border: '1px solid #ffe3a3' }}>
           <div style={{ fontWeight: 800, fontSize: 14 }}>Your renewal needs attention.</div>
@@ -299,9 +310,9 @@ export default function BillingPage() {
                     <p className="muted" style={{ fontSize: 13.5, marginTop: 5 }}>{currentPlanConfig.desc}</p>
                   </div>
                   <div>
-                    <span className="display" style={{ fontSize: 32 }}>${currentPlanPrice}</span>
+                    <span className="display" style={{ fontSize: 32 }}>${isFree ? 0 : currentPlanPrice}</span>
                     <span className="muted" style={{ fontSize: 13, marginLeft: 4 }}>/mo</span>
-                    <div className="muted" style={{ fontSize: 12.5, marginTop: 2, textTransform: 'capitalize' }}>{subscription?.billingPeriod ?? 'monthly'} billing</div>
+                    {!isFree && <div className="muted" style={{ fontSize: 12.5, marginTop: 2, textTransform: 'capitalize' }}>{subscription?.billingPeriod ?? 'monthly'} billing</div>}
                   </div>
                 </div>
 
@@ -323,10 +334,10 @@ export default function BillingPage() {
                         : null}
                   </p>
                   <div className="row" style={{ gap: 10 }}>
-                    {canManageBilling && !subscription?.cancelAtCycleEnd && (
+                    {canManageBilling && !isFree && !subscription?.cancelAtCycleEnd && (
                       <button className="btn btn-ghost btn-sm" onClick={handleCancel} disabled={busy === 'cancel'}>{busy === 'cancel' ? 'Scheduling…' : 'Cancel at period end'}</button>
                     )}
-                    {canManageBilling && <button className="btn btn-dark btn-sm" onClick={() => setActiveView('explore')}>Change plan</button>}
+                    {canManageBilling && <button className={isFree ? 'btn btn-primary btn-sm' : 'btn btn-dark btn-sm'} onClick={() => setActiveView('explore')}>{isFree ? 'Upgrade' : 'Change plan'}</button>}
                   </div>
                 </div>
               </div>
@@ -420,11 +431,11 @@ export default function BillingPage() {
 
           <div className="billing-plan-grid">
             {PLAN_CONFIG.map((plan) => {
-              const isCurrent = hasEntitlement && plan.id === currentPlanId;
+              const isCurrent = hasPaidPlan && plan.id === currentPlanId;
               // The "Current plan" ribbon wins the top strip when both apply.
               const showPopular = plan.id === MOST_POPULAR_PLAN_ID && !isCurrent;
               const sameSelection = isCurrent && selectedBillingPeriod === subscription?.billingPeriod;
-              const downgradeBlocked = hasEntitlement
+              const downgradeBlocked = hasPaidPlan
                 && PLAN_CONFIG.findIndex((candidate) => candidate.id === plan.id) < currentPlanRank
                 && currentPeriodActive;
               const actionDisabled = !canManageBilling || sameSelection || downgradeBlocked || busy === plan.id || (status === 'past_due' && isCurrent);
@@ -434,8 +445,8 @@ export default function BillingPage() {
                   ? 'Current plan'
                   : downgradeBlocked
                     ? 'After period ends'
-                  : !hasEntitlement
-                    ? 'Choose plan'
+                  : !hasPaidPlan
+                    ? isFree ? 'Upgrade' : 'Choose plan'
                     : plan.id === currentPlanId
                       ? 'Change billing period'
                       : 'Change plan';

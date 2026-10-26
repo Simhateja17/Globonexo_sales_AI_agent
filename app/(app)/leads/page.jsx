@@ -34,6 +34,16 @@ const STATUS_COLORS = {
   unsubscribed: { bg: "var(--bg-2)", color: "var(--ink-2)" },
 };
 
+const SENIORITY_LABELS = {
+  founder: "Founder", owner: "Owner", c_suite: "C-suite", partner: "Partner", vp: "VP",
+  head: "Head", director: "Director", manager: "Manager", senior: "Senior", entry: "Entry", intern: "Intern",
+};
+
+function leadLocation(lead) {
+  const parts = [lead.city, lead.state, lead.country].filter(Boolean);
+  return parts.length ? parts.join(", ") : lead.location || "-";
+}
+
 function statusLabel(status) {
   return (status || "new").replace(/_/g, " ");
 }
@@ -61,7 +71,7 @@ function LeadRow({ lead, onEnrich, enrichingId }) {
         <span className="faint" style={{ fontSize: 13 }}>{lead.phone || "-"}</span>
       </td>
       <td style={{ padding: "12px 18px" }}>
-        <span className="faint" style={{ fontSize: 13 }}>{lead.location || "-"}</span>
+        <span className="faint" style={{ fontSize: 13 }}>{leadLocation(lead)}</span>
       </td>
       <td style={{ padding: "12px 18px" }}>
         <span className="badge" style={{ background: lead.source === "apollo" ? "var(--g-50)" : "var(--bg-2)", color: lead.source === "apollo" ? "var(--g-700)" : "var(--ink-2)", fontSize: 12, textTransform: "capitalize" }}>{lead.source === "apollo" ? "Lead database" : lead.source}</span>
@@ -539,6 +549,11 @@ export default function LeadsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
+  const [countryFilter, setCountryFilter] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
+  const [seniorityFilter, setSeniorityFilter] = useState("");
+  const [emailFilter, setEmailFilter] = useState("");
+  const [filterOptions, setFilterOptions] = useState({ countries: [], states: [], seniorities: [] });
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [enrichingId, setEnrichingId] = useState(null);
@@ -555,6 +570,10 @@ export default function LeadsPage() {
       if (search.trim()) params.set("search", search.trim());
       if (statusFilter) params.set("status", statusFilter);
       if (sourceFilter) params.set("source", sourceFilter);
+      if (countryFilter) params.set("country", countryFilter);
+      if (stateFilter) params.set("state", stateFilter);
+      if (seniorityFilter) params.set("seniority", seniorityFilter);
+      if (emailFilter) params.set("hasEmail", emailFilter);
       params.set("page", String(page));
       params.set("perPage", String(perPage));
 
@@ -567,7 +586,7 @@ export default function LeadsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, sourceFilter, page]);
+  }, [search, statusFilter, sourceFilter, countryFilter, stateFilter, seniorityFilter, emailFilter, page]);
 
   useEffect(() => {
     fetchLeads();
@@ -575,7 +594,22 @@ export default function LeadsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, sourceFilter]);
+  }, [search, statusFilter, sourceFilter, countryFilter, stateFilter, seniorityFilter, emailFilter]);
+
+  useEffect(() => {
+    api.get("/leads/filter-options")
+      .then(({ data }) => setFilterOptions({
+        countries: data?.countries || [], states: data?.states || [], seniorities: data?.seniorities || [],
+      }))
+      .catch(() => {});
+  }, []);
+
+  const stateOptions = filterOptions.states.filter((s) => !countryFilter || !s.country || s.country === countryFilter);
+  const hasActiveFilters = Boolean(search || statusFilter || sourceFilter || countryFilter || stateFilter || seniorityFilter || emailFilter);
+  const clearFilters = () => {
+    setSearch(""); setStatusFilter(""); setSourceFilter(""); setCountryFilter("");
+    setStateFilter(""); setSeniorityFilter(""); setEmailFilter("");
+  };
 
   const totalPages = Math.max(1, Math.ceil(total / perPage));
 
@@ -644,11 +678,57 @@ export default function LeadsPage() {
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
+        <select
+          className="input"
+          value={countryFilter}
+          onChange={(e) => { setCountryFilter(e.target.value); setStateFilter(""); }}
+          style={{ width: 170, height: 38 }}
+        >
+          <option value="">All countries</option>
+          {filterOptions.countries.map((c) => (
+            <option key={c.value} value={c.value}>{c.value} ({c.count})</option>
+          ))}
+        </select>
+        <select
+          className="input"
+          value={stateFilter}
+          onChange={(e) => setStateFilter(e.target.value)}
+          style={{ width: 160, height: 38 }}
+        >
+          <option value="">All states</option>
+          {stateOptions.map((s) => (
+            <option key={s.value} value={s.value}>{s.value} ({s.count})</option>
+          ))}
+        </select>
+        <select
+          className="input"
+          value={seniorityFilter}
+          onChange={(e) => setSeniorityFilter(e.target.value)}
+          style={{ width: 150, height: 38 }}
+        >
+          <option value="">All levels</option>
+          {filterOptions.seniorities.map((v) => (
+            <option key={v} value={v}>{SENIORITY_LABELS[v] || v}</option>
+          ))}
+        </select>
+        <select
+          className="input"
+          value={emailFilter}
+          onChange={(e) => setEmailFilter(e.target.value)}
+          style={{ width: 150, height: 38 }}
+        >
+          <option value="">Any email</option>
+          <option value="true">Has email</option>
+          <option value="false">No email</option>
+        </select>
         <Segmented
           options={STATUS_OPTIONS.slice(0, 5)}
           value={statusFilter}
           onChange={setStatusFilter}
         />
+        {hasActiveFilters && (
+          <button className="btn btn-ghost btn-sm" style={{ height: 38 }} onClick={clearFilters}>Clear filters</button>
+        )}
       </div>
 
       {/* Notices */}
@@ -685,7 +765,7 @@ export default function LeadsPage() {
               {loading && leads.length === 0 ? null : leads.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ padding: 40, textAlign: "center", color: "var(--muted)", fontWeight: 700 }}>
-                    {search || statusFilter || sourceFilter ? "No leads match your filters." : "No leads yet. Import leads from the Prospects page."}
+                    {hasActiveFilters ? "No leads match your filters." : "No leads yet. Import leads from the Prospects page."}
                   </td>
                 </tr>
               ) : (
