@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Icon from "../../../components/ui/Icon";
 import useFreeUsage from "../../../hooks/useFreeUsage";
 import InboxHealthNote from "../../../components/ui/InboxHealthNote";
+import InboxWarmupNote from "../../../components/ui/InboxWarmupNote";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
 import SetupChecklist from "../../../components/setup/SetupChecklist";
@@ -511,6 +512,7 @@ export default function DashboardPage() {
       {error && <div className="note">{error}</div>}
 
       <InboxHealthNote />
+      <InboxWarmupNote />
 
       <OnboardingPreparationCard
         preparation={onboardingPreparation}

@@ -26,7 +26,7 @@ export default function useFreeUsage(enabled = true, refreshKey = null) {
         emailsThisMonth: Number(billing?.emailsSentThisMonth ?? 0),
         emailCampaigns: billing?.campaignUsage?.email ?? null,
         sentToday: liveAccounts.length ? liveAccounts.reduce((sum, account) => sum + Number(account.sentToday ?? 0), 0) : null,
-        dailyCap: liveAccounts.length ? liveAccounts.reduce((sum, account) => sum + Number(account.dailySendCap ?? 0), 0) : null,
+        dailyCap: liveAccounts.length ? liveAccounts.reduce((sum, account) => sum + Number(account.todayLimit ?? account.dailySendCap ?? 0), 0) : null,
       });
     });
     return () => { active = false; };

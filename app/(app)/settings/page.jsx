@@ -15,6 +15,7 @@ import { clampNumber, cleanText, isValidEmail, normalizeUrl } from '../../../lib
 import { useSetup } from '../../../providers/SetupProvider';
 import { browserTimezone, DISPLAY_TIMEZONES } from '../../../lib/campaign-display';
 import { findPlan } from '../../../lib/plans';
+import InboxWarmupNote from '../../../components/ui/InboxWarmupNote';
 
 const HELP_LINKS = [
   { href: '/support', label: 'Support tickets', ico: 'inbox' },
@@ -123,6 +124,8 @@ export default function SettingsPage() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [inboxBusyId, setInboxBusyId] = useState(null);
   const [addingInbox, setAddingInbox] = useState(false);
+  // Slow start is recommended, so a new inbox starts with it ticked.
+  const [newInboxWarmup, setNewInboxWarmup] = useState(true);
   const [smtpPreset, setSmtpPreset] = useState('gmail');
   const [smtpForm, setSmtpForm] = useState({ ...EMPTY_SMTP_FORM, ...SMTP_PRESETS.gmail.values });
   const [voiceAgentId, setVoiceAgentId] = useState(null);
@@ -310,7 +313,7 @@ export default function SettingsPage() {
         imapPassword: smtpForm.smtpPassword,
       };
       if (editingInboxId) await api.patch(`/email-accounts/${editingInboxId}`, { settings });
-      else await api.post('/email-accounts', settings);
+      else await api.post('/email-accounts', { ...settings, warmupEnabled: newInboxWarmup });
       setEditingInboxId(null);
       setSmtpForm({ ...EMPTY_SMTP_FORM, ...SMTP_PRESETS[smtpPreset].values });
       setAddingInbox(false);
@@ -564,6 +567,8 @@ export default function SettingsPage() {
                 </span>
               </div>
 
+              <InboxWarmupNote accounts={inboxes.accounts} showAction={false} />
+
               {inboxes.accounts.length > 0 && (
                 <div className="col" style={{ gap: 10, marginBottom: 18 }}>
                   {inboxes.accounts.map((account) => {
@@ -583,7 +588,8 @@ export default function SettingsPage() {
                             <span style={{ fontSize: 12, color: needsAttention ? 'var(--r-700, var(--ink-2))' : 'var(--faint)' }}>
                               {needsAttention
                                 ? `Needs attention: ${account.lastError || 'the mail server rejected the login'}. Campaigns using it are paused.`
-                                : `${account.sentToday} of ${account.dailySendCap} sent today`}
+                                : `${account.sentToday} of ${account.todayLimit ?? account.dailySendCap} sent today`
+                                  + (account.warmup?.active ? ` · Slow start, day ${account.warmup.day} of ${account.warmup.totalDays}` : '')}
                             </span>
                           </div>
                           {inboxes.canManage && (
@@ -640,6 +646,28 @@ export default function SettingsPage() {
                               </div>
                             </div>
                           </div>
+                        )}
+
+                        {inboxes.canManage && (
+                          <label className="row" style={{ gap: 8, marginTop: 12, alignItems: 'flex-start', cursor: busy ? 'default' : 'pointer' }}>
+                            <input
+                              type="checkbox"
+                              checked={account.warmup?.enabled !== false}
+                              disabled={busy}
+                              onChange={(e) => patchInbox(account.id, { warmupEnabled: e.target.checked })}
+                              style={{ marginTop: 2 }}
+                            />
+                            <span style={{ fontSize: 12.5, lineHeight: 1.45 }}>
+                              <b>Slow start (recommended)</b>
+                              <span style={{ display: 'block', color: 'var(--muted)' }}>
+                                {account.warmup?.enabled === false
+                                  ? 'Off. This inbox sends up to its full daily limit. Turning it on starts again at 10 emails a day.'
+                                  : account.warmup?.active
+                                    ? `Sends ${account.todayLimit} today, then 5 more each day until it reaches ${account.dailySendCap}. Keeps your emails out of spam.`
+                                    : 'Done warming up. This inbox now sends up to its full daily limit.'}
+                              </span>
+                            </span>
+                          </label>
                         )}
                       </div>
                     );
@@ -745,6 +773,18 @@ export default function SettingsPage() {
                   <Field label="Port" name="inbox_imapPort" error={inboxErrors.imapPort} type="number" value={smtpForm.imapPort} onChange={setSmtp('imapPort')} placeholder="993" autoComplete="off" />
                 </div>
                 <span style={{ fontSize: 12, color: 'var(--faint)' }}>IMAP reply polling uses the same username and password as SMTP above.</span>
+
+                {!editingInboxId && (
+                  <label className="row" style={{ gap: 8, alignItems: 'flex-start', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={newInboxWarmup} onChange={(e) => setNewInboxWarmup(e.target.checked)} style={{ marginTop: 2 }} />
+                    <span style={{ fontSize: 12.5, lineHeight: 1.45 }}>
+                      <b>Warm up this inbox slowly (recommended)</b>
+                      <span style={{ display: 'block', color: 'var(--muted)' }}>
+                        Sends 10 emails on day 1, then 5 more each day until it reaches its daily limit. New inboxes that start slow land in spam less often. You can turn this off later.
+                      </span>
+                    </span>
+                  </label>
+                )}
 
                 {error ? <div className="note" role="alert" id="inbox-form-error" style={{ color: 'var(--stop)', fontWeight: 700 }}>{error}</div> : null}
 

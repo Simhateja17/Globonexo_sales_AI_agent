@@ -73,6 +73,8 @@ export default function ConnectInboxPage() {
   const [error, setError] = useState("");
   const [connected, setConnected] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Slow start is recommended, so it starts ticked.
+  const [warmup, setWarmup] = useState(true);
 
   useEffect(() => {
     if (!user) return;
@@ -114,6 +116,7 @@ export default function ConnectInboxPage() {
         imapSecure: server.imapSecurity === "SSL",
         imapUsername: email.trim(),
         imapPassword: secret,
+        warmupEnabled: warmup,
       }, { timeout: 60000 });
       setConnected(true);
     } catch (err) {
@@ -196,6 +199,13 @@ export default function ConnectInboxPage() {
                   <div className="srv-r"><em>Replies</em><code>{server.imapHost}</code><span>{server.imapPort}</span><span>{server.imapSecurity}</span></div>
                 </div>
               )}
+              <label style={{ display: "flex", gap: 10, alignItems: "flex-start", marginTop: 14, cursor: "pointer" }}>
+                <input type="checkbox" checked={warmup} onChange={e => setWarmup(e.target.checked)} disabled={connected} style={{ marginTop: 3 }} />
+                <span style={{ fontSize: 13.5, lineHeight: 1.5 }}>
+                  <b>Warm up this inbox slowly (recommended)</b>
+                  <span style={{ display: "block", color: "var(--muted, #5b6b66)" }}>Sends 10 emails on day 1, then 5 more each day until it reaches its daily limit. New inboxes that start slow land in spam less often. You can turn this off later in Settings.</span>
+                </span>
+              </label>
               {error && <div className="err" role="alert"><Icon name="alertCircle" size={18} /><span>{error}</span></div>}
             </div></div>
 
@@ -210,7 +220,7 @@ export default function ConnectInboxPage() {
           {connected && (
             <div className="ok-card">
               <b>Inbox connected</b>
-              <p>{email.trim()} is ready. New inboxes start slow and build up over a few weeks, so your emails keep landing in the inbox.</p>
+              <p>{email.trim()} is ready. {warmup ? "It starts with 10 emails a day and builds up over about 9 days, so your emails keep landing in the inbox." : "It can send up to its full daily limit from today."}</p>
               <Link className="bt bt-p" href="/onboarding/ready">Back to setup</Link>
             </div>
           )}
