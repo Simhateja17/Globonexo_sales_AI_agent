@@ -68,12 +68,19 @@ function AgentAvatar() {
   );
 }
 
+function renderBold(text) {
+  if (typeof text !== 'string') return text;
+  return text.split(/(\*\*[^*\n]+\*\*)/g).map((part, i) => (
+    /^\*\*[^*\n]+\*\*$/.test(part) ? <strong key={i}>{part.slice(2, -2)}</strong> : part
+  ));
+}
+
 function TextRow({ text, isUser }) {
   if (isUser) return <div className="me" style={{ whiteSpace: 'pre-line' }}>{text}</div>;
   return (
     <div className="bot">
       <AgentAvatar />
-      <div className="bot-b"><div className="bot-t" style={{ whiteSpace: 'pre-line' }}>{text}</div></div>
+      <div className="bot-b"><div className="bot-t" style={{ whiteSpace: 'pre-line' }}>{renderBold(text)}</div></div>
     </div>
   );
 }
