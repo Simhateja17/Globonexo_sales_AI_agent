@@ -150,6 +150,7 @@ export default function SettingsPage() {
   const [systemLoading, setSystemLoading] = useState(true);
   const [error,   setError]   = useState('');
   const [success, setSuccess] = useState(false);
+  const [inboxTestNotice, setInboxTestNotice] = useState('');
   const showSkeleton = useFirstLoad(loading);
 
   useEffect(() => {
@@ -325,9 +326,14 @@ export default function SettingsPage() {
 
   const testInbox = async (accountId) => {
     setError('');
+    setInboxTestNotice('');
     setInboxBusyId(accountId);
     try {
-      await api.post(`/email-accounts/${accountId}/test`);
+      const { data } = await api.post(`/email-accounts/${accountId}/test`);
+      const resumed = data?.resumedCampaigns?.length ?? data?.resumedCampaigns ?? 0;
+      setInboxTestNotice(
+        `Connection OK. Sending (SMTP) and reply reading (IMAP) both work.${resumed ? ` ${resumed} paused campaign${resumed === 1 ? '' : 's'} resumed.` : ''}`
+      );
       await refreshInboxes();
     } catch (err) {
       setError(err.response?.data?.error || 'This inbox could not be reached. Check its settings and password.');
@@ -1027,6 +1033,7 @@ export default function SettingsPage() {
             </section>
 
             {error && !addingInbox && <div className="note">{error}</div>}
+            {inboxTestNotice && <div className="gnote ok" role="status"><b>Inbox test passed.</b> {inboxTestNotice}</div>}
             {success && <div className="gnote ok"><b>Settings saved.</b> New drafts use these defaults. Drafts already waiting keep their wording.</div>}
           </form>
 
