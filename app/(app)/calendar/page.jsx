@@ -554,7 +554,7 @@ export default function CalendarPage() {
                         <button
                           key={meeting.id}
                           type="button"
-                          className={`mb ${past ? "done" : meeting.id === nextId ? "next" : ""}`}
+                          className={`mb ${past ? "done" : meeting.id === nextId && isToday ? "next" : ""}`}
                           style={{ top: blockTop(meeting.scheduled), textAlign: "left" }}
                           onClick={e => { e.stopPropagation(); setSelectedMeetingId(meeting.id); }}
                         >

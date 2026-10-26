@@ -205,7 +205,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
 
 // The four-stage strip under the header: what has happened to this campaign and
 // what is waiting on a person. Built only from numbers the page already has.
-function CampaignProgress({ campaign, leadCount, preparationDone, drafts }) {
+function CampaignProgress({ campaign, leadCount, preparationDone, drafts, freePlan = false }) {
   const stats = campaign?.stats || {};
   const enrolled = stats.enrolled ?? leadCount;
   const missing = Number(stats.missingEmail ?? 0);
@@ -213,17 +213,18 @@ function CampaignProgress({ campaign, leadCount, preparationDone, drafts }) {
   const sent = Number(stats.sent ?? 0);
   const written = Number(drafts?.total ?? 0);
   const waiting = Number(drafts?.draft ?? 0);
-  const audienceDone = preparationDone || enrolled > 0;
+  // Free brings its own leads, so its audience is done only once leads are in.
+  const audienceDone = freePlan ? enrolled > 0 : preparationDone || enrolled > 0;
   const emailsDone = audienceDone && written > 0 && !drafts?.generating;
   const approvalsDone = emailsDone && waiting === 0;
   const stages = [
     {
       key: "audience",
       done: audienceDone,
-      title: audienceDone ? "Audience found" : "Finding your audience",
+      title: audienceDone ? (freePlan ? "Leads added" : "Audience found") : (freePlan ? "Add your leads" : "Finding your audience"),
       text: audienceDone
         ? `${enrolled} lead${enrolled === 1 ? "" : "s"} enrolled${missing > 0 ? ` · ${missing} without an email` : ""}`
-        : "Searching and checking contacts before any credits are spent",
+        : freePlan ? "Upload a CSV or add leads by hand" : "Searching and checking contacts before any credits are spent",
     },
     {
       key: "written",
@@ -231,7 +232,7 @@ function CampaignProgress({ campaign, leadCount, preparationDone, drafts }) {
       title: emailsDone ? "Emails written" : "Writing emails",
       text: emailsDone
         ? `${drafts.steps || 1}-step sequence from verified facts only`
-        : drafts?.generating ? "Your agent is writing each email now" : "Starts once leads finish enriching",
+        : drafts?.generating ? "Your agent is writing each email now" : freePlan ? "Starts once you add leads" : "Starts once leads finish enriching",
     },
     {
       key: "approve",
@@ -661,8 +662,8 @@ export default function CampaignDetailPage() {
       ) : null}
 
       <div className="col" style={{ gap: 16 }}>
-          {emailEnabled ? <CampaignProgress campaign={campaign} leadCount={leads.length} preparationDone={Number(preparationData?.campaign?.preparation_progress ?? 0) >= 100} drafts={draftSummary} /> : null}
-          {canOperate ? <CampaignPreparationPanel campaignId={campaign.id} channel={campaign.channel} campaignStatus={campaign.status} onChanged={handlePreparationChanged} /> : <div className="card" style={{ padding: 16, color: "#69786f", fontSize: 13, fontWeight: 600 }}>This campaign is assigned to another teammate. You can review its status and history, but operational controls are read-only.</div>}
+          {emailEnabled ? <CampaignProgress campaign={campaign} leadCount={leads.length} preparationDone={Number(preparationData?.campaign?.preparation_progress ?? 0) >= 100} drafts={draftSummary} freePlan={freePlan} /> : null}
+          {canOperate ? <CampaignPreparationPanel campaignId={campaign.id} channel={campaign.channel} campaignStatus={campaign.status} onChanged={handlePreparationChanged} freePlan={freePlan} leadCount={leads.length} /> : <div className="card" style={{ padding: 16, color: "#69786f", fontSize: 13, fontWeight: 600 }}>This campaign is assigned to another teammate. You can review its status and history, but operational controls are read-only.</div>}
 
           <div className="mets">
             {metrics.map(([label, value]) => (

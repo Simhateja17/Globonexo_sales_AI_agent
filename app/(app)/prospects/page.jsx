@@ -425,6 +425,12 @@ export default function ProspectsPage() {
           setKeywords(defaults.keywords);
         }
       });
+    // A campaign can link here to add leads straight into it:
+    // /prospects?tab=csv&campaignId=… (or tab=manual).
+    const params = new URLSearchParams(window.location.search);
+    const linkedTab = params.get("tab");
+    const linkedCampaignId = params.get("campaignId");
+    if (linkedTab === "csv" || linkedTab === "manual") setTab(linkedTab);
     try {
       const saved = JSON.parse(window.localStorage.getItem("gnx-active-apollo-import") || "null");
       if (saved?.runId) {
@@ -432,6 +438,7 @@ export default function ProspectsPage() {
         if (saved.campaignId) setCampaignId(saved.campaignId);
       }
     } catch {}
+    if (linkedCampaignId) setCampaignId(linkedCampaignId);
   }, []);
 
   // The backend already filtered and sorted this page.

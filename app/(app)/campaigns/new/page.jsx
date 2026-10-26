@@ -220,7 +220,10 @@ export default function NewCampaignPage() {
   const [manualLead, setManualLead] = useState(DEFAULT_MANUAL_LEAD);
   const [addingManualLead, setAddingManualLead] = useState(false);
   const [manualLeadError, setManualLeadError] = useState("");
-  const [leadSource, setLeadSource] = useState("automatic");
+  const [leadSourceChoice, setLeadSource] = useState("automatic");
+  // Free brings its own leads: the lead database search is on paid plans.
+  const leadSource = freePlan ? "existing" : leadSourceChoice;
+  const [searchLockedOpen, setSearchLockedOpen] = useState(false);
   const [automaticAudience, setAutomaticAudience] = useState(DEFAULT_AUTOMATIC_AUDIENCE);
   const [showAutomaticMoreFilters, setShowAutomaticMoreFilters] = useState(false);
   const emailEnabled = usesEmail(form.channel);
@@ -984,7 +987,7 @@ export default function NewCampaignPage() {
                 <div className="row" style={{ gap: 10 }}>
                   <div>
                     <b>Assign leads</b>
-                  <small>{leadSource === "automatic" ? "Define the audience and let GNX find qualified leads." : "Add a lead manually or select existing leads."}</small>
+                  <small>{leadSource === "automatic" ? "Define the audience and let GNX find qualified leads." : freePlan ? "Bring your own leads: add them by hand or pick ones you imported. You can import a CSV into this campaign after you create the draft." : "Add a lead manually or select existing leads."}</small>
                   </div>
                 </div>
                 <div className="row" style={{ gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -997,10 +1000,13 @@ export default function NewCampaignPage() {
                           type="button"
                           role="tab"
                           aria-selected={active}
-                          onClick={() => setLeadSource(option.value)}
+                          onClick={() => {
+                            if (freePlan && option.value === "automatic") { setSearchLockedOpen(true); return; }
+                            setLeadSource(option.value);
+                          }}
                           style={{ border: active ? "1px solid var(--g-300)" : "1px solid transparent", borderRadius: 999, background: active ? "#fff" : "transparent", color: active ? "var(--ink)" : "var(--muted)", padding: "8px 18px", fontSize: 13, fontWeight: 800, cursor: "pointer", boxShadow: active ? "0 1px 4px rgba(20,50,35,.08)" : "none" }}
                         >
-                          {option.label}
+                          {freePlan && option.value === "automatic" ? <Icon name="lock" size={12} /> : null} {option.label}
                         </button>
                       );
                     })}
@@ -1009,6 +1015,18 @@ export default function NewCampaignPage() {
                 </div>
               </div>
 
+              {freePlan && searchLockedOpen ? (
+                <div style={{ marginBottom: 14 }}>
+                  <StateNote
+                    tone="info"
+                    icon="lock"
+                    title="Finding new leads is on paid plans"
+                    text={`On Free you bring your own leads. ${upgradePlan().name} searches the lead database for buyers who fit, verifies their work emails, and checks fit before spending any credits.`}
+                    secondary={{ label: "Not now", onClick: () => setSearchLockedOpen(false) }}
+                    action={{ label: `Upgrade to ${upgradePlan().name}`, onClick: () => router.push("/billing") }}
+                  />
+                </div>
+              ) : null}
               {leadSource === "automatic" ? (
                 <div style={{ padding: 16, border: "1px solid var(--line)", borderRadius: 8, background: "var(--bg)" }}>
                   <div style={{ marginBottom: 14 }}>
