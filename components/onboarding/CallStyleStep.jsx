@@ -2,10 +2,10 @@
 import React, { useState } from "react";
 import Icon from "../ui/Icon";
 import { Live, Marked, NumberStepper, RuleChips } from "./ui";
-import { CALL_GOALS, CALL_LANGUAGES, CALL_RULES, DO_NOT_CALL, MORE_OBJECTIONS, VOICES, WEEKDAYS } from "../../lib/onboarding-data";
+import VoicePicker from "./VoicePicker";
+import { CALL_GOALS, CALL_LANGUAGES, CALL_RULES, DO_NOT_CALL, MORE_OBJECTIONS, WEEKDAYS } from "../../lib/onboarding-data";
 import { defaultOpeningLine, hasEmail, objectionsFor, sampleCall, stepsFor } from "../../lib/onboarding-flow";
 
-const WAVE = [8, 16, 22, 12, 18, 9];
 
 function Objection({ item, onSave, onRemove, startEditing, agent }) {
   const [editing, setEditing] = useState(!!startEditing);
@@ -57,19 +57,8 @@ export default function CallStyleStep({ d, set, footer }) {
         </div>
 
         <div className="card">
-          <div className="lbl">Voice <small>Our team matches the exact voice when your number is set up</small></div>
-          <div className="voices" role="radiogroup" aria-label="Voice">
-            {VOICES.map(v => {
-              const on = d.voice === v.id;
-              return (
-                <button type="button" role="radio" aria-checked={on} key={v.id} className={`vc ${on ? "on" : ""}`} onClick={() => set("voice", v.id)}>
-                  <span className="vc-ic" aria-hidden="true"><Icon name="mic" size={18} stroke={2} /></span>
-                  <span><b>{v.name}</b><span className="d">{v.desc}</span></span>
-                  <span className="wave" aria-hidden="true">{WAVE.map((h, i) => <i key={i} style={{ height: h }} />)}</span>
-                </button>
-              );
-            })}
-          </div>
+          <div className="lbl">Voice <small>Press play to hear each one</small></div>
+          <VoicePicker d={d} set={set} />
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             <label className="lbl sm" htmlFor="ob-lang">Call language</label>
             <select id="ob-lang" className="sel" value={d.callLanguage} onChange={e => set("callLanguage", e.target.value)}>

@@ -4,7 +4,7 @@ import Icon from "../ui/Icon";
 import { Live, TokenInput, boldMatch } from "./ui";
 import { suggestAudience } from "../../lib/onboarding-suggestions";
 import {
-  CITY_NAMES, COMPANY_SIZES, INDUSTRIES, INDUSTRY_GROUPS, PLACES, POPULAR_CITIES, POPULAR_COUNTRIES, REGIONS, ROLES,
+  CITY_NAMES, COMPANY_SIZES, COUNTRY_CITIES, INDUSTRIES, INDUSTRY_GROUPS, PLACES, POPULAR_CITIES, POPULAR_COUNTRIES, REGIONS, ROLES,
 } from "../../lib/onboarding-data";
 import { audienceSentence, capitalize, hasEmail, hasVoice, sizeSummary, stepsFor } from "../../lib/onboarding-flow";
 
@@ -19,6 +19,80 @@ function searchPlaces(q) {
 function searchTitles(q) {
   const query = q.toLowerCase();
   return ROLES.filter(r => r.toLowerCase().includes(query)).slice(0, 6).map(r => ({ value: r, label: r }));
+}
+
+/**
+ * Region -> country -> city. Picking a region only opens its countries and
+ * picking a country only opens its cities; nothing is added in bulk unless
+ * asked. Any single country or city is enough to continue.
+ */
+function LocationBrowser({ geos, onToggle, onAddMany }) {
+  const [region, setRegion] = useState(null);
+  const [country, setCountry] = useState(null);
+  const open = REGIONS.find(r => r.label === region);
+  const shownCountry = open && (open.places.includes(country) ? country : open.places.find(p => COUNTRY_CITIES[p]));
+  const cities = shownCountry ? COUNTRY_CITIES[shownCountry] || [] : [];
+  const chip = (place, onClick = () => onToggle(place)) => {
+    const on = geos.includes(place);
+    return (
+      <button type="button" key={place} className={`chip xs ${on ? "on" : "more"}`} aria-pressed={on} onClick={onClick}>
+        {on ? <Icon name="check" size={13} stroke={2.6} /> : "+ "}{place}
+      </button>
+    );
+  };
+  return (
+    <>
+      <div className="sub" style={{ marginTop: 4 }}>Browse by region</div>
+      <div className="chips">
+        {REGIONS.map(r => {
+          const picked = r.places.filter(p => geos.includes(p) || (COUNTRY_CITIES[p] || []).some(c => geos.includes(c))).length;
+          const on = region === r.label;
+          return (
+            <button type="button" key={r.label} className={`chip xs ${on ? "on" : ""}`} aria-expanded={on}
+              onClick={() => { setRegion(on ? null : r.label); setCountry(null); }}>
+              {r.label}{picked > 0 && <span className="tag" style={{ height: 20, marginLeft: 2 }}>{picked}</span>}
+              <Icon name="chevronDown" size={14} stroke={2.2} style={{ transform: on ? "rotate(180deg)" : "none" }} />
+            </button>
+          );
+        })}
+      </div>
+
+      {open ? (
+        <div className="cus">
+          <div className="lbl sm">Countries in {open.label} <small>Pick any. Tap a country to see its cities.</small></div>
+          <div className="chips">
+            {open.places.map(place => chip(place, () => { onToggle(place); setCountry(place); }))}
+            {open.places.some(p => !geos.includes(p)) && (
+              <button type="button" className="mini" onClick={() => onAddMany(open.places)}>Add all {open.places.length}</button>
+            )}
+          </div>
+          {cities.length > 0 && (
+            <>
+              <div className="lbl sm" style={{ marginTop: 6 }}>
+                <span>Cities in {shownCountry}</span>
+                {open.places.filter(p => COUNTRY_CITIES[p]).length > 1 && (
+                  <span className="chips" style={{ gap: 4 }}>
+                    {open.places.filter(p => COUNTRY_CITIES[p]).map(p => (
+                      <button type="button" key={p} className={`mini ${p === shownCountry ? "p" : ""}`} style={{ minHeight: 28, padding: "0 10px" }} onClick={() => setCountry(p)}>{p}</button>
+                    ))}
+                  </span>
+                )}
+              </div>
+              <div className="chips">{cities.map(c => chip(c))}</div>
+              <span className="hint">Picking a city targets just that city. You don&apos;t need to pick the country too.</span>
+            </>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="sub" style={{ marginTop: 4 }}>Popular cities</div>
+          <div className="chips">{POPULAR_CITIES.filter(c => !geos.includes(c)).map(c => chip(c))}</div>
+          <div className="sub" style={{ marginTop: 4 }}>Popular countries</div>
+          <div className="chips">{POPULAR_COUNTRIES.filter(c => !geos.includes(c)).map(c => chip(c))}</div>
+        </>
+      )}
+    </>
+  );
 }
 
 function IndustryPicker({ value, onChange }) {
@@ -89,6 +163,7 @@ export default function AudienceStep({ d, set, footer }) {
   const moreTitles = suggestion.alsoTitles.filter(t => !d.titles.includes(t));
   const addGeo = g => !d.geos.includes(g) && set("geos", [...d.geos, g]);
   const addGeos = list => set("geos", Array.from(new Set([...d.geos, ...list])));
+  const toggleGeo = g => set("geos", d.geos.includes(g) ? d.geos.filter(x => x !== g) : [...d.geos, g]);
   const toggleSize = key => set("companySizes", d.companySizes.includes(key) ? d.companySizes.filter(k => k !== key) : [...d.companySizes, key]);
   const mailOn = hasEmail(d.channels);
   const call = hasVoice(d.channels);
@@ -134,22 +209,7 @@ export default function AudienceStep({ d, set, footer }) {
           <TokenInput values={d.geos} label="Add a location" placeholder="Type a country, state or city" suggest={searchPlaces}
             tokenIcon={g => (CITY_NAMES.has(g) ? "pin" : null)} highlight={boldMatch}
             onAdd={addGeo} onRemove={g => set("geos", d.geos.filter(x => x !== g))} />
-          <div className="sub" style={{ marginTop: 4 }}>Quick add a region</div>
-          <div className="chips">
-            {REGIONS.map(r => {
-              const on = r.places.every(p => d.geos.includes(p));
-              return <button type="button" key={r.label} className={`chip xs ${on ? "on" : ""}`} aria-pressed={on} title={r.places.join(", ")}
-                onClick={() => (on ? set("geos", d.geos.filter(g => !r.places.includes(g))) : addGeos(r.places))}>{r.label}</button>;
-            })}
-          </div>
-          <div className="sub" style={{ marginTop: 4 }}>Popular cities</div>
-          <div className="chips">
-            {POPULAR_CITIES.filter(c => !d.geos.includes(c)).map(c => <button type="button" key={c} className="chip xs more" onClick={() => addGeo(c)}>+ {c}</button>)}
-          </div>
-          <div className="sub" style={{ marginTop: 4 }}>Popular countries</div>
-          <div className="chips">
-            {POPULAR_COUNTRIES.filter(c => !d.geos.includes(c)).map(c => <button type="button" key={c} className="chip xs more" onClick={() => addGeo(c)}>+ {c}</button>)}
-          </div>
+          <LocationBrowser geos={d.geos} onToggle={toggleGeo} onAddMany={addGeos} />
           {d.geos.length > 0 && <button type="button" className="mini" style={{ alignSelf: "flex-start" }} onClick={() => set("geos", [])}>Clear all locations</button>}
         </div>
 
