@@ -31,7 +31,12 @@ function apiMessageToMsg(m) {
     providerFailures: m.metadata?.providerFailures,
     campaign: m.metadata?.campaign,
     proposal: m.metadata?.proposal,
-    approval: m.metadata?.approval,
+    // Older result messages stored a resolved approval without an id; show
+    // them as a result instead of a second "Approval needed" card.
+    approval: m.metadata?.approval?.id || m.metadata?.approval?.status === 'pending' ? m.metadata.approval : undefined,
+    approvalResult: m.metadata?.approvalResult || (m.metadata?.approval && !m.metadata.approval.id && m.metadata.approval.status !== 'pending'
+      ? { tool: m.metadata.approval.tool, status: m.metadata.approval.status, label: String(m.metadata.approval.tool || 'action').replaceAll('_', ' ') }
+      : undefined),
     leadSearchPreview: m.metadata?.leadSearchPreview,
     exactFilters: m.metadata?.exactFilters,
     leads: m.metadata?.leads,
@@ -293,7 +298,7 @@ function CampaignDraftCard({ campaign, onPrepare }) {
     if (!campaign?.id || !onPrepare) return;
     setBusy(true);
     try {
-      await onPrepare(campaign.id);
+      await onPrepare(campaign);
     } finally {
       setBusy(false);
     }
@@ -305,7 +310,9 @@ function CampaignDraftCard({ campaign, onPrepare }) {
         <span className="chip" style={{ fontSize: 10.5 }}>Draft</span>
       </div>
       <div style={{ fontSize: 14, fontWeight: 700, marginTop: 12 }}>{campaign.name || 'New campaign'}</div>
-      <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>{campaign.channel || 'email'} · up to {campaign.maxLeads ?? '-'} leads · nothing will send yet</div>
+      <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>{campaign.channel || 'email'} · {typeof campaign.leadsAttached === 'number' ? `${campaign.leadsAttached} leads attached` : `up to ${campaign.maxLeads ?? '-'} leads`}{campaign.sendingHours ? ` · sends ${campaign.sendingHours}` : ''} · nothing will send yet</div>
+      {campaign.leadsNotAttached > 0 && <div style={{ fontSize: 11.5, marginTop: 4, color: 'var(--orange-700)' }}>{campaign.leadsNotAttached} leads did not fit (a campaign holds up to {campaign.maxLeads}).</div>}
+      {campaign.id && <Link className="lnk" href={`/campaigns/${campaign.id}`} style={{ fontSize: 11.5, display: 'inline-block', marginTop: 6 }}>Open campaign</Link>}
       <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }} disabled={busy} onClick={prepare}>
         <Icon name="bolt" size={13} color="#06231a" /> {busy ? 'Preparing…' : 'Proceed with Campaign preparation'}
       </button>
@@ -418,7 +425,35 @@ function ApprovalCard({ approval, onResolved }) {
     }
   };
   const leadSearch = approval?.tool === 'execute_company_first_lead_search';
-  return <div className="card" style={{ padding: 16, maxWidth: 480, borderRadius: 16, border: '1px solid var(--orange-200, #f6d2a5)' }}><div style={{ fontWeight: 700, fontSize: 13.5 }}>Approval needed</div><p className="faint" style={{ fontSize: 12.5, margin: '7px 0 10px' }}>Proceed with <strong>{leadSearch ? 'company-first Apollo lead search' : String(approval?.tool || 'this action').replaceAll('_', ' ')}</strong>?</p>{errorText && <p style={{ color: 'var(--red-600, #c0392b)', fontSize: 11.5, margin: '0 0 9px' }}>{errorText}</p>}{status === 'pending' ? <div className="row" style={{ gap: 8 }}><button className="btn btn-primary btn-sm" disabled={busy} onClick={() => resolve('approve')}>{leadSearch ? 'Proceed with lead search' : 'Proceed'}</button><button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => resolve('reject')}>Cancel</button></div> : <span className="chip" style={{ fontSize: 11 }}>{status}</span>}</div>;
+  const args = approval?.arguments || {};
+  const label = APPROVAL_LABELS[approval?.tool] || String(approval?.tool || 'this action').replaceAll('_', ' ');
+  return <div className="card" style={{ padding: 16, maxWidth: 520, borderRadius: 16, border: '1px solid var(--orange-200, #f6d2a5)' }}><div style={{ fontWeight: 700, fontSize: 13.5 }}>Approval needed</div><p className="faint" style={{ fontSize: 12.5, margin: '7px 0 10px' }}>OK to <strong>{label}</strong>?</p>
+  {approval?.tool === 'send_email_to_lead' && <div style={{ background: 'var(--bg-2)', borderRadius: 10, padding: 10, marginBottom: 10 }}><div style={{ fontSize: 12, fontWeight: 700 }}>{args.subject}</div><div className="faint" style={{ fontSize: 11.5, whiteSpace: 'pre-line', marginTop: 4 }}>{args.body}</div></div>}
+  {approval?.tool === 'send_reply_draft' && args.editedBody && <div className="faint" style={{ background: 'var(--bg-2)', borderRadius: 10, padding: 10, marginBottom: 10, fontSize: 11.5, whiteSpace: 'pre-line' }}>{args.editedBody}</div>}{errorText && <p style={{ color: 'var(--red-600, #c0392b)', fontSize: 11.5, margin: '0 0 9px' }}>{errorText}</p>}{status === 'pending' ? <div className="row" style={{ gap: 8 }}><button className="btn btn-primary btn-sm" disabled={busy} onClick={() => resolve('approve')}>{leadSearch ? 'Proceed with lead search' : 'Proceed'}</button><button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => resolve('reject')}>Cancel</button></div> : <span className="chip" style={{ fontSize: 11 }}>{status}</span>}</div>;
+}
+
+const APPROVAL_LABELS = {
+  prepare_campaign: 'prepare this campaign (find emails, qualify leads, write emails; nothing is sent)',
+  pause_campaign: 'pause this campaign',
+  resume_campaign: 'resume this campaign',
+  pause_campaigns: 'pause all active email campaigns',
+  book_meeting: 'book this meeting',
+  send_email_to_lead: 'send this email',
+  send_reply_draft: 'send the prepared reply',
+  find_lead_emails: 'look up missing emails (uses Apollo credits)',
+};
+
+function ActionResultCard({ result }) {
+  if (!result) return null;
+  const approved = result.status === 'approved';
+  return (
+    <div className="card" style={{ padding: '12px 14px', maxWidth: 480, borderRadius: 14 }}>
+      <div className="row spread" style={{ gap: 10 }}>
+        <div className="row" style={{ gap: 8 }}><Icon name={approved ? 'check' : 'close'} size={15} color={approved ? 'var(--g-600)' : 'var(--ink-3, #888)'} /><span style={{ fontSize: 12.5, fontWeight: 700 }}>{approved ? 'Approved' : 'Cancelled'}: {result.label}</span></div>
+        {approved && result.campaignId && <Link className="chip" href={`/campaigns/${result.campaignId}`} style={{ fontSize: 11 }}>Open campaign</Link>}
+      </div>
+    </div>
+  );
 }
 
 function Bubble({ m, onResolved, onPrepare }) {
@@ -488,6 +523,9 @@ function Bubble({ m, onResolved, onPrepare }) {
   }
   if (m.researched) {
     return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><LeadResearchCard researched={m.researched} /></div></div>;
+  }
+  if (m.approvalResult && m.kind !== 'stats') {
+    return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}<div style={{ marginLeft: 41 }}><ActionResultCard result={m.approvalResult} /></div></div>;
   }
   if (m.approval) {
     return <div className="col" style={{ gap: 10 }}>{m.text && <TextRow text={m.text} isUser={false} />}{m.leadSearchPreview && <div style={{ marginLeft: 41 }}><LeadSearchPreviewCard preview={m.leadSearchPreview} /></div>}<div style={{ marginLeft: 41 }}><ApprovalCard approval={m.approval} onResolved={onResolved} /></div></div>;
@@ -687,7 +725,8 @@ export default function AgentPage() {
     }
   };
 
-  const prepareCampaign = (campaignId) => send(`Prepare campaign ${campaignId} end to end`);
+  // Plain words only; the agent finds the campaign ID in the chat history.
+  const prepareCampaign = (campaign) => send(`Prepare the "${campaign?.name || 'new'}" campaign end to end`);
 
   const kpis = sidebarData?.kpis ?? {};
   const activity = sidebarData?.activity ?? [];
