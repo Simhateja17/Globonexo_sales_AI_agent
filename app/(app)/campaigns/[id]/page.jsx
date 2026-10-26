@@ -193,7 +193,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
               style={{ height: 32, padding: "0 10px", fontSize: 12, whiteSpace: "nowrap" }}
               onClick={() => onEmailNow(lead.id)}
             >
-              <Icon name={emailState?.tone === "warn" ? "edit" : "send"} size={13} /> {sending ? "Sending..." : writing ? "Writing email…" : emailState?.tone === "warn" ? "Write email" : "Email immediately"}
+              <Icon name={emailState?.tone === "warn" ? "edit" : "send"} size={13} /> {sending ? "Sending..." : writing ? "Writing email…" : emailState?.action === "details" ? "Add details" : emailState?.tone === "warn" ? "Write email" : "Email immediately"}
             </button>
           )}
           {showPhone && (
@@ -229,7 +229,8 @@ function CampaignProgress({ campaign, leadCount, preparationDone, drafts, freePl
   const audienceDone = freePlan ? enrolled > 0 : preparationDone || enrolled > 0;
   const beingWritten = Number(writing?.writing ?? 0);
   const writeYourself = Number(writing?.writeYourself ?? 0);
-  const emailsDone = audienceDone && written > 0 && !drafts?.generating && beingWritten === 0 && writeYourself === 0;
+  const needsDetails = Number(writing?.needsDetails ?? 0);
+  const emailsDone = audienceDone && written > 0 && !drafts?.generating && beingWritten === 0 && writeYourself === 0 && needsDetails === 0;
   const approvalsDone = emailsDone && waiting === 0;
   const stages = [
     {
@@ -247,6 +248,7 @@ function CampaignProgress({ campaign, leadCount, preparationDone, drafts, freePl
       text: emailsDone
         ? `${drafts.steps || 1}-step sequence from verified facts only`
         : beingWritten > 0 ? `Your agent is writing ${beingWritten} email${beingWritten === 1 ? "" : "s"} now`
+        : needsDetails > 0 ? `${needsDetails} lead${needsDetails === 1 ? " needs" : "s need"} a job title or company before the email can be written. Open the lead to add it`
         : writeYourself > 0 ? `${writeYourself} email${writeYourself === 1 ? "" : "s"} for you to write${writing?.creditsExhausted ? " · AI credits are used up" : ""}. Open the lead to write it`
         : drafts?.generating ? "Your agent is writing each email now" : freePlan && !audienceDone ? "Starts once you add leads" : freePlan ? "Starts as soon as a lead is added" : "Starts once leads finish enriching",
     },
@@ -507,13 +509,25 @@ export default function CampaignDetailPage() {
   // The tab lives in the URL so a reload and a shared link both land on the
   // section the customer was reading.
   const requestedTab = searchParams.get("tab");
-  const selectTab = useCallback(tab => {
+  const sectionsRef = useRef(null);
+  const [revealTab, setRevealTab] = useState(false);
+  // `reveal` is for buttons far above the tabs (the header's Settings): the
+  // tab opens below the preparation panel, so without scrolling to it the
+  // click looked like it did nothing.
+  const selectTab = useCallback((tab, { reveal = false } = {}) => {
     const params = new URLSearchParams(searchParams.toString());
     if (tab !== "emails") params.set("tab", tab);
     else params.delete("tab");
     const query = params.toString();
     router.push(query ? `/campaigns/${id}?${query}` : `/campaigns/${id}`, { scroll: false });
+    if (reveal) setRevealTab(true);
   }, [id, router, searchParams]);
+
+  useEffect(() => {
+    if (!revealTab) return;
+    sectionsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setRevealTab(false);
+  }, [revealTab, requestedTab]);
 
   const detailLead = detailLeadId ? leads.find(lead => lead.id === detailLeadId) || null : null;
   const sendLead = sendLeadId ? leads.find(lead => lead.id === sendLeadId) || null : null;
@@ -623,7 +637,7 @@ export default function CampaignDetailPage() {
         <div className="acts">
           {!canOperate && <span className="muted" style={{ fontSize: 12, fontWeight: 800 }}>View only</span>}
           {canOperate && (
-            <button className="bt bt-g" type="button" onClick={() => selectTab("settings")}><Icon name="cog" size={15} /> Settings</button>
+            <button className="bt bt-g" type="button" onClick={() => selectTab("settings", { reveal: true })}><Icon name="cog" size={15} /> Settings</button>
           )}
           {canOperate && (campaign.status === "draft" || campaign.status === "paused") && (
             <button className="bt bt-p" type="button" data-tour="campaign-launch" onClick={handleLaunch} disabled={launching || launchGate.blocked} title={launchGate.blocked ? launchGate.message : undefined}>
@@ -649,9 +663,9 @@ export default function CampaignDetailPage() {
           action={lifecycle.fix
             ? { label: "Fix connection", onClick: () => router.push(lifecycle.fix) }
             : lifecycle.key === "audience_exhausted" || lifecycle.key === "credit_limit"
-              ? { label: "Edit settings", onClick: () => selectTab("settings") }
+              ? { label: "Edit settings", onClick: () => selectTab("settings", { reveal: true }) }
               : (lifecycle.key === "ready" || lifecycle.key === "ready_partly") && emailEnabled
-                ? { label: "Review emails", onClick: () => selectTab("emails") }
+                ? { label: "Review emails", onClick: () => selectTab("emails", { reveal: true }) }
                 : null}
         />
       ) : null}
@@ -690,6 +704,7 @@ export default function CampaignDetailPage() {
             ))}
           </div>
 
+          <div ref={sectionsRef} style={{ scrollMarginTop: 96 }} aria-hidden="true" />
           {!(emailEnabled && activeTab === "emails" && canOperate) ? <div>{campaignTabs}</div> : null}
 
           {activeTab === "settings" && (
@@ -724,7 +739,7 @@ export default function CampaignDetailPage() {
                   {leads.length === 0 ? (
                     <tr><td colSpan={leadColumns.length} className="empty">No leads are attached to this campaign.</td></tr>
                   ) : leads.slice((Math.min(leadPage, Math.ceil(leads.length / LEADS_PER_PAGE)) - 1) * LEADS_PER_PAGE, Math.min(leadPage, Math.ceil(leads.length / LEADS_PER_PAGE)) * LEADS_PER_PAGE).map(lead => (
-                    <CampaignLeadRow key={lead.id} lead={lead} emailReadiness={emailReadinessByLead.get(lead.id) ?? null} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} onOpen={setDetailLeadId} canOperate={canOperate} callNowLimit={callNowLimit} />
+                    <CampaignLeadRow key={lead.id} lead={lead} emailReadiness={emailReadinessByLead.get(lead.id) ?? null} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} onOpen={leadId => router.push(`/prospects/${leadId}`)} canOperate={canOperate} callNowLimit={callNowLimit} />
                   ))}
                 </tbody>
               </table>

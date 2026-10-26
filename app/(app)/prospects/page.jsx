@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
 import { leadPhoto } from "../../../lib/lead-photo";
 import Icon from "../../../components/ui/Icon";
@@ -23,7 +24,7 @@ import { cleanText, isValidEmail } from "../../../lib/validation";
 import { FREE_PLAN, isFreePlan, useOrg } from "../../../lib/free-plan";
 import UpgradeModal from "../../../components/billing/UpgradeModal";
 import SendEmailDialog from "../../../components/leads/SendEmailDialog";
-import { outreachSummary, sendButtonState, useLeadOutreach } from "../../../lib/lead-outreach";
+import { campaignSendsEmail, listMissingFields, missingEmailWriterFields, outreachSummary, sendButtonState, useLeadOutreach } from "../../../lib/lead-outreach";
 import {
   audienceDefaultsFromOnboarding,
   normalizeApolloLocations,
@@ -310,6 +311,7 @@ function LeadPreview({ lead, onOpen, onSendNow, onDelete }) {
 }
 
 export default function ProspectsPage() {
+  const router = useRouter();
   const confirm = useConfirm();
   const freePlan = isFreePlan(useOrg());
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -364,6 +366,11 @@ export default function ProspectsPage() {
   const [voiceLegalBasis, setVoiceLegalBasis] = useState("legitimate_interest");
   const selectedCampaign = campaigns.find(campaign => campaign.id === campaignId);
   const selectedVoiceCampaign = selectedCampaign?.channel === "voice";
+  // An email campaign writes the lead's first email as soon as it is added, and
+  // the writer needs a name, job title, company and email to do it.
+  const selectedEmailCampaign = campaignSendsEmail(selectedCampaign);
+  const writerLabel = (label, field) => (selectedEmailCampaign && ["name", "title", "company", "email"].includes(field) ? `${label} *` : label);
+  const csvMissingDetails = selectedEmailCampaign ? csvLeads.filter(lead => missingEmailWriterFields(lead).length > 0).length : 0;
 
   // One page at a time: search, filters and sort run in the backend query, so
   // a workspace with thousands of leads loads as fast as one with ten.
@@ -646,6 +653,11 @@ export default function ProspectsPage() {
       setError("Enter a valid LinkedIn URL or leave it blank.");
       return;
     }
+    const missingForEmail = selectedEmailCampaign ? missingEmailWriterFields({ firstName, lastName, title, company, email }) : [];
+    if (missingForEmail.length > 0) {
+      setError(`Add their ${listMissingFields(missingForEmail)}. ${selectedCampaign.name} writes the first email from them.`);
+      return;
+    }
     if (selectedVoiceCampaign && (!phone || !voiceConfirmed)) {
       setError("Voice campaign leads require a direct/mobile phone and DNC/lawful-basis confirmation.");
       return;
@@ -887,7 +899,7 @@ export default function ProspectsPage() {
                 <LeadPreview
                   key={`${previewLead.id}-${outreachVersion}`}
                   lead={previewLead}
-                  onOpen={setDetailLeadId}
+                  onOpen={leadId => router.push(`/prospects/${leadId}`)}
                   onSendNow={sendLeadNow}
                   onDelete={deleteLead}
                 />
@@ -906,12 +918,12 @@ export default function ProspectsPage() {
               </div>
             </div>
             <div className="form-grid">
-              <label className="field"><span>First name</span><input className="input" value={manualLead.firstName} onChange={event => setManualLeadField("firstName", event.target.value)} placeholder="Priya" maxLength={120} /></label>
+              <label className="field"><span>{writerLabel("First name", "name")}</span><input className="input" value={manualLead.firstName} onChange={event => setManualLeadField("firstName", event.target.value)} placeholder="Priya" maxLength={120} /></label>
               <label className="field"><span>Last name</span><input className="input" value={manualLead.lastName} onChange={event => setManualLeadField("lastName", event.target.value)} placeholder="Shah" maxLength={120} /></label>
-              <label className="field"><span>Email</span><input className="input" value={manualLead.email} onChange={event => setManualLeadField("email", event.target.value)} placeholder="priya@company.com" maxLength={254} /></label>
+              <label className="field"><span>{writerLabel("Email", "email")}</span><input className="input" value={manualLead.email} onChange={event => setManualLeadField("email", event.target.value)} placeholder="priya@company.com" maxLength={254} /></label>
               <label className="field"><span>Phone</span><input className="input" value={manualLead.phone} onChange={event => setManualLeadField("phone", event.target.value)} placeholder="+1 555 0100" maxLength={80} /></label>
-              <label className="field"><span>Company</span><input className="input" value={manualLead.company} onChange={event => setManualLeadField("company", event.target.value)} placeholder="Acme Inc." maxLength={160} /></label>
-              <label className="field"><span>Title</span><input className="input" value={manualLead.title} onChange={event => setManualLeadField("title", event.target.value)} placeholder="VP Sales" maxLength={160} /></label>
+              <label className="field"><span>{writerLabel("Company", "company")}</span><input className="input" value={manualLead.company} onChange={event => setManualLeadField("company", event.target.value)} placeholder="Acme Inc." maxLength={160} /></label>
+              <label className="field"><span>{writerLabel("Title", "title")}</span><input className="input" value={manualLead.title} onChange={event => setManualLeadField("title", event.target.value)} placeholder="VP Sales" maxLength={160} /></label>
               <label className="field"><span>Location</span><input className="input" value={manualLead.location} onChange={event => setManualLeadField("location", event.target.value)} placeholder="New York, NY" maxLength={160} /></label>
               <label className="field"><span>LinkedIn URL</span><input className="input" value={manualLead.linkedinUrl} onChange={event => setManualLeadField("linkedinUrl", event.target.value)} placeholder="https://linkedin.com/in/..." maxLength={500} /></label>
               <label className="field">
@@ -941,6 +953,13 @@ export default function ProspectsPage() {
                   {campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.name}</option>)}
                 </select>
               </label>
+              {selectedEmailCampaign ? (
+                <div className="field" style={{ gridColumn: "1 / -1" }}>
+                  <p className="faint" style={{ margin: 0, fontSize: 12.5 }}>
+                    Their first email is written as soon as you save, from their name, job title and company. Fields marked * are needed for that.
+                  </p>
+                </div>
+              ) : null}
               {selectedVoiceCampaign ? <div className="field" style={{ gridColumn: "1 / -1" }}>
                 <span>Voice compliance *</span>
                 <select className="input" value={voiceLegalBasis} onChange={event => setVoiceLegalBasis(event.target.value)}>
@@ -1066,6 +1085,10 @@ export default function ProspectsPage() {
               <div className="form-grid two">
                 <label className="field"><span>CSV file</span><input className="input" type="file" accept=".csv,text/csv" onChange={handleCsv} style={{ paddingTop: 12 }} /></label>
                 <label className="field"><span>Attach to campaign</span><select className="input" value={campaignId} onChange={event => { setCampaignId(event.target.value); setVoiceConfirmed(false); }}><option value="">No campaign yet</option>{campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.name} · {campaign.channel}</option>)}</select></label>
+                {csvMissingDetails > 0 ? <div className="notice-warn" style={{ gridColumn: "1 / -1" }}>
+                  <strong>{csvMissingDetails} row{csvMissingDetails === 1 ? " is" : "s are"} missing a name, job title, company or email</strong>
+                  <p>They are still added, but their first email can't be written until you fill in what's missing on the lead. Add those columns to the CSV to avoid this.</p>
+                </div> : null}
                 {selectedVoiceCampaign ? <div className="notice-warn">
                   <strong>Voice compliance confirmation required</strong>
                   <p>Every row must contain a person-level direct/mobile number.</p>
