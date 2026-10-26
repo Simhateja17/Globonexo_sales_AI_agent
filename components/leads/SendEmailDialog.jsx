@@ -6,6 +6,15 @@ import api from "../../lib/api";
 import Icon from "../ui/Icon";
 import Spinner from "../ui/Spinner";
 import { AI_CREDITS_EXHAUSTED, campaignSendsEmail, useLeadOutreach } from "../../lib/lead-outreach";
+
+const DETAIL_FIELDS = {
+  name: [
+    { key: "firstName", label: "First name", placeholder: "Priya" },
+    { key: "lastName", label: "Last name", placeholder: "Shah" },
+  ],
+  title: [{ key: "title", label: "Job title", placeholder: "VP Sales" }],
+  company: [{ key: "company", label: "Company", placeholder: "Acme Inc." }],
+};
 import { leadName } from "./LeadDetailModal";
 
 const SUBJECT_MAX = 200;
@@ -24,6 +33,12 @@ export default function SendEmailDialog({ lead, campaignId, onClose, onSent }) {
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const [details, setDetails] = useState(() => ({
+    firstName: lead.firstName || "",
+    lastName: lead.lastName || "",
+    title: lead.title || "",
+    company: lead.company || "",
+  }));
   const closeButton = useRef(null);
   const name = leadName(lead);
   const draft = outreach?.draft;
@@ -53,6 +68,27 @@ export default function SendEmailDialog({ lead, campaignId, onClose, onSent }) {
     setError(err?.response?.data?.error || fallback);
     const latest = err?.response?.data?.details?.draft;
     if (latest) setOutreach(current => current ? { ...current, draft: latest } : current);
+  };
+
+  // The lead was missing what the email is written from. Fill it in on the
+  // lead itself, then hand it straight back to the AI.
+  const saveDetailsAndWrite = async fields => {
+    const patch = Object.fromEntries(fields.map(field => [field.key, details[field.key].trim()]));
+    if (fields.some(field => field.key !== "lastName" && !patch[field.key])) {
+      setError("Fill in each field so the AI has something true to write from.");
+      return;
+    }
+    setBusy("details");
+    setError("");
+    try {
+      await api.patch(`/leads/${lead.id}`, patch);
+      const { data } = await api.post(`/leads/${lead.id}/draft/generate`, { campaignId: resolvedCampaignId });
+      setOutreach(data);
+    } catch (err) {
+      fail(err, "The details could not be saved.");
+    } finally {
+      setBusy("");
+    }
   };
 
   const askAi = async () => {
@@ -155,8 +191,8 @@ export default function SendEmailDialog({ lead, campaignId, onClose, onSent }) {
     );
     footer = (
       <>
-        {draft?.state === "ready" ? (
-          <button type="button" className="bt bt-g" disabled={Boolean(busy)} onClick={() => setEditing(false)}>Back to email</button>
+        {draft?.state === "ready" || draft?.state === "needs_info" ? (
+          <button type="button" className="bt bt-g" disabled={Boolean(busy)} onClick={() => setEditing(false)}>Back</button>
         ) : !creditsOut ? (
           <button type="button" className="bt bt-g" disabled={Boolean(busy)} onClick={askAi}>
             {busy === "generate" ? <Spinner size={13} /> : <Icon name="spark" size={14} />} Ask AI to write it
@@ -167,6 +203,37 @@ export default function SendEmailDialog({ lead, campaignId, onClose, onSent }) {
         </button>
         <button type="button" className="bt bt-p" disabled={Boolean(busy)} onClick={() => saveOwn({ andSend: true })}>
           {busy === "send" ? <Spinner size={13} /> : <Icon name="send" size={14} color="#06231a" />} Save and send now
+        </button>
+      </>
+    );
+  } else if (draft?.state === "needs_info") {
+    const fields = (draft.missing?.length ? draft.missing : ["title"]).flatMap(field => DETAIL_FIELDS[field] || []);
+    content = (
+      <>
+        <div className="gnote warn" style={{ marginBottom: 14 }}>{draft.reason}</div>
+        {fields.map((field, index) => (
+          <React.Fragment key={field.key}>
+            <label className="draft-edit-label" htmlFor={`lead-detail-${field.key}`} style={index ? { marginTop: 12 } : undefined}>{field.label}</label>
+            <input
+              id={`lead-detail-${field.key}`}
+              className="input"
+              value={details[field.key]}
+              maxLength={160}
+              disabled={Boolean(busy)}
+              onChange={event => setDetails(current => ({ ...current, [field.key]: event.target.value }))}
+              placeholder={field.placeholder}
+            />
+          </React.Fragment>
+        ))}
+      </>
+    );
+    footer = (
+      <>
+        <button type="button" className="bt bt-g" disabled={Boolean(busy)} onClick={startEditing}>
+          <Icon name="edit" size={14} /> Write it myself
+        </button>
+        <button type="button" className="bt bt-p" style={{ marginLeft: "auto" }} disabled={Boolean(busy) || fields.length === 0} onClick={() => saveDetailsAndWrite(fields)}>
+          {busy === "details" ? <Spinner size={13} /> : <Icon name="spark" size={14} color="#06231a" />} Save and write email
         </button>
       </>
     );

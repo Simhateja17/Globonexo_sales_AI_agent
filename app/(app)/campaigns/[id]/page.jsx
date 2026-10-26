@@ -193,7 +193,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
               style={{ height: 32, padding: "0 10px", fontSize: 12, whiteSpace: "nowrap" }}
               onClick={() => onEmailNow(lead.id)}
             >
-              <Icon name={emailState?.tone === "warn" ? "edit" : "send"} size={13} /> {sending ? "Sending..." : writing ? "Writing email…" : emailState?.tone === "warn" ? "Write email" : "Email immediately"}
+              <Icon name={emailState?.tone === "warn" ? "edit" : "send"} size={13} /> {sending ? "Sending..." : writing ? "Writing email…" : emailState?.action === "details" ? "Add details" : emailState?.tone === "warn" ? "Write email" : "Email immediately"}
             </button>
           )}
           {showPhone && (
@@ -229,7 +229,8 @@ function CampaignProgress({ campaign, leadCount, preparationDone, drafts, freePl
   const audienceDone = freePlan ? enrolled > 0 : preparationDone || enrolled > 0;
   const beingWritten = Number(writing?.writing ?? 0);
   const writeYourself = Number(writing?.writeYourself ?? 0);
-  const emailsDone = audienceDone && written > 0 && !drafts?.generating && beingWritten === 0 && writeYourself === 0;
+  const needsDetails = Number(writing?.needsDetails ?? 0);
+  const emailsDone = audienceDone && written > 0 && !drafts?.generating && beingWritten === 0 && writeYourself === 0 && needsDetails === 0;
   const approvalsDone = emailsDone && waiting === 0;
   const stages = [
     {
@@ -247,6 +248,7 @@ function CampaignProgress({ campaign, leadCount, preparationDone, drafts, freePl
       text: emailsDone
         ? `${drafts.steps || 1}-step sequence from verified facts only`
         : beingWritten > 0 ? `Your agent is writing ${beingWritten} email${beingWritten === 1 ? "" : "s"} now`
+        : needsDetails > 0 ? `${needsDetails} lead${needsDetails === 1 ? " needs" : "s need"} a job title or company before the email can be written. Open the lead to add it`
         : writeYourself > 0 ? `${writeYourself} email${writeYourself === 1 ? "" : "s"} for you to write${writing?.creditsExhausted ? " · AI credits are used up" : ""}. Open the lead to write it`
         : drafts?.generating ? "Your agent is writing each email now" : freePlan && !audienceDone ? "Starts once you add leads" : freePlan ? "Starts as soon as a lead is added" : "Starts once leads finish enriching",
     },
