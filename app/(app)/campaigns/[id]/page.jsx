@@ -8,6 +8,7 @@ import api from "../../../../lib/api";
 import { canSee } from "../../../../lib/access";
 import Icon from "../../../../components/ui/Icon";
 import Avatar from "../../../../components/ui/Avatar";
+import Spinner from "../../../../components/ui/Spinner";
 import { isValidEmail } from "../../../../lib/validation";
 import { leadPhoto } from "../../../../lib/lead-photo";
 import { FREE_PLAN, isFreePlan, upgradePlan, useOrg } from "../../../../lib/free-plan";
@@ -16,6 +17,8 @@ import { campaignLifecycle } from "../../../../lib/campaign-state";
 import StateNote from "../../../../components/ui/StateNote";
 import DraftReview from "../../../../components/campaigns/DraftReview";
 import LeadDetailModal from "../../../../components/leads/LeadDetailModal";
+import SendEmailDialog from "../../../../components/leads/SendEmailDialog";
+import { readinessEmailLabel, writingCounts } from "../../../../lib/lead-outreach";
 import CampaignPreparationPanel from "./CampaignPreparationPanel";
 import { browserTimezone, campaignReadyCount, canCallLeadImmediately, formatScheduledInTimezone, voiceLaunchGate } from "../../../../lib/campaign-display";
 import { immediateEmailBlockReason } from "../../../../lib/manual-outreach";
@@ -115,16 +118,21 @@ function campaignEligibility(lead) {
   };
 }
 
-function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showEmail, showPhone, isAiVoice, actionKey, onEmailNow, onCallNow, onOpen, canOperate = true, callNowLimit = null }) {
+function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showEmail, showPhone, isAiVoice, actionKey, onEmailNow, onCallNow, onOpen, canOperate = true, callNowLimit = null, emailReadiness = null }) {
   const status = lead.status || "new";
   const hasEmail = isValidEmail(lead.email || "");
   const hasPhone = Boolean(lead.phone?.trim());
   const stopped = STOPPED_STATUSES.has(status);
   const eligibility = campaignEligibility(lead);
   const campaignBlocked = Boolean(eligibility?.blocked || (lead.campaignMembership && lead.campaignMembership.qualificationStatus !== "qualified"));
-  const emailBlockReason = immediateEmailBlockReason({ hasEmail, campaignId: lead.campaignId, status, campaignBlocked });
+  // A lead still being prepared can be emailed: the email dialog shows it
+  // being written, or lets the person write it. Only a rejected or blocked
+  // lead is out of reach.
+  const emailBlockReason = immediateEmailBlockReason({ hasEmail, campaignId: lead.campaignId, status, campaignBlocked: Boolean(eligibility?.blocked) });
   const bounced = lead.emailStatus === "bounced";
-  const canEmailNow = canOperate && showEmail && !emailBlockReason && !bounced;
+  const emailState = showEmail ? readinessEmailLabel(emailReadiness) : null;
+  const writing = emailState?.tone === "busy";
+  const canEmailNow = canOperate && showEmail && !emailBlockReason && !bounced && !writing;
   const canCallNow = canOperate && canCallLeadImmediately({
     campaignStatus,
     showPhone,
@@ -159,7 +167,11 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
         <div className="col" style={{ gap: 4, alignItems: "flex-start" }}>
           <span className="pl" style={{ ...leadStatusStyle(status), border: 0 }}>{LEAD_STATUS_LABELS[status] || status.replace(/_/g, " ")}</span>
           {bounced && <span className="pl pl-bad" title="This address could not receive email. No more emails go to it.">Email bounced</span>}
-          {eligibility && <span className="faint" style={{ fontSize: 11.5 }}>{eligibility.label}</span>}
+          {emailState ? (
+            <span className="faint row" style={{ fontSize: 11.5, gap: 5, color: emailState.tone === "warn" ? "#b54708" : undefined }}>
+              {writing ? <Spinner size={10} /> : null}{emailState.label}
+            </span>
+          ) : eligibility ? <span className="faint" style={{ fontSize: 11.5 }}>{eligibility.label}</span> : null}
         </div>
       </td>
       <td>
@@ -177,11 +189,11 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
               className="bt bt-g sm"
               type="button"
               disabled={!canEmailNow || Boolean(actionKey)}
-              title={!hasEmail ? "Lead needs an email" : bounced ? "This address bounced, so emails to it are stopped" : stopped ? "Sequence is stopped for this lead" : campaignBlocked ? eligibility?.label || "Lead is not ready" : "Email this lead immediately"}
+              title={!hasEmail ? "Lead needs an email" : bounced ? "This address bounced, so emails to it are stopped" : stopped ? "Sequence is stopped for this lead" : eligibility?.blocked ? eligibility.label || "Lead is not ready" : writing ? "Your agent is writing this email" : "Read this lead's email, then send it"}
               style={{ height: 32, padding: "0 10px", fontSize: 12, whiteSpace: "nowrap" }}
               onClick={() => onEmailNow(lead.id)}
             >
-              <Icon name="send" size={13} /> {sending ? "Sending..." : "Email immediately"}
+              <Icon name={emailState?.tone === "warn" ? "edit" : "send"} size={13} /> {sending ? "Sending..." : writing ? "Writing email…" : emailState?.tone === "warn" ? "Write email" : "Email immediately"}
             </button>
           )}
           {showPhone && (
@@ -205,7 +217,7 @@ function CampaignLeadRow({ lead, attempt, displayTimezone, campaignStatus, showE
 
 // The four-stage strip under the header: what has happened to this campaign and
 // what is waiting on a person. Built only from numbers the page already has.
-function CampaignProgress({ campaign, leadCount, preparationDone, drafts, freePlan = false }) {
+function CampaignProgress({ campaign, leadCount, preparationDone, drafts, freePlan = false, writing = null }) {
   const stats = campaign?.stats || {};
   const enrolled = stats.enrolled ?? leadCount;
   const missing = Number(stats.missingEmail ?? 0);
@@ -215,7 +227,9 @@ function CampaignProgress({ campaign, leadCount, preparationDone, drafts, freePl
   const waiting = Number(drafts?.draft ?? 0);
   // Free brings its own leads, so its audience is done only once leads are in.
   const audienceDone = freePlan ? enrolled > 0 : preparationDone || enrolled > 0;
-  const emailsDone = audienceDone && written > 0 && !drafts?.generating;
+  const beingWritten = Number(writing?.writing ?? 0);
+  const writeYourself = Number(writing?.writeYourself ?? 0);
+  const emailsDone = audienceDone && written > 0 && !drafts?.generating && beingWritten === 0 && writeYourself === 0;
   const approvalsDone = emailsDone && waiting === 0;
   const stages = [
     {
@@ -232,7 +246,9 @@ function CampaignProgress({ campaign, leadCount, preparationDone, drafts, freePl
       title: emailsDone ? "Emails written" : "Writing emails",
       text: emailsDone
         ? `${drafts.steps || 1}-step sequence from verified facts only`
-        : drafts?.generating ? "Your agent is writing each email now" : freePlan ? "Starts once you add leads" : "Starts once leads finish enriching",
+        : beingWritten > 0 ? `Your agent is writing ${beingWritten} email${beingWritten === 1 ? "" : "s"} now`
+        : writeYourself > 0 ? `${writeYourself} email${writeYourself === 1 ? "" : "s"} for you to write${writing?.creditsExhausted ? " · AI credits are used up" : ""}. Open the lead to write it`
+        : drafts?.generating ? "Your agent is writing each email now" : freePlan && !audienceDone ? "Starts once you add leads" : freePlan ? "Starts as soon as a lead is added" : "Starts once leads finish enriching",
     },
     {
       key: "approve",
@@ -290,6 +306,7 @@ export default function CampaignDetailPage() {
   const [schedule, setSchedule] = useState([]);
   const [displayTimezone, setDisplayTimezone] = useState(browserTimezone());
   const [preparationData, setPreparationData] = useState(null);
+  const [sendLeadId, setSendLeadId] = useState("");
   const [draftSummary, setDraftSummary] = useState(null);
   // Set when the server refuses "Call now" for being over a limit; greys out
   // every Call now button until `until` passes.
@@ -435,23 +452,18 @@ export default function CampaignDetailPage() {
     }
   };
 
-  const sendLeadNow = useCallback(async leadId => {
+  // Opens the lead's email; the dialog sends only what was read.
+  const sendLeadNow = useCallback(leadId => {
     if (!canOperate) return;
-    setActionKey(`email:${leadId}`);
     setError("");
-    try {
-      const { data } = await api.post(`/leads/${leadId}/send-now`);
-      if (data?.lead) {
-        setLeads(current => current.map(lead => lead.id === leadId ? data.lead : lead));
-      }
-      showToast("Email sent to this lead.");
-      await load();
-    } catch (err) {
-      setError(err?.response?.data?.error || "Could not send this email now.");
-    } finally {
-      setActionKey("");
-    }
-  }, [canOperate, load, showToast]);
+    setDetailLeadId("");
+    setSendLeadId(leadId);
+  }, [canOperate]);
+
+  const handleEmailSent = useCallback(async () => {
+    showToast("Email sent to this lead.");
+    await load();
+  }, [load, showToast]);
 
   const enrichLead = useCallback(async leadId => {
     setEnrichingId(leadId);
@@ -504,6 +516,10 @@ export default function CampaignDetailPage() {
   }, [id, router, searchParams]);
 
   const detailLead = detailLeadId ? leads.find(lead => lead.id === detailLeadId) || null : null;
+  const sendLead = sendLeadId ? leads.find(lead => lead.id === sendLeadId) || null : null;
+  const emailReadinessByLead = useMemo(() => new Map((preparationData?.readiness ?? [])
+    .filter(row => row.channel === "email")
+    .map(row => [row.lead_id, row])), [preparationData]);
 
   const metrics = useMemo(() => {
     const stats = campaign?.stats || {};
@@ -662,7 +678,7 @@ export default function CampaignDetailPage() {
       ) : null}
 
       <div className="col" style={{ gap: 16 }}>
-          {emailEnabled ? <CampaignProgress campaign={campaign} leadCount={leads.length} preparationDone={Number(preparationData?.campaign?.preparation_progress ?? 0) >= 100} drafts={draftSummary} freePlan={freePlan} /> : null}
+          {emailEnabled ? <CampaignProgress campaign={campaign} leadCount={leads.length} preparationDone={Number(preparationData?.campaign?.preparation_progress ?? 0) >= 100} drafts={draftSummary} freePlan={freePlan} writing={writingCounts(preparationData?.readiness ?? [])} /> : null}
           {canOperate ? <CampaignPreparationPanel campaignId={campaign.id} channel={campaign.channel} campaignStatus={campaign.status} onChanged={handlePreparationChanged} freePlan={freePlan} leadCount={leads.length} /> : <div className="card" style={{ padding: 16, color: "#69786f", fontSize: 13, fontWeight: 600 }}>This campaign is assigned to another teammate. You can review its status and history, but operational controls are read-only.</div>}
 
           <div className="mets">
@@ -708,7 +724,7 @@ export default function CampaignDetailPage() {
                   {leads.length === 0 ? (
                     <tr><td colSpan={leadColumns.length} className="empty">No leads are attached to this campaign.</td></tr>
                   ) : leads.slice((Math.min(leadPage, Math.ceil(leads.length / LEADS_PER_PAGE)) - 1) * LEADS_PER_PAGE, Math.min(leadPage, Math.ceil(leads.length / LEADS_PER_PAGE)) * LEADS_PER_PAGE).map(lead => (
-                    <CampaignLeadRow key={lead.id} lead={lead} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} onOpen={setDetailLeadId} canOperate={canOperate} callNowLimit={callNowLimit} />
+                    <CampaignLeadRow key={lead.id} lead={lead} emailReadiness={emailReadinessByLead.get(lead.id) ?? null} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} onOpen={setDetailLeadId} canOperate={canOperate} callNowLimit={callNowLimit} />
                   ))}
                 </tbody>
               </table>
@@ -738,6 +754,14 @@ export default function CampaignDetailPage() {
           enriching={enrichingId === detailLead.id}
           onSendNow={sendLeadNow}
           sending={actionKey === `email:${detailLead.id}`}
+        />
+      ) : null}
+      {sendLead ? (
+        <SendEmailDialog
+          lead={sendLead}
+          campaignId={id}
+          onClose={() => { setSendLeadId(""); refreshLeads(); }}
+          onSent={handleEmailSent}
         />
       ) : null}
     </main>

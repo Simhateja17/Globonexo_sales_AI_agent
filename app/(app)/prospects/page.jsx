@@ -22,6 +22,8 @@ import LeadDetailModal, {
 import { cleanText, isValidEmail } from "../../../lib/validation";
 import { FREE_PLAN, isFreePlan, useOrg } from "../../../lib/free-plan";
 import UpgradeModal from "../../../components/billing/UpgradeModal";
+import SendEmailDialog from "../../../components/leads/SendEmailDialog";
+import { outreachSummary, sendButtonState, useLeadOutreach } from "../../../lib/lead-outreach";
 import {
   audienceDefaultsFromOnboarding,
   normalizeApolloLocations,
@@ -228,13 +230,17 @@ function LeadRow({ lead, onSelect, selected }) {
   );
 }
 
-function LeadPreview({ lead, onOpen, onSendNow, onDelete, sending }) {
+function LeadPreview({ lead, onOpen, onSendNow, onDelete }) {
   const name = leadName(lead);
   const status = lead.status || "new";
   const ready = readiness(lead);
   const safeEmail = isValidEmail(lead.email) ? lead.email : "";
   const safeLinkedIn = safeExternalUrl(lead.linkedinUrl);
-  const canSendNow = Boolean(safeEmail) && !STOPPED_STATUSES.has(status) && Boolean(lead.campaignId) && status !== "contacted";
+  // Polls while the email is being written, so the drawer moves from
+  // "Writing email…" to "ready" on its own.
+  const { outreach, loading: outreachLoading } = useLeadOutreach(lead.id);
+  const next = outreach ? outreachSummary(outreach) : null;
+  const sendButton = sendButtonState(outreach, { hasEmail: Boolean(safeEmail), stopped: STOPPED_STATUSES.has(status) });
 
   return (
     <aside className="card pv">
@@ -265,7 +271,22 @@ function LeadPreview({ lead, onOpen, onSendNow, onDelete, sending }) {
       <div className="pv-sec">
         <div className="pv-h">Next step</div>
         <div className="tl">
-          <div><i /><b>{formatNextOutreach(lead.nextOutreach)}</b><span>{lead.campaignId ? "Attached to a campaign" : "Not in a campaign yet"}</span></div>
+          {lead.nextOutreach ? (
+            <div><i /><b>{formatNextOutreach(lead.nextOutreach)}</b><span>{lead.campaign ? `In ${lead.campaign.name}` : "Scheduled call"}</span></div>
+          ) : null}
+          {next ? (
+            <div>
+              <i />
+              <b className="row" style={{ gap: 6, color: next.tone === "bad" ? "#b42318" : next.tone === "warn" ? "#b54708" : undefined }}>
+                {next.busy ? <Spinner size={12} /> : null}{next.title}
+              </b>
+              <span>{next.detail}</span>
+            </div>
+          ) : outreachLoading ? (
+            <div><i /><b className="row" style={{ gap: 6 }}><Spinner size={12} /> Checking email…</b><span>{lead.campaign ? `In ${lead.campaign.name}` : ""}</span></div>
+          ) : (
+            <div><i /><b>{formatNextOutreach(lead.nextOutreach)}</b><span>{lead.campaign ? `In ${lead.campaign.name}` : "Not in a campaign yet"}</span></div>
+          )}
         </div>
       </div>
       <div className="pv-acts">
@@ -273,11 +294,11 @@ function LeadPreview({ lead, onOpen, onSendNow, onDelete, sending }) {
         <button
           type="button"
           className="bt bt-p"
-          disabled={!canSendNow || sending}
+          disabled={sendButton.disabled || !outreach}
           onClick={() => onSendNow(lead.id)}
-          title={!safeEmail ? "Lead needs an email" : !lead.campaignId ? "Attach lead to an email campaign first" : status === "contacted" ? "Step 1 has already been sent" : STOPPED_STATUSES.has(status) ? "Sequence is stopped for this lead" : "Send campaign email now"}
+          title={sendButton.title}
         >
-          <Icon name="send" size={14} color="#06231a" /> {sending ? "Sending..." : "Send now"}
+          {sendButton.busy ? <Spinner size={13} /> : <Icon name={sendButton.label === "Write email" ? "edit" : "send"} size={14} color="#06231a" />} {sendButton.label}
         </button>
       </div>
       <div style={{ padding: "0 20px 16px", display: "flex", gap: 8 }}>
@@ -320,7 +341,9 @@ export default function ProspectsPage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [enrichingId, setEnrichingId] = useState("");
-  const [sendingId, setSendingId] = useState("");
+  const [sendLeadId, setSendLeadId] = useState("");
+  // Bumped after the email dialog closes so the drawer reloads its email state.
+  const [outreachVersion, setOutreachVersion] = useState(0);
   const [bulkEnriching, setBulkEnriching] = useState(false);
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState("all");
@@ -452,6 +475,7 @@ export default function ProspectsPage() {
   const lastShown = Math.min(total, (page - 1) * LEADS_PER_PAGE + leads.length);
 
   const detailLead = useMemo(() => leads.find(lead => lead.id === detailLeadId) || null, [leads, detailLeadId]);
+  const sendLead = useMemo(() => leads.find(lead => lead.id === sendLeadId) || null, [leads, sendLeadId]);
   const [selectedLeadId, setSelectedLeadId] = useState("");
   const previewLead = filteredLeads.find(lead => lead.id === selectedLeadId) || filteredLeads[0] || null;
 
@@ -696,23 +720,18 @@ export default function ProspectsPage() {
     }
   };
 
-  const sendLeadNow = async id => {
-    setSendingId(id);
+  // "Send now" opens the email first; the dialog sends only what was read.
+  const sendLeadNow = id => {
     setError("");
     setNotice("");
-    try {
-      const { data } = await api.post(`/leads/${id}/send-now`);
-      if (data?.lead) {
-        setLeads(current => current.map(lead => lead.id === id ? data.lead : lead));
-      } else {
-        refreshLeads();
-      }
-      setNotice("Email sent to this lead.");
-    } catch (err) {
-      setError(err?.response?.data?.error || "Could not send this email now.");
-    } finally {
-      setSendingId("");
-    }
+    setDetailLeadId("");
+    setSendLeadId(id);
+  };
+
+  const handleEmailSent = sentLead => {
+    if (sentLead) setLeads(current => current.map(lead => lead.id === sentLead.id ? { ...lead, ...sentLead } : lead));
+    else refreshLeads();
+    setNotice("Email sent to this lead.");
   };
 
   const enrichVisibleLeads = async () => {
@@ -866,11 +885,11 @@ export default function ProspectsPage() {
 
               {previewLead ? (
                 <LeadPreview
+                  key={`${previewLead.id}-${outreachVersion}`}
                   lead={previewLead}
                   onOpen={setDetailLeadId}
                   onSendNow={sendLeadNow}
                   onDelete={deleteLead}
-                  sending={sendingId === previewLead.id}
                 />
               ) : (
                 <aside className="card pv"><div className="empty">Select a prospect to see their details.</div></aside>
@@ -1108,7 +1127,15 @@ export default function ProspectsPage() {
           onEnrich={enrichLead}
           enriching={enrichingId === detailLead.id}
           onSendNow={sendLeadNow}
-          sending={sendingId === detailLead.id}
+          sending={false}
+        />
+      ) : null}
+
+      {sendLead ? (
+        <SendEmailDialog
+          lead={sendLead}
+          onClose={() => { setSendLeadId(""); setOutreachVersion(version => version + 1); }}
+          onSent={handleEmailSent}
         />
       ) : null}
     </main>
