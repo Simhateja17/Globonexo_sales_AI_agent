@@ -77,6 +77,7 @@ function CampaignSettingsDrawer({
   onAdd,
   onRemove,
 }) {
+  const router = useRouter();
   if (!campaign) return null;
 
   return (
@@ -141,7 +142,7 @@ function CampaignSettingsDrawer({
                     <tr><td colSpan={3} className="table-empty">No leads are attached to this campaign.</td></tr>
                   ) : assignedLeads.map(lead => (
                     <tr className="data-row" key={lead.id}>
-                      <td><strong style={{ fontSize: 14 }}>{leadLabel(lead)}</strong><div className="faint">{lead.email || lead.phone || "No contact yet"}</div></td>
+                      <td><strong style={{ fontSize: 14, cursor: "pointer" }} onClick={() => router.push(`/prospects/${lead.id}`)}>{leadLabel(lead)}</strong><div className="faint">{lead.email || lead.phone || "No contact yet"}</div></td>
                       <td><span className="chip">{lead.campaignMembership?.qualificationStatus || lead.status || "selected"}</span></td>
                       <td style={{ textAlign: "right" }}>
                         <button className="btn btn-ghost btn-sm danger-text" type="button" disabled={busy} onClick={() => onRemove(lead)}>

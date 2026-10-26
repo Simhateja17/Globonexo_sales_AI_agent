@@ -5,6 +5,7 @@ import api from "../../../lib/api";
 import Icon from "../../../components/ui/Icon";
 import SelectMenu from "../../../components/ui/SelectMenu";
 import EmptyState from "../../../components/ui/EmptyState";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Spinner from "../../../components/ui/Spinner";
 import Avatar from "../../../components/ui/Avatar";
@@ -272,7 +273,12 @@ function CallDetailPanel({ call, onClose, onRetry, retrying }) {
       <div className="cd-h">
         <Avatar name={leadName(call.leads)} size={42} />
         <div style={{ minWidth: 0 }}>
-          <b className="ellip">{[leadName(call.leads), call.leads?.company].filter(Boolean).join(" · ") || (inbound ? call.from_number : call.to_number)}</b>
+          {(() => {
+            const label = [leadName(call.leads), call.leads?.company].filter(Boolean).join(" · ") || (inbound ? call.from_number : call.to_number);
+            return call.lead_id
+              ? <Link href={`/prospects/${call.lead_id}`} className="ellip" style={{ fontWeight: 700, color: "inherit" }}>{label}</Link>
+              : <b className="ellip">{label}</b>;
+          })()}
           <small className="ellip">{[inbound ? "Inbound" : "Outbound", call.campaigns?.name, formatDuration(call.started_at, call.ended_at, call.duration_seconds)].filter(Boolean).join(" · ")}</small>
         </div>
         {call.status === "failed" && !inbound ? (
@@ -553,7 +559,9 @@ export default function CallsPage() {
                           <div className="who">
                             <Avatar name={inbound && !call.leads ? "Inbound caller" : leadName(call.leads)} size={32} />
                             <div style={{ minWidth: 0 }}>
-                              <b>{call.leads ? leadName(call.leads) : inbound ? "Inbound caller" : "Unknown"}</b>
+                              {call.lead_id && call.leads
+                                ? <Link href={`/prospects/${call.lead_id}`} onClick={event => event.stopPropagation()} style={{ fontWeight: 700, color: "inherit" }}>{leadName(call.leads)}</Link>
+                                : <b>{call.leads ? leadName(call.leads) : inbound ? "Inbound caller" : "Unknown"}</b>}
                               <small>{call.leads?.company || (inbound ? call.from_number : call.to_number) || "No company"}</small>
                             </div>
                           </div>

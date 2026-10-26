@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Icon from "../../../components/ui/Icon";
 import EmptyState from "../../../components/ui/EmptyState";
+import Link from "next/link";
 import Avatar from "../../../components/ui/Avatar";
 import RouteSkeleton from "../../../components/ui/RouteSkeleton";
 import { useFirstLoad } from "../../../hooks/useFirstLoad";
@@ -118,7 +119,7 @@ function MeetingDetail({ meeting, onCancel, canceling, onClose, onEdit }) {
         <div className="who">
           <Avatar name={meeting.name} size={34} />
           <div style={{ minWidth: 0 }}>
-            <b className="ellip">{meeting.name}</b>
+            {meeting.lead?.id ? <Link href={`/prospects/${meeting.lead.id}`} className="ellip" style={{ fontWeight: 700, color: "inherit" }}>{meeting.name}</Link> : <b className="ellip">{meeting.name}</b>}
             <small className="ellip">{meeting.companyLine || "Company not provided"}</small>
           </div>
           <span className="pl" style={{ marginLeft: "auto", background: style.bg, color: style.color }}>{style.label}</span>
@@ -613,7 +614,7 @@ export default function CalendarPage() {
               <Avatar name={meeting.name} size={32} />
               <div className="act-main">
                 <div className="act-t"><b>{meeting.title}</b></div>
-                <div className="act-s">{meeting.name}{meeting.companyLine ? ` · ${meeting.companyLine}` : ""} · {meeting.scheduled.toLocaleDateString()}</div>
+                <div className="act-s">{meeting.lead?.id ? <Link href={`/prospects/${meeting.lead.id}`} style={{ color: "inherit", textDecoration: "underline" }}>{meeting.name}</Link> : meeting.name}{meeting.companyLine ? ` · ${meeting.companyLine}` : ""} · {meeting.scheduled.toLocaleDateString()}</div>
               </div>
               <span className="pl" style={{ background: STATUS_STYLES[meeting.status]?.bg, color: STATUS_STYLES[meeting.status]?.color }}>
                 {STATUS_STYLES[meeting.status]?.label ?? meeting.status}

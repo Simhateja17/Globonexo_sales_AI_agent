@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
 import { leadPhoto } from "../../../lib/lead-photo";
 import Icon from "../../../components/ui/Icon";
@@ -310,6 +311,7 @@ function LeadPreview({ lead, onOpen, onSendNow, onDelete }) {
 }
 
 export default function ProspectsPage() {
+  const router = useRouter();
   const confirm = useConfirm();
   const freePlan = isFreePlan(useOrg());
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -887,7 +889,7 @@ export default function ProspectsPage() {
                 <LeadPreview
                   key={`${previewLead.id}-${outreachVersion}`}
                   lead={previewLead}
-                  onOpen={setDetailLeadId}
+                  onOpen={leadId => router.push(`/prospects/${leadId}`)}
                   onSendNow={sendLeadNow}
                   onDelete={deleteLead}
                 />

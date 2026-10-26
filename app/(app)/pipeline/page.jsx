@@ -35,7 +35,14 @@ function LeadCard({ lead }) {
   const email = isValidEmail(lead.email || "") ? lead.email : "";
 
   return (
-    <article className="pc">
+    <article
+      className="pc"
+      role="link"
+      tabIndex={0}
+      style={{ cursor: "pointer" }}
+      onClick={event => { if (!event.target.closest("button, a")) router.push(`/prospects/${lead.id}`); }}
+      onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); router.push(`/prospects/${lead.id}`); } }}
+    >
       {isHot ? <span className="hot"><Icon name="flame" size={11} /> Hot</span> : null}
       <div className="who">
         <Avatar name={name} src={leadPhoto(lead) || undefined} size={32} />

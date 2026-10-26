@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import api from "../../../lib/api";
 import Icon from "../../../components/ui/Icon";
@@ -52,9 +53,16 @@ function LeadRow({ lead, onEnrich, enrichingId }) {
   const displayName = lead.name || [lead.firstName, lead.lastName].filter(Boolean).join(" ") || "Unnamed lead";
   const colors = STATUS_COLORS[lead.status] || STATUS_COLORS.new;
   const isEnriching = enrichingId === lead.id;
+  const router = useRouter();
+  const open = () => router.push(`/prospects/${lead.id}`);
 
   return (
-    <tr style={{ borderBottom: "1px solid var(--line-2)" }}>
+    <tr
+      style={{ borderBottom: "1px solid var(--line-2)", cursor: "pointer" }}
+      tabIndex={0}
+      onClick={event => { if (!event.target.closest("button, a")) open(); }}
+      onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); open(); } }}
+    >
       <td style={{ padding: "12px 18px" }}>
         <div className="row" style={{ gap: 11 }}>
           <Avatar name={displayName} size={34} />

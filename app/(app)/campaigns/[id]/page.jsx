@@ -724,7 +724,7 @@ export default function CampaignDetailPage() {
                   {leads.length === 0 ? (
                     <tr><td colSpan={leadColumns.length} className="empty">No leads are attached to this campaign.</td></tr>
                   ) : leads.slice((Math.min(leadPage, Math.ceil(leads.length / LEADS_PER_PAGE)) - 1) * LEADS_PER_PAGE, Math.min(leadPage, Math.ceil(leads.length / LEADS_PER_PAGE)) * LEADS_PER_PAGE).map(lead => (
-                    <CampaignLeadRow key={lead.id} lead={lead} emailReadiness={emailReadinessByLead.get(lead.id) ?? null} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} onOpen={setDetailLeadId} canOperate={canOperate} callNowLimit={callNowLimit} />
+                    <CampaignLeadRow key={lead.id} lead={lead} emailReadiness={emailReadinessByLead.get(lead.id) ?? null} attempt={nextAttemptByLead.get(lead.id)} displayTimezone={displayTimezone} campaignStatus={campaign.status} showEmail={emailEnabled} showPhone={voiceEnabled} isAiVoice={isAiVoice} actionKey={actionKey} onEmailNow={sendLeadNow} onCallNow={callLeadNow} onOpen={leadId => router.push(`/prospects/${leadId}`)} canOperate={canOperate} callNowLimit={callNowLimit} />
                   ))}
                 </tbody>
               </table>
