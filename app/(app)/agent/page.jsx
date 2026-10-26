@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import Icon from "../../../components/ui/Icon";
 import EmptyState from "../../../components/ui/EmptyState";
 import Avatar from "../../../components/ui/Avatar";
@@ -33,6 +34,8 @@ function apiMessageToMsg(m) {
     approval: m.metadata?.approval,
     leadSearchPreview: m.metadata?.leadSearchPreview,
     exactFilters: m.metadata?.exactFilters,
+    leads: m.metadata?.leads,
+    leadListTitle: m.metadata?.leadListTitle,
     relaxations: m.metadata?.relaxations,
     importPreview: m.metadata?.importPreview,
     importResult: m.metadata?.importResult,
@@ -340,6 +343,42 @@ function LeadResearchCard({ researched }) {
   );
 }
 
+function LeadListCard({ leads, title }) {
+  const [showAll, setShowAll] = useState(false);
+  const rows = leads || [];
+  if (rows.length === 0) return null;
+  const visible = showAll ? rows : rows.slice(0, 8);
+  return (
+    <div className="card" style={{ padding: 16, maxWidth: 620, borderRadius: 16 }}>
+      <div className="row spread" style={{ gap: 10 }}>
+        <div className="row" style={{ gap: 8 }}><Icon name="check" size={16} color="var(--g-600)" /><strong style={{ fontSize: 13.5 }}>{title || `${rows.length} leads saved to Prospects`}</strong></div>
+        <Link className="chip" href="/prospects" style={{ fontSize: 11 }}>Open Prospects</Link>
+      </div>
+      <div className="col" style={{ gap: 6, marginTop: 10 }}>
+        {visible.map((lead, index) => {
+          const role = [lead.title, lead.company].filter(Boolean).join(' · ');
+          const body = (
+            <div style={{ background: 'var(--bg-2)', borderRadius: 10, padding: '8px 10px', display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700 }}>{lead.name}</div>
+                {role && <div className="faint" style={{ fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{role}</div>}
+              </div>
+              <div className="faint" style={{ fontSize: 10.5, textAlign: 'right', flexShrink: 0 }}>
+                {lead.location && <div>{lead.location}</div>}
+                <div>{lead.score ? `Score ${lead.score}` : lead.email ? 'Has email' : 'No email yet'}</div>
+              </div>
+            </div>
+          );
+          return lead.id
+            ? <Link key={lead.id} href={`/prospects/${lead.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>{body}</Link>
+            : <div key={index}>{body}</div>;
+        })}
+      </div>
+      {rows.length > 8 && <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={() => setShowAll(v => !v)}>{showAll ? 'Show fewer' : `Show all ${rows.length}`}</button>}
+    </div>
+  );
+}
+
 function LeadSearchPreviewCard({ preview }) {
   if (!preview) return null;
   const person = preview.person || {};
@@ -390,7 +429,7 @@ function Bubble({ m, onResolved, onPrepare }) {
       <div className="col" style={{ gap: 10 }}>
         {m.text && <TextRow text={m.text} isUser={false} />}
         {(m.stats || []).length > 0 && (
-          <div className="row" style={{ gap: 9, marginLeft: 41 }}>
+          <div className="row wrap" style={{ gap: 9, marginLeft: 41 }}>
             {m.stats.map(([v, k]) => (
               <div key={k} className="card kpi-card-accent" style={{ padding: '12px 14px 11px', minWidth: 106, borderRadius: 14 }}>
                 <span className="kpi-icon-badge" style={{ width: 26, height: 26, borderRadius: 8 }}>
@@ -402,6 +441,7 @@ function Bubble({ m, onResolved, onPrepare }) {
             ))}
           </div>
         )}
+        {(m.leads || []).length > 0 && <div style={{ marginLeft: 41 }}><LeadListCard leads={m.leads} title={m.leadListTitle} /></div>}
         {m.leadSearchPreview && <div style={{ marginLeft: 41 }}><LeadSearchPreviewCard preview={m.leadSearchPreview} /></div>}
         {m.exactFilters && <details style={{ marginLeft: 41, fontSize: 11.5 }}><summary>Exact Apollo filters applied</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(m.exactFilters, null, 2)}</pre></details>}
         {(m.relaxations || []).length > 0 && <div className="row wrap" style={{ gap: 6, marginLeft: 41 }}>{m.relaxations.map(item => <button key={item.field} className="btn btn-ghost btn-sm">Try: {item.label}</button>)}</div>}
