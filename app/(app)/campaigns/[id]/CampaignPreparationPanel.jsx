@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import api from "../../../../lib/api";
+import Link from "next/link";
 import Icon from "../../../../components/ui/Icon";
 import { canRebuildVoiceAgent, campaignCreditLimitPresentation, campaignPreparationEvents, shouldPollCampaignPreparation, simulationPresentation } from "../../../../lib/campaign-display";
 
@@ -138,7 +139,7 @@ function SalesAgentTestModal({ campaignId, onClose }) {
   );
 }
 
-export default function CampaignPreparationPanel({ campaignId, channel, campaignStatus, onChanged }) {
+export default function CampaignPreparationPanel({ campaignId, channel, campaignStatus, onChanged, freePlan = false, leadCount = null }) {
   const [data, setData] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -188,7 +189,10 @@ export default function CampaignPreparationPanel({ campaignId, channel, campaign
   const preparationStatus = data?.campaign?.preparation_status ?? "not_started";
   const simulation = simulationPresentation(data);
   const simulationStatus = simulation.status;
-  const importStatus = data?.latestImport?.status ?? null;
+  // Free never searches the lead database, so an old search run (from before
+  // that rule) says nothing about this campaign and stays hidden.
+  const latestImport = freePlan ? null : data?.latestImport;
+  const importStatus = latestImport?.status ?? null;
   useEffect(() => {
     if (!shouldPollCampaignPreparation(data)) return undefined;
     const timer = window.setInterval(load, 8000);
@@ -254,7 +258,7 @@ export default function CampaignPreparationPanel({ campaignId, channel, campaign
   };
 
   const latestRun = simulation.run;
-  const importRun = data?.latestImport;
+  const importRun = latestImport;
   const importIsActive = ACTIVE_IMPORT.has(importStatus);
   const creditLimit = campaignCreditLimitPresentation(data);
   const preparationProgress = creditLimit.progress;
@@ -266,11 +270,14 @@ export default function CampaignPreparationPanel({ campaignId, channel, campaign
   const ready = Number(data?.readinessCounts?.ready ?? 0);
   const zeroReadyVoice = channel === "voice" && progress >= 100 && ready === 0;
   const target = Number(data?.campaign?.target_qualified_leads ?? 0);
-  const countdown = formatCountdown(data?.campaign?.next_acquisition_at, now);
+  const countdown = freePlan ? null : formatCountdown(data?.campaign?.next_acquisition_at, now);
   const events = useMemo(() => campaignPreparationEvents(data), [data]);
   const hasAgent = Boolean(data?.campaign?.retell_staging_agent_id);
   const importFinishedEmpty = importRun?.isTerminal && Number(importRun.qualified ?? 0) === 0;
-  const headline = creditLimit.reached
+  const needsOwnLeads = freePlan && leadCount === 0;
+  const headline = needsOwnLeads
+    ? "Add your leads to start"
+    : creditLimit.reached
     ? creditLimit.headline
     : importIsActive
     ? importStatus === "waiting_for_enrichment" ? "Waiting for lead enrichment" : "Finding and enriching campaign leads"
@@ -289,7 +296,7 @@ export default function CampaignPreparationPanel({ campaignId, channel, campaign
   // second before collapsing, so wait for the answer instead of guessing it.
   if (!data) return error ? <div className="notice-warn" style={{ marginBottom: 0 }}>{error}</div> : null;
 
-  const exhausted = data?.campaign?.acquisition_status === "audience_exhausted";
+  const exhausted = !freePlan && data?.campaign?.acquisition_status === "audience_exhausted";
   const canTestAgent = channel === "voice" && hasAgent;
   const canRebuildAgent = canRebuildVoiceAgent({
     channel,
@@ -351,7 +358,8 @@ export default function CampaignPreparationPanel({ campaignId, channel, campaign
             </div>
             <div className="row" style={{ gap: 14, marginTop: 12, flexWrap: "wrap", fontSize: 12.5 }}>
               <span><strong>{ready}</strong> ready</span>
-              {target ? <span><strong>{target}</strong> target prospects</span> : null}
+              {target && !freePlan ? <span><strong>{target}</strong> target prospects</span> : null}
+              {freePlan && leadCount != null ? <span><strong>{leadCount}</strong> lead{leadCount === 1 ? "" : "s"} added</span> : null}
               {importRun ? <span><strong>{importRun.candidatesFound}</strong> found</span> : null}
               {importRun ? <span><strong>{importRun.candidatesAttempted}</strong> contacts submitted for enrichment</span> : null}
               {Number(importRun?.pending ?? 0) > 0 ? <span><strong>{importRun.pending}</strong> waiting on enrichment</span> : null}
@@ -360,7 +368,12 @@ export default function CampaignPreparationPanel({ campaignId, channel, campaign
             </div>
           </div>
           <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-            {preparationStatus === "not_started" && !importIsActive && !importFinishedEmpty ? <button className="btn btn-primary btn-sm" type="button" disabled={busy} onClick={startPreparation}>{busy ? "Starting…" : "Prepare campaign"}</button> : null}
+            {needsOwnLeads ? (
+              <Link className="btn btn-primary btn-sm" href={`/prospects?tab=csv&campaignId=${encodeURIComponent(campaignId)}`}>
+                <Icon name="doc" size={14} color="#06231a" /> Import CSV
+              </Link>
+            ) : null}
+            {!needsOwnLeads && preparationStatus === "not_started" && !importIsActive && !importFinishedEmpty ? <button className="btn btn-primary btn-sm" type="button" disabled={busy} onClick={startPreparation}>{busy ? "Starting…" : "Prepare campaign"}</button> : null}
             {!creditLimit.reached && (preparationStatus === "attention" || zeroReadyVoice) ? <button className="btn btn-primary btn-sm" type="button" disabled={busy} onClick={startPreparation}>{busy ? "Retrying…" : "Retry preparation"}</button> : null}
             {canTestAgent ? (
               <button className="btn btn-ghost btn-sm" type="button" disabled={testPermissionBusy} onClick={requestMicrophoneAndOpenTest}>
@@ -376,6 +389,12 @@ export default function CampaignPreparationPanel({ campaignId, channel, campaign
         {creditLimit.reached ? (
           <div className="notice-warn" style={{ marginTop: 14 }}>
             Lead sourcing completed with <strong>{creditLimit.fetched} of {creditLimit.target}</strong> requested leads. No further paid enrichment was attempted.
+          </div>
+        ) : null}
+
+        {needsOwnLeads ? (
+          <div className="notice-warn" style={{ marginTop: 14 }}>
+            On the Free plan you bring your own leads. Upload a CSV or <Link href={`/prospects?tab=manual&campaignId=${encodeURIComponent(campaignId)}`} style={{ fontWeight: 800 }}>add them by hand</Link> and attach them to this campaign. We check each address&apos;s format and domain, then your agent writes the emails for you to approve.
           </div>
         ) : null}
 
