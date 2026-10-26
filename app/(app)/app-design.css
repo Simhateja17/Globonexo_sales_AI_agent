@@ -859,3 +859,8 @@
 .gx .smenu-opt{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:9px 10px;border-radius:8px;text-align:left;font-size:13px;font-weight:700;color:#2c3b33;background:transparent;font-variant-numeric:tabular-nums}
 .gx .smenu-opt.act{background:#f6faf8}
 .gx .smenu-opt.on{background:#ecfdf3;color:#0a5d3f;font-weight:800}
+.gx .smenu.block{display:flex;width:100%}
+.gx .smenu.block .smenu-btn{width:100%}
+.gx .smenu.block .smenu-val{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis}
+.gx .smenu.block .smenu-pop{width:100%;max-width:none}
+.gx .smenu-btn:disabled{cursor:default;opacity:.55}

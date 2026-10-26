@@ -8,7 +8,7 @@ import Icon from "./Icon";
  * native <select> would open the operating system's grey menu.
  * `options` is [{ value, label }]. Renders inside a `.gx` page.
  */
-export default function SelectMenu({ value, options, onChange, icon, ariaLabel, align = "right" }) {
+export default function SelectMenu({ value, options, onChange, icon, ariaLabel, align = "right", disabled = false, block = false }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const box = useRef(null);
@@ -42,13 +42,14 @@ export default function SelectMenu({ value, options, onChange, icon, ariaLabel, 
   };
 
   return (
-    <div className="smenu" ref={box} onKeyDown={onKeyDown}>
+    <div className={`smenu${block ? " block" : ""}`} ref={box} onKeyDown={disabled ? undefined : onKeyDown}>
       <button
         type="button"
         className="sel-box smenu-btn"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
+        disabled={disabled}
         aria-label={ariaLabel ? `${ariaLabel}: ${selected?.label ?? ""}` : undefined}
         onClick={() => (open ? setOpen(false) : openMenu())}
       >
@@ -56,7 +57,7 @@ export default function SelectMenu({ value, options, onChange, icon, ariaLabel, 
         <span className="smenu-val">{selected?.label}</span>
         <svg className="smenu-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
       </button>
-      {open ? (
+      {open && !disabled ? (
         <div className={`smenu-pop ${align === "left" ? "left" : ""}`} role="listbox" id={listId} aria-label={ariaLabel}>
           {options.map((option, index) => {
             const isSelected = option.value === value;

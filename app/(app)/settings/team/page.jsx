@@ -5,6 +5,7 @@ import { useConfirm } from "../../../../components/ui/ConfirmDialog";
 import Link from 'next/link';
 import { api } from '../../../../lib/api';
 import Icon from '../../../../components/ui/Icon';
+import SelectMenu from '../../../../components/ui/SelectMenu';
 import RouteSkeleton from '../../../../components/ui/RouteSkeleton';
 import { canSee } from '../../../../lib/access';
 import Avatar from '../../../../components/ui/Avatar';
@@ -218,10 +219,18 @@ export default function TeamPage() {
               ) : (
                 <div className="col" style={{ gap: 10, marginTop: 6 }}>
                   <p className="sub">Hand the Owner role to an active Admin. You become an Admin once they accept.</p>
-                  <select className="sel-box" aria-label="New owner" value={transferTargetId} onChange={event => setTransferTargetId(event.target.value)} disabled={busy || activeAdmins.length === 0}>
-                    <option value="">Select an Admin</option>
-                    {activeAdmins.map(member => <option key={member.id} value={member.id}>{nameOf(member)}</option>)}
-                  </select>
+                  <SelectMenu
+                    block
+                    align="left"
+                    ariaLabel="New owner"
+                    value={transferTargetId}
+                    onChange={setTransferTargetId}
+                    disabled={busy || activeAdmins.length === 0}
+                    options={[
+                      { value: "", label: "Select an Admin" },
+                      ...activeAdmins.map(member => ({ value: member.id, label: nameOf(member) })),
+                    ]}
+                  />
                   <button type="button" className="bt bt-g sm" style={{ alignSelf: 'flex-start' }} disabled={busy || !transferTargetId} onClick={startTransfer}>Request transfer</button>
                   {activeAdmins.length === 0 && <span className="muted" style={{ fontSize: 12 }}>Promote a Member to Admin first.</span>}
                 </div>
