@@ -87,6 +87,30 @@ export default function BlogDesignBody({ html, className = "" }) {
       hoverCleanups.push(() => search.removeEventListener("input", applyFilter));
     }
 
+    // Highlight the "On this page" link for the section being read.
+    const tocLinks = Array.from(root.querySelectorAll('.toc a[href^="#"]'));
+    const sections = tocLinks
+      .map((a) => root.querySelector(`[id="${decodeURIComponent(a.getAttribute("href").slice(1))}"]`))
+      .filter(Boolean);
+    if (sections.length) {
+      let frame = 0;
+      const update = () => {
+        frame = 0;
+        const line = window.innerHeight * 0.3;
+        let current = sections[0];
+        sections.forEach((el) => { if (el.getBoundingClientRect().top <= line) current = el; });
+        tocLinks.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + current.id));
+      };
+      const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
+      // Capture so it also hears scrolls from an inner scrolling container.
+      document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+      update();
+      hoverCleanups.push(() => {
+        document.removeEventListener("scroll", onScroll, { capture: true });
+        if (frame) cancelAnimationFrame(frame);
+      });
+    }
+
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reducedMotion) {
       reveals.forEach((el) => el.setAttribute("data-reveal", "in"));
