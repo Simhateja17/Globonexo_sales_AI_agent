@@ -64,6 +64,13 @@ export default function BlogIndexPage() {
               "Most founders automate outbound in the wrong order. Here is the order that works, stage by stage.",
             datePublished: "2026-10-20",
           },
+          {
+            path: "/blog/ai-cold-calling-2026",
+            headline: "AI Cold Calling in 2026: Is It Legal, Does It Work, and When Should a Startup Use It?",
+            description:
+              "AI cold calling is not banned in the US, but consent rules apply. The data, the law and a 30-day pilot.",
+            datePublished: "2026-10-27",
+          },
         ]}
       />
       <BreadcrumbSchema trail={[{ name: "Blog", path: "/blog" }]} />
