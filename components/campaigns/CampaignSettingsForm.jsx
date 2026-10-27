@@ -49,7 +49,10 @@ export default function CampaignSettingsForm({ campaign, disabled = false, onSav
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
-  useEffect(() => { setForm(fromCampaign(campaign)); }, [campaign]);
+  // Background refreshes hand over a new campaign object with the same values;
+  // resetting on identity would wipe what the person is typing.
+  const savedSnapshot = JSON.stringify(fromCampaign(campaign));
+  useEffect(() => { setForm(JSON.parse(savedSnapshot)); }, [savedSnapshot]);
 
   const set = (key, value) => { setForm(current => ({ ...current, [key]: value })); setSaved(false); };
   const original = fromCampaign(campaign);
