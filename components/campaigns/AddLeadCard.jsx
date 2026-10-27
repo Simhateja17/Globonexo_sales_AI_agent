@@ -47,12 +47,11 @@ export default function AddLeadCard({ campaignId, disabled = false, hidePhone = 
     return () => { live = false; };
   }, [open, mode]);
 
-  const available = useMemo(() => {
-    const taken = new Set(enrolledIds);
+  const taken = useMemo(() => new Set(enrolledIds), [enrolledIds]);
+  const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return prospects.filter(item => !taken.has(item.id)
-      && (!q || [item.name, item.firstName, item.lastName, item.email, item.company, item.title].filter(Boolean).join(" ").toLowerCase().includes(q)));
-  }, [prospects, enrolledIds, query]);
+    return prospects.filter(item => !q || [item.name, item.firstName, item.lastName, item.email, item.company, item.title].filter(Boolean).join(" ").toLowerCase().includes(q));
+  }, [prospects, query]);
 
   const set = (key, value) => {
     setLead(current => ({ ...current, [key]: value }));
@@ -148,17 +147,20 @@ export default function AddLeadCard({ campaignId, disabled = false, hidePhone = 
               <div style={{ maxHeight: 280, overflowY: "auto", border: "1px solid var(--line-2, #e5e9e7)", borderRadius: 10 }}>
                 {loadingProspects ? (
                   <div className="faint" style={{ padding: 14, fontSize: 13 }}>Loading prospects...</div>
-                ) : available.length === 0 ? (
-                  <div className="faint" style={{ padding: 14, fontSize: 13 }}>No prospects left to add. Every prospect is already in this campaign.</div>
-                ) : available.map(item => (
-                  <label key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", cursor: "pointer", borderBottom: "1px solid var(--line-2, #eef1ef)" }}>
-                    <input type="checkbox" checked={picked.includes(item.id)} onChange={() => togglePicked(item.id)} />
-                    <span style={{ minWidth: 0 }}>
-                      <b style={{ fontSize: 13.5 }}>{prospectName(item)}</b>
-                      <small className="faint" style={{ display: "block" }}>{[item.title, item.company, item.email].filter(Boolean).join(" · ") || "No details"}</small>
-                    </span>
-                  </label>
-                ))}
+                ) : shown.length === 0 ? (
+                  <div className="faint" style={{ padding: 14, fontSize: 13 }}>{prospects.length === 0 ? "You have no prospects yet. Add one on the Prospects page, or use New lead." : "No prospects match your search."}</div>
+                ) : shown.map(item => {
+                  const inCampaign = taken.has(item.id);
+                  return (
+                    <label key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", cursor: inCampaign ? "default" : "pointer", opacity: inCampaign ? 0.6 : 1, borderBottom: "1px solid var(--line-2, #eef1ef)" }}>
+                      <input type="checkbox" disabled={inCampaign} checked={inCampaign || picked.includes(item.id)} onChange={() => togglePicked(item.id)} />
+                      <span style={{ minWidth: 0 }}>
+                        <b style={{ fontSize: 13.5 }}>{prospectName(item)}</b>
+                        <small className="faint" style={{ display: "block" }}>{[item.title, item.company, item.email].filter(Boolean).join(" · ") || "No details"}{inCampaign ? " · Already in this campaign" : ""}</small>
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
               <div className="row" style={{ gap: 8, marginTop: 12 }}>
                 <button className="btn btn-primary btn-sm" type="button" onClick={addPicked} disabled={busy || picked.length === 0}>
