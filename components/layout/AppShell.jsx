@@ -94,7 +94,7 @@ const MOBILE_TABS = [
 
 // Routes an unpaid account may still reach inside the shell. /billing is not
 // one of them anymore. Accounts without entitlement are sent to the
-// standalone /subscribe checkout, which renders outside this shell entirely.
+// standalone plan page (/onboarding/plan), which renders outside this shell entirely.
 const BILLING_ALLOWED_PATHS = ['/support'];
 
 export default function AppShell({ children }) {
@@ -233,7 +233,7 @@ export default function AppShell({ children }) {
 
   useEffect(() => {
     if (paymentRequired && !billingRouteAllowed) {
-      router.replace('/subscribe');
+      router.replace('/onboarding/plan');
     }
   }, [paymentRequired, billingRouteAllowed, router]);
 
@@ -306,7 +306,7 @@ export default function AppShell({ children }) {
           <p className="muted" style={{ marginTop: 10, lineHeight: 1.6 }}>
             Your account is ready. Choose a monthly or yearly plan to unlock onboarding and the sales workspace.
           </p>
-          <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={() => router.replace('/subscribe')}>
+          <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={() => router.replace('/onboarding/plan')}>
             Choose a plan
           </button>
         </div>

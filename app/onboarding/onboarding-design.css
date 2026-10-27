@@ -514,3 +514,55 @@
 .ob .chc.lock .chc-ic{background:#f1f4f2;color:#9aa8a0}
 .ob .chc.lock .chc-t,.ob .chc.lock p{color:#69786f}
 .ob .chc.lock .rdo{opacity:.4}
+
+/* ---- Plan selection (after sign-up, before step 0) ---- */
+.ob .pp{flex:1;width:100%;max-width:1440px;margin:0 auto;padding:52px 64px 64px;display:flex;flex-direction:column;gap:28px}
+.ob .pp-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.ob .pp-head .h1.xl{max-width:none}
+.ob .pp-toggle{display:inline-flex;align-items:center;gap:4px;padding:5px;border-radius:999px;background:#eef3f0;border:1px solid #e7ede9}
+.ob .pp-toggle button{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 18px;border:0;border-radius:999px;background:transparent;color:#4b5a52;font:800 14px var(--font-body,'Manrope'),sans-serif;cursor:pointer}
+.ob .pp-toggle button.on{background:#fff;color:#0a1712;box-shadow:0 1px 4px rgba(10,23,18,.12)}
+.ob .pp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.ob .pp-card{position:relative;display:flex;flex-direction:column;gap:6px;padding:24px;border-radius:20px;border:1.5px solid #e1e8e4;background:#fff;cursor:pointer;color:#0a1712}
+.ob .pp-card:hover{border-color:#a8e6c7}
+.ob .pp-card.on{border-color:#00a86b;background:#f4fbf7;box-shadow:0 0 0 4px #e3f8ee}
+.ob .pp-card.on .rdo{border:7px solid #00a86b}
+.ob .pp-card.lock{cursor:default;background:#fbfdfc}
+.ob .pp-card.lock:hover{border-color:#e1e8e4}
+.ob .pp-card.lock .rdo{opacity:.4}
+.ob .pp-pop{position:absolute;top:-13px;left:22px;display:inline-flex;align-items:center;height:26px;padding:0 12px;border-radius:999px;background:#0a5d3f;color:#fff;font-size:12px;font-weight:800}
+.ob .pp-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.ob .pp-top b{font-size:22px;font-weight:600;letter-spacing:-.01em}
+.ob .pp-top .rdo{margin-top:0}
+.ob .pp-desc{margin:4px 0 0;color:#2c3b33;font-size:13.5px;font-weight:600;line-height:1.55;min-height:42px}
+.ob .pp-price{margin-top:14px;color:#4b5a52;font-size:14px;font-weight:700}
+.ob .pp-price b{color:#0a1712;font-family:var(--font-display,'Space Grotesk'),sans-serif;font-size:15px;font-weight:700}
+.ob .pp-billed{min-height:34px;color:#4b5a52;font-size:12.5px;font-weight:700;padding-top:6px}
+.ob .pp-why{display:inline-flex;align-items:flex-start;gap:6px;color:#93370d;line-height:1.45}
+.ob .pp-why svg{flex:none;margin-top:2px}
+.ob .pp-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.ob .pp-stats div{padding:10px 12px;border-radius:10px;background:#f6faf8}
+.ob .pp-card.on .pp-stats div{background:#fff}
+.ob .pp-stats small{display:block;color:#69786f;font-size:11.5px;font-weight:700}
+.ob .pp-stats b{display:block;margin-top:3px;font-size:14px;font-weight:800;line-height:1.35}
+.ob .pp-feats{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid #eef3f0;display:flex;flex-direction:column;gap:10px}
+.ob .pp-feats li{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;color:#2c3b33}
+.ob .pp-feats li svg{flex:none}
+.ob .pp-feats li.no{color:#9aa8a0}
+.ob .pp-feats li.no > span[aria-hidden]{flex:none;width:16px;height:16px;border-radius:50%;background:#f1f4f2;display:flex;align-items:center;justify-content:center;font-size:11px}
+.ob .pp-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 24px;padding:20px 24px;border-radius:18px;background:#fff;border:1px solid #e7ede9}
+.ob .pp-sum{display:flex;flex-direction:column;gap:3px;min-width:260px;flex:1}
+.ob .pp-sum b{font-size:14px;font-weight:800}
+.ob .pp-sum span{color:#4b5a52;font-size:13px;font-weight:600;line-height:1.5}
+.ob .pp-acts{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.ob .pp-note{display:inline-flex;align-items:center;gap:6px;color:#2c3b33;font-size:13px;font-weight:700}
+.ob .pp-link{border:0;background:transparent;color:#088256;font:800 13.5px var(--font-body,'Manrope'),sans-serif;cursor:pointer;padding:6px 0}
+.ob .pp-link:hover{color:#0a5d3f}
+.ob .pp-fine{flex-basis:100%;color:#69786f;font-size:12px;font-weight:600}
+@media (max-width: 1180px){.ob .pp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width: 640px){
+  .ob .pp{padding:28px 16px 40px}
+  .ob .pp-grid{grid-template-columns:1fr;gap:20px}
+  .ob .pp-acts{width:100%}
+  .ob .pp-acts .bt{flex:1}
+}
