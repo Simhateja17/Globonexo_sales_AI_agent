@@ -18,6 +18,7 @@ const PUBLIC_ROUTES = [
   { path: "/blog/what-is-a-sales-automation-platform", priority: 0.7, changeFrequency: "monthly" },
   { path: "/blog/sales-automation-for-marketing-agencies", priority: 0.7, changeFrequency: "monthly" },
   { path: "/blog/how-to-automate-lead-generation", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/blog/ai-cold-calling-2026", priority: 0.7, changeFrequency: "monthly" },
   { path: "/solutions/individuals", priority: 0.8, changeFrequency: "monthly" },
   { path: "/solutions/agencies", priority: 0.8, changeFrequency: "monthly" },
   { path: "/solutions/b2b-startups", priority: 0.8, changeFrequency: "monthly" },

@@ -60,6 +60,33 @@ export default function BlogDesignBody({ html, className = "" }) {
       });
     });
 
+    // Category chips and the search box on the blog index.
+    const chips = Array.from(root.querySelectorAll("[data-cat]"));
+    const search = root.querySelector("[data-blog-search]");
+    const cards = Array.from(root.querySelectorAll(".card[data-tags]"));
+    let cat = "All";
+    const applyFilter = () => {
+      const q = (search?.value || "").trim().toLowerCase();
+      cards.forEach((card) => {
+        const okCat = cat === "All" || card.getAttribute("data-tags") === cat;
+        const okText = !q || card.textContent.toLowerCase().includes(q);
+        card.style.display = okCat && okText ? "" : "none";
+      });
+    };
+    chips.forEach((chip) => {
+      const pick = () => {
+        cat = chip.getAttribute("data-cat");
+        chips.forEach((c) => c.classList.toggle("on", c === chip));
+        applyFilter();
+      };
+      chip.addEventListener("click", pick);
+      hoverCleanups.push(() => chip.removeEventListener("click", pick));
+    });
+    if (search) {
+      search.addEventListener("input", applyFilter);
+      hoverCleanups.push(() => search.removeEventListener("input", applyFilter));
+    }
+
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reducedMotion) {
       reveals.forEach((el) => el.setAttribute("data-reveal", "in"));
