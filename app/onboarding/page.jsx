@@ -11,11 +11,12 @@ import AudienceStep from "../../components/onboarding/AudienceStep";
 import EmailStyleStep from "../../components/onboarding/EmailStyleStep";
 import CallStyleStep from "../../components/onboarding/CallStyleStep";
 import LaunchStep from "../../components/onboarding/LaunchStep";
+import PlanStep from "../../components/onboarding/PlanStep";
 import { useAuth } from "../../hooks/useAuth";
 import useBillingCheckout from "../../hooks/useBillingCheckout";
 import { FREE_PLAN, findPlan } from "../../lib/plans";
-import { BILLING_ACCESS_STATUSES, PLAN_PAGE } from "../../lib/billingAccess";
-import { clearPlanChoice, effectivePlanId, needsCheckout, needsPlanChoice, readPlanChoice } from "../../lib/plan-choice";
+import { BILLING_ACCESS_STATUSES } from "../../lib/billingAccess";
+import { clearPlanChoice, effectivePlanId, needsCheckout, needsPlanChoice, readPlanChoice, writePlanChoice } from "../../lib/plan-choice";
 import api from "../../lib/api";
 import { suggestAudience, suggestProductText } from "../../lib/onboarding-suggestions";
 import {
@@ -70,7 +71,7 @@ export default function OnboardingPage() {
     const draft = readDraft(storage());
     if (draft) {
       setD(draft.data);
-      setStep(draft.step === "channel" || stepsFor(draft.data.channels).some(s => s.id === draft.step) ? draft.step : "channel");
+      setStep(draft.step === "channel" || draft.step === "plan" || stepsFor(draft.data.channels).some(s => s.id === draft.step) ? draft.step : "channel");
       setReady(true);
       return;
     }
@@ -98,11 +99,16 @@ export default function OnboardingPage() {
     if (ready) writeDraft(storage(), step, d);
   }, [ready, step, d]);
 
-  // Without access and without a paid plan picked, the plan page comes first.
+  // Plan is the first setup step for anyone not already paying. It opens
+  // first when no plan has been picked yet, or when a link asks for it.
+  const paidAccess = !!organization && organization.plan_id !== FREE_PLAN.id && BILLING_ACCESS_STATUSES.has(organization.subscription_status);
+  const planChecked = useRef(false);
   useEffect(() => {
-    if (authLoading || choice === undefined || !organization) return;
-    if (needsPlanChoice(organization, choice)) router.replace(PLAN_PAGE);
-  }, [authLoading, choice, organization, router]);
+    if (!ready || authLoading || choice === undefined || !organization || planChecked.current) return;
+    planChecked.current = true;
+    const asked = new URLSearchParams(window.location.search).get("step") === "plan";
+    if (!paidAccess && (asked || !choice || needsPlanChoice(organization, choice))) setStep("plan");
+  }, [ready, authLoading, choice, organization, paidAccess]);
 
   // Setup is shaped for the plan that will be used: a paid plan picked on the
   // plan page counts even before checkout. Free has no AI calling, so keep it
@@ -120,6 +126,8 @@ export default function OnboardingPage() {
   }, []);
 
   const steps = stepsFor(d.channels);
+  // The top bar also shows the plan step for anyone choosing a plan.
+  const barSteps = paidAccess ? steps : [{ id: "plan", label: "Plan" }, ...steps];
   const index = steps.findIndex(s => s.id === step);
 
   const go = useCallback(target => {
@@ -140,6 +148,12 @@ export default function OnboardingPage() {
     const following = steps[index + 1];
     if (following) go(following.id);
   }, [step, d, steps, index, go]);
+
+  const pickPlan = picked => {
+    writePlanChoice(storage(), picked);
+    setChoice(picked);
+    go("channel");
+  };
 
   const back = () => {
     if (index <= 0) go("channel");
@@ -240,11 +254,11 @@ export default function OnboardingPage() {
   return (
     <div className="ob" onKeyDown={onKeyDown}>
       {payFirst && <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />}
-      <TopBar steps={step === "channel" ? null : steps} current={step} onJump={go} onSave={saveLater} />
-      {step !== "channel" && step !== "launch" && (
+      <TopBar steps={step === "channel" ? null : barSteps} current={step} onJump={go} onSave={saveLater} />
+      {step !== "channel" && step !== "launch" && step !== "plan" && (
         <div className="path">
           <button type="button" onClick={() => go("channel")}>Setting up: {CHANNEL_LABEL[d.channels]}<span>Change</span></button>
-          {choice && <button type="button" style={{ marginLeft: 8 }} onClick={() => router.push(PLAN_PAGE)}>Plan: {choice.planId === FREE_PLAN.id ? FREE_PLAN.name : findPlan(choice.planId)?.name}<span>Change</span></button>}
+          {choice && <button type="button" style={{ marginLeft: 8 }} onClick={() => go("plan")}>Plan: {choice.planId === FREE_PLAN.id ? FREE_PLAN.name : findPlan(choice.planId)?.name}<span>Change</span></button>}
         </div>
       )}
       {step === "channel" && <ChannelStep d={d} set={set} firstName={d.firstName || user?.first_name} onContinue={next} free={free} />}
@@ -254,7 +268,8 @@ export default function OnboardingPage() {
       {step === "email" && <EmailStyleStep {...props} />}
       {step === "voice" && <CallStyleStep {...props} />}
       {step === "launch" && <LaunchStep d={d} set={set} onJump={go} onBack={back} onLaunch={launch} loading={loading} error={error} free={free}
-        checkout={checkoutPlan ? { plan: checkoutPlan, billingPeriod: choice.billingPeriod } : null} onChangePlan={() => router.push(PLAN_PAGE)} />}
+        checkout={checkoutPlan ? { plan: checkoutPlan, billingPeriod: choice.billingPeriod } : null} onChangePlan={() => go("plan")} />}
+      {step === "plan" && <PlanStep organization={organization} choice={choice} onChoose={pickPlan} />}
     </div>
   );
 }
