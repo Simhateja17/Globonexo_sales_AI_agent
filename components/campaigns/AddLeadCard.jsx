@@ -9,7 +9,7 @@ const EMPTY_LEAD = { firstName: "", lastName: "", title: "", company: "", email:
 
 // Adds one lead by hand straight into this campaign. The server enrolls it and
 // starts its email draft, so the caller only needs to refresh its lead list.
-export default function AddLeadCard({ campaignId, disabled = false, onAdded }) {
+export default function AddLeadCard({ campaignId, disabled = false, hidePhone = false, onAdded }) {
   const [open, setOpen] = useState(false);
   const [lead, setLead] = useState(EMPTY_LEAD);
   const [busy, setBusy] = useState(false);
@@ -49,7 +49,7 @@ export default function AddLeadCard({ campaignId, disabled = false, onAdded }) {
         title: lead.title.trim(),
         company,
         email,
-        phone: lead.phone.trim(),
+        phone: hidePhone ? "" : lead.phone.trim(),
         location: lead.location.trim(),
         linkedinUrl: lead.linkedinUrl.trim(),
       });
@@ -88,7 +88,7 @@ export default function AddLeadCard({ campaignId, disabled = false, onAdded }) {
         <div style={{ marginTop: 14 }}>
           {error ? <div className="note" style={{ marginBottom: 10 }}>{error}</div> : null}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
-            {fields.map(([key, placeholder, max]) => (
+            {fields.filter(([key]) => !(hidePhone && key === "phone")).map(([key, placeholder, max]) => (
               <input key={key} className="input" aria-label={placeholder.replace(" *", "")} placeholder={placeholder} value={lead[key]} onChange={e => set(key, e.target.value)} maxLength={max} style={{ height: 40 }} />
             ))}
           </div>

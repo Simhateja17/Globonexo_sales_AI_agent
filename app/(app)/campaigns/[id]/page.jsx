@@ -601,6 +601,10 @@ export default function CampaignDetailPage() {
   const leadWeightTotal = leadColumnWeights.reduce((sum, column) => sum + column.weight, 0);
   const leadColumns = leadColumnWeights.map(column => ({ header: column.header, width: `${(column.weight / leadWeightTotal * 100).toFixed(2)}%` }));
 
+  const addLeadCard = emailEnabled
+    ? <AddLeadCard campaignId={campaign.id} disabled={!canOperate} hidePhone={voiceEnabled} onAdded={() => { showToast("Lead added to this campaign."); return refreshLeads(); }} />
+    : null;
+
   const campaignTabs = (
     <div className="seg" role="tablist" aria-label="Campaign sections">
       {[...(emailEnabled ? [["emails", "Emails"]] : []), ["leads", "Leads"], ["settings", "Settings"]].map(([key, label]) => (
@@ -712,7 +716,7 @@ export default function CampaignDetailPage() {
             <div className="col" style={{ gap: 16 }}>
               <SenderPicker campaignId={campaign.id} channel={campaign.channel} value={campaign.channel === "email" ? campaign.emailAccountId : campaign.phoneNumberId} disabled={!canOperate} onSaved={id => setCampaign(current => ({ ...current, [current.channel === "email" ? "emailAccountId" : "phoneNumberId"]: id }))} />
               {canAssign && team?.members?.length > 0 && <div className="card" style={{ padding: 14, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}><span style={{ fontSize: 12, fontWeight: 800, color: "var(--muted)" }}>Campaign owner</span><select className="input" aria-label="Campaign assignee" value={campaign.assignedUserId || ""} onChange={handleAssignment} disabled={assignmentBusy} style={{ width: "min(100%, 280px)", height: 34 }}><option value="" disabled>Unassigned</option>{team.members.filter(member => member.membership_status === "active").map(member => <option key={member.id} value={member.id}>{[member.first_name, member.last_name].filter(Boolean).join(" ") || member.email} · {member.role}</option>)}</select>{assignmentBusy && <span className="faint" style={{ fontSize: 12 }}>Saving…</span>}</div>}
-              {emailEnabled && !voiceEnabled && <AddLeadCard campaignId={campaign.id} disabled={!canOperate} onAdded={() => { showToast("Lead added to this campaign."); return refreshLeads(); }} />}
+              {addLeadCard}
               <CampaignSettingsForm campaign={campaign} disabled={!canOperate} onSaved={() => load()} />
             </div>
           )}
@@ -722,6 +726,8 @@ export default function CampaignDetailPage() {
           )}
 
           {activeTab === "leads" && (
+          <div className="col" style={{ gap: 16 }}>
+          {addLeadCard}
           <div className="card" style={{ overflow: "hidden" }} data-tour="campaign-leads">
             <div className="card-h">
               <div>
@@ -760,6 +766,7 @@ export default function CampaignDetailPage() {
                 </div>
               );
             })() : null}
+          </div>
           </div>
           )}
       </div>
