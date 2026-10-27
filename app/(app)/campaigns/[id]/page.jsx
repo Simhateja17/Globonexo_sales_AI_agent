@@ -602,7 +602,7 @@ export default function CampaignDetailPage() {
   const leadColumns = leadColumnWeights.map(column => ({ header: column.header, width: `${(column.weight / leadWeightTotal * 100).toFixed(2)}%` }));
 
   const addLeadCard = emailEnabled
-    ? <AddLeadCard campaignId={campaign.id} disabled={!canOperate} hidePhone={voiceEnabled} onAdded={() => { showToast("Lead added to this campaign."); return refreshLeads(); }} />
+    ? <AddLeadCard campaignId={campaign.id} disabled={!canOperate} hidePhone={voiceEnabled} enrolledIds={leads.map(lead => lead.id)} onAdded={() => { showToast("Lead added to this campaign."); return refreshLeads(); }} />
     : null;
 
   const campaignTabs = (
