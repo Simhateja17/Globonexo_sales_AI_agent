@@ -4,7 +4,7 @@ import api from "../../lib/api";
 import Icon from "../ui/Icon";
 import { Live, Marked, NumberStepper, RuleChips } from "./ui";
 import { CADENCES, EMAIL_RULES, HOOKS, MAX_EMAILS, TONES, TOOLS } from "../../lib/onboarding-data";
-import { buildPreviewRequest, cadenceDays, followUpGaps, hasVoice, sampleEmail, stepsFor, toneSample } from "../../lib/onboarding-flow";
+import { buildPreviewRequest, cadenceDays, followUpGaps, hasVoice, sampleEmail, sampleFollowUp, stepsFor, toneSample } from "../../lib/onboarding-flow";
 
 function OptionCard({ on, custom, onClick, title, children, extra }) {
   return (
@@ -22,6 +22,10 @@ export default function EmailStyleStep({ d, set, footer }) {
   const email = sampleEmail(d);
   const gaps = followUpGaps(d);
   const days = cadenceDays(gaps);
+  // Which email the preview shows: 0 is email 1, then each follow-up.
+  const [shown, setShown] = useState(0);
+  const view = Math.min(shown, days.length - 1);
+  const followUp = view > 0 ? sampleFollowUp(d, view + 1, view === days.length - 1) : null;
   const ruleLabels = EMAIL_RULES.filter(r => d.emailRules.split("\n").map(l => l.trim()).includes(r.line)).map(r => r.label.toLowerCase());
   const ownLines = d.emailRules.split("\n").map(l => l.trim()).filter(l => l && !EMAIL_RULES.some(r => r.line === l));
 
@@ -170,7 +174,33 @@ export default function EmailStyleStep({ d, set, footer }) {
 
       <aside className="side">
         <div className="pv">
-          <div className="pv-h">Email 1, in this style{generated ? <span className="gen-tag"><Icon name="sparkle" size={11} stroke={2.4} />Written by {agent}</span> : <Live />}</div>
+          <div className="pv-h">Email {view + 1} of {days.length}, in this style{view === 0 && generated ? <span className="gen-tag"><Icon name="sparkle" size={11} stroke={2.4} />Written by {agent}</span> : <Live />}</div>
+          <div className="pv-tabs" role="tablist" aria-label="Emails in the sequence">
+            {days.map((day, i) => (
+              <button type="button" role="tab" key={i} aria-selected={view === i} className={view === i ? "on" : ""} onClick={() => setShown(i)}>
+                <b>{i + 1}</b><span>Day {day}</span>
+              </button>
+            ))}
+          </div>
+          {followUp ? (
+            <>
+              <div className="mail-meta"><span>To: <b>{followUp.to}</b></span><span>Subject: <b>{followUp.subject}</b></span></div>
+              <div className="mail">
+                <p>{followUp.greeting}</p>
+                {followUp.body.map((parts, i) => <p key={i}><Marked parts={parts} /></p>)}
+                <p>{followUp.signoff}</p>
+              </div>
+              <div className="pv-f">
+                <span className="hint">
+                  {view === days.length - 1 ? "Last note, offers to step back." : "Follow-up, only sent if there is no reply."} Sent on day {days[view]}, in the same thread. Real follow-ups build on what email 1 said.
+                </span>
+                <span className="acts">
+                  {view < days.length - 1 && <button type="button" className="mini" onClick={() => setShown(view + 1)}>Next email</button>}
+                </span>
+              </div>
+            </>
+          ) : (
+          <>
           <div className="mail-meta"><span>To: <b>{email.to}</b></span><span>Subject: <b>{generated ? generated.subject : email.subject}</b></span></div>
           {generated ? (
             <div className="mail gen">
@@ -198,13 +228,12 @@ export default function EmailStyleStep({ d, set, footer }) {
             </span>
           </div>
           {genError && <div className="stale" role="alert" style={{ background: "#fdf3f2", borderColor: "#f6cfcb", color: "#b42318" }}>{genError}</div>}
-          {days.slice(1).map((day, i) => (
-            <div className="fu" key={i}><i>{i + 2}</i><span>{i === days.length - 2 ? "Last note, offers to step back" : "Follow-up, if no reply"}</span><em>Day {day}</em></div>
-          ))}
+          </>
+          )}
         </div>
         <div className="rules">
           <b>Your rules applied</b>
-          {[`${words} words`, ...ruleLabels, ...(ownLines.length ? [`${ownLines.length} rule${ownLines.length > 1 ? "s" : ""} of your own`] : [])].join(" · ")}
+          {[`${followUp ? followUp.words : words} words`, ...ruleLabels, ...(ownLines.length ? [`${ownLines.length} rule${ownLines.length > 1 ? "s" : ""} of your own`] : [])].join(" · ")}
           {gaps.length + 1 > 3 && <><br />{gaps.length + 1} emails in the sequence.</>}
         </div>
       </aside>
