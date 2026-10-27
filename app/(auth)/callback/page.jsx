@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { postAuthPath, rememberPausedWorkspace } from '../../../lib/billingAccess';
+import { rememberFreeEligibility } from '../../../lib/plan-choice';
 import { AuthFrame } from '../../../components/auth/AuthFrame';
 import { DomainTaken, FreePaused, JoinRequestSent, PersonalGoogle } from '../../../components/auth/FreeRules';
 
@@ -36,6 +37,7 @@ export default function AuthCallbackPage() {
       .post('/auth/google/callback', { accessToken, refreshToken, expiresIn, invitationToken })
       .then((res) => {
         localStorage.setItem('returning_user', '1');
+        rememberFreeEligibility(window.sessionStorage, res.data?.freePlan);
         if (RULE_SCREENS.has(res.data?.freePlan)) {
           setRule({ kind: res.data.freePlan, data: res.data });
           return;
