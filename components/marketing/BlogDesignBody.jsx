@@ -14,11 +14,12 @@ export default function BlogDesignBody({ html, className = "" }) {
 
     const stagger = 70;
     const reveals = Array.from(root.querySelectorAll("[data-reveal]"));
-    const bars = Array.from(root.querySelectorAll("[data-grow],[data-grow-y]"));
+    const bars = Array.from(root.querySelectorAll("[data-grow],[data-grow-y],[data-flex]"));
     const counts = Array.from(root.querySelectorAll("[data-count]"));
     const dots = Array.from(root.querySelectorAll("[data-dot]"));
 
     const grow = (el) => {
+      if (el.hasAttribute("data-flex")) { el.style.flex = el.getAttribute("data-flex"); return; }
       if (el.hasAttribute("data-grow-y")) el.style.height = el.getAttribute("data-h") || "100%";
       else el.style.width = el.getAttribute("data-w") || "100%";
     };
@@ -134,7 +135,7 @@ export default function BlogDesignBody({ html, className = "" }) {
           const el = e.target;
           io.unobserve(el);
           if (el.hasAttribute("data-reveal")) el.setAttribute("data-reveal", "in");
-          if (el.hasAttribute("data-grow") || el.hasAttribute("data-grow-y")) grow(el);
+          if (el.hasAttribute("data-grow") || el.hasAttribute("data-grow-y") || el.hasAttribute("data-flex")) grow(el);
           if (el.hasAttribute("data-dot")) el.setAttribute("data-in", "");
           if (el.hasAttribute("data-count")) countUp(el);
         });
