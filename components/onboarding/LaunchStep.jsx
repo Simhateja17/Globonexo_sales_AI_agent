@@ -25,7 +25,11 @@ function CheckRow({ on, required, onClick, title, tag, children }) {
   );
 }
 
-export default function LaunchStep({ d, set, onJump, onBack, onLaunch, loading, error, free }) {
+/**
+ * `checkout` is set when a paid plan was picked after sign-up and is not paid
+ * yet: { plan, billingPeriod }. Launch then opens checkout first.
+ */
+export default function LaunchStep({ d, set, onJump, onBack, onLaunch, loading, error, free, checkout, onChangePlan }) {
   const email = hasEmail(d.channels);
   const voice = hasVoice(d.channels);
   const both = email && voice;
@@ -138,6 +142,15 @@ export default function LaunchStep({ d, set, onJump, onBack, onLaunch, loading, 
           {next.map((n, i) => <div key={n.t}><i>{i + 1}</i><span><b>{n.t}</b><small>{n.s}</small></span></div>)}
         </div>
 
+        {checkout && (
+          <div className="numrow" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
+            <span><b>{checkout.plan.name} plan · ${checkout.billingPeriod === "annual"
+              ? `${checkout.plan.annualMonthly}/month, $${checkout.plan.annualTotal.toLocaleString("en-US")} billed yearly`
+              : `${checkout.plan.monthly}/month, billed monthly`}.</b> You pay now with Razorpay, then {agent} launches. Cancel any time.</span>
+            <button type="button" className="mini" onClick={onChangePlan}>Change plan</button>
+          </div>
+        )}
+
         <FormError message={error} id="ob-launch-error" />
 
         <div className="foot">
@@ -147,7 +160,7 @@ export default function LaunchStep({ d, set, onJump, onBack, onLaunch, loading, 
               ? <span className="need"><Icon name="alertCircle" size={16} stroke={2} />Confirm calling permission to launch</span>
               : <span className="safe"><Icon name="shieldPlain" size={16} stroke={2} />Nothing goes out yet</span>}
             <button type="button" className={`bt bt-l ${blocked ? "bt-off" : "bt-p"}`} aria-disabled={blocked} disabled={loading} onClick={onLaunch}>
-              <Icon name="bolt" size={18} stroke={2} />{loading ? "Launching…" : `Launch ${agent}`}
+              <Icon name={checkout ? "card" : "bolt"} size={18} stroke={2} />{loading ? (checkout ? "Opening checkout…" : "Launching…") : checkout ? `Pay and launch ${agent}` : `Launch ${agent}`}
             </button>
           </div>
         </div>

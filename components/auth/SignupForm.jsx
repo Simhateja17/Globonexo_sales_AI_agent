@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import { api } from '../../lib/api';
 import { postAuthPath } from '../../lib/billingAccess';
+import { rememberFreeEligibility } from '../../lib/plan-choice';
 import { FREE_PLAN, isPersonalEmail } from '../../lib/free-plan';
 import { cleanText, isValidEmail } from '../../lib/validation';
 import { GoogleButton } from './AuthFrame';
@@ -154,6 +155,7 @@ export function SignupForm() {
       const data = await verifySignup(form.email, otp);
       try { sessionStorage.removeItem(DRAFT_KEY); } catch {}
       localStorage.setItem('returning_user', '1');
+      rememberFreeEligibility(window.sessionStorage, data?.freePlan);
       router.push(postAuthPath(data));
     } catch (err) {
       const status = err.response?.status;

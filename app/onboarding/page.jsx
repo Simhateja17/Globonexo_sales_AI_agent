@@ -1,6 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 import Icon from "../../components/ui/Icon";
 import { FormError, TopBar } from "../../components/onboarding/ui";
 import ChannelStep from "../../components/onboarding/ChannelStep";
@@ -11,7 +12,10 @@ import EmailStyleStep from "../../components/onboarding/EmailStyleStep";
 import CallStyleStep from "../../components/onboarding/CallStyleStep";
 import LaunchStep from "../../components/onboarding/LaunchStep";
 import { useAuth } from "../../hooks/useAuth";
-import { isFreePlan } from "../../lib/free-plan";
+import useBillingCheckout from "../../hooks/useBillingCheckout";
+import { FREE_PLAN, findPlan } from "../../lib/plans";
+import { BILLING_ACCESS_STATUSES, PLAN_PAGE } from "../../lib/billingAccess";
+import { clearPlanChoice, effectivePlanId, needsCheckout, needsPlanChoice, readPlanChoice } from "../../lib/plan-choice";
 import api from "../../lib/api";
 import { suggestAudience, suggestProductText } from "../../lib/onboarding-suggestions";
 import {
@@ -47,7 +51,10 @@ function seedFor(step, d) {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, organization } = useAuth();
+  const { user, organization, loading: authLoading } = useAuth();
+  // The plan picked on the plan page. Paid plans are charged at launch.
+  const [choice, setChoice] = useState(undefined);
+  useEffect(() => { setChoice(readPlanChoice(storage())); }, []);
   const [step, setStep] = useState("channel");
   const [d, setD] = useState(DEFAULTS);
   const [ready, setReady] = useState(false);
@@ -91,9 +98,18 @@ export default function OnboardingPage() {
     if (ready) writeDraft(storage(), step, d);
   }, [ready, step, d]);
 
-  // The Free plan has no AI calling: keep it on email even if a draft or an
-  // earlier setup chose voice.
-  const free = isFreePlan(organization);
+  // Without access and without a paid plan picked, the plan page comes first.
+  useEffect(() => {
+    if (authLoading || choice === undefined || !organization) return;
+    if (needsPlanChoice(organization, choice)) router.replace(PLAN_PAGE);
+  }, [authLoading, choice, organization, router]);
+
+  // Setup is shaped for the plan that will be used: a paid plan picked on the
+  // plan page counts even before checkout. Free has no AI calling, so keep it
+  // on email even if a draft or an earlier setup chose voice.
+  const free = effectivePlanId(organization, choice || null) === FREE_PLAN.id;
+  const payFirst = needsCheckout(organization, choice || null);
+  const checkoutPlan = payFirst ? findPlan(choice.planId) : null;
   useEffect(() => {
     if (ready && free && d.channels !== "email") setD(prev => ({ ...prev, channels: "email" }));
   }, [ready, free, d.channels]);
@@ -132,8 +148,14 @@ export default function OnboardingPage() {
 
   const saveLater = () => {
     writeDraft(storage(), step, d);
-    router.push("/dashboard");
+    // The dashboard needs a plan in place; until checkout, come back via sign-in.
+    router.push(organization && BILLING_ACCESS_STATUSES.has(organization.subscription_status) ? "/dashboard" : "/");
   };
+
+  const { startCheckout } = useBillingCheckout({
+    onToast: message => { if (!/verified/i.test(message)) { setError(message); setLoading(false); } },
+    onVerified: () => submit(true),
+  });
 
   const launch = async () => {
     for (const s of steps) {
@@ -144,6 +166,18 @@ export default function OnboardingPage() {
         return;
       }
     }
+    setLoading(true);
+    setError("");
+    // A paid plan picked after sign-up is charged now, right before the first
+    // launch. Setup is submitted once the payment is verified.
+    if (payFirst && checkoutPlan) {
+      await startCheckout(checkoutPlan.id, choice.billingPeriod);
+      return;
+    }
+    await submit(false);
+  };
+
+  const submit = async paidNow => {
     setLoading(true);
     setError("");
     try {
@@ -158,7 +192,11 @@ export default function OnboardingPage() {
         window.localStorage.setItem(CHANNEL_KEY, d.channels);
       } catch { /* storage is a convenience only */ }
       clearDraft(storage());
-      router.push(`/onboarding/ready?campaignId=${encodeURIComponent(result.campaign.id)}`);
+      clearPlanChoice(storage());
+      const readyUrl = `/onboarding/ready?campaignId=${encodeURIComponent(result.campaign.id)}`;
+      // After paying, reload so the whole app sees the new plan.
+      if (paidNow) window.location.assign(readyUrl);
+      else router.push(readyUrl);
     } catch (err) {
       setLoading(false);
       setError(err?.response?.data?.error || err?.response?.data?.message || "We could not save your setup. Please try again.");
@@ -201,9 +239,13 @@ export default function OnboardingPage() {
   const props = { d, set, footer };
   return (
     <div className="ob" onKeyDown={onKeyDown}>
+      {payFirst && <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />}
       <TopBar steps={step === "channel" ? null : steps} current={step} onJump={go} onSave={saveLater} />
       {step !== "channel" && step !== "launch" && (
-        <div className="path"><button type="button" onClick={() => go("channel")}>Setting up: {CHANNEL_LABEL[d.channels]}<span>Change</span></button></div>
+        <div className="path">
+          <button type="button" onClick={() => go("channel")}>Setting up: {CHANNEL_LABEL[d.channels]}<span>Change</span></button>
+          {choice && <button type="button" style={{ marginLeft: 8 }} onClick={() => router.push(PLAN_PAGE)}>Plan: {choice.planId === FREE_PLAN.id ? FREE_PLAN.name : findPlan(choice.planId)?.name}<span>Change</span></button>}
+        </div>
       )}
       {step === "channel" && <ChannelStep d={d} set={set} firstName={d.firstName || user?.first_name} onContinue={next} free={free} />}
       {step === "profile" && <ProfileStep {...props} fromSignup={fromSignup} />}
@@ -211,7 +253,8 @@ export default function OnboardingPage() {
       {step === "audience" && <AudienceStep {...props} />}
       {step === "email" && <EmailStyleStep {...props} />}
       {step === "voice" && <CallStyleStep {...props} />}
-      {step === "launch" && <LaunchStep d={d} set={set} onJump={go} onBack={back} onLaunch={launch} loading={loading} error={error} free={free} />}
+      {step === "launch" && <LaunchStep d={d} set={set} onJump={go} onBack={back} onLaunch={launch} loading={loading} error={error} free={free}
+        checkout={checkoutPlan ? { plan: checkoutPlan, billingPeriod: choice.billingPeriod } : null} onChangePlan={() => router.push(PLAN_PAGE)} />}
     </div>
   );
 }
